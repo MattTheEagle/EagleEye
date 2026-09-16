@@ -1,0 +1,18 @@
+# DAD-M Workspace-Konfiguration fuer dieses Projekt.
+# Siehe /run/media/matt/Data/matt/.claude/CLAUDE.md, Abschnitt "DAD-M Arbeitsmodus".
+
+framework_root: /run/media/matt/Data/matt/Coding/dadm-main-framework
+profile: standard
+bootstrap: quickstart
+quickstart_defaults: /run/media/matt/Data/matt/.claude/dadm-quickstart-defaults.yaml
+
+bootstrap_overrides:
+  safety_boundaries:
+    live_test_execution_gate: >-
+      Testausfuehrung gegen die reale Forge-Instanz (insbesondere Quench) erfordert
+      vorherige explizite Freigabe durch den Projektleiter, jedes Mal. Keine
+      automatisierte/eigenstaendige Ausfuehrung von Quench-Tests ohne diese Freigabe.
+      Grund: Projektleiter erwaegt, Live-Tests teilweise selbst durchzufuehren, um zu
+      pruefen, ob sich die Funktionen fuer echte Nutzer wie beabsichtigt anfuehlen -
+      das ist noch nicht final entschieden. Vitest (reine Logik ohne Foundry-Kontext)
+      ist von dieser Einschraenkung nicht betroffen.

@@ -1,0 +1,31 @@
+{
+  "version": 1,
+  "generated_at_utc": "2026-09-16T22:03:52.737774+00:00",
+  "repo_root": "/run/media/matt/Data/matt/Coding/FoundryVTT/EagleEye",
+  "summary": {
+    "policies": 0,
+    "skills": 0,
+    "agents": 0,
+    "has_project_config": false
+  },
+  "control_plane": [
+    {
+      "type": "control_plane",
+      "path": "/run/media/matt/Data/matt/Coding/dadm-main-framework/runtime/bios.policy.md",
+      "name": "bios.policy.md",
+      "sha256": "41f2202f8b5e02221555e48b7a987b0c6050cb6a6592c22e9e7d7d26947aa740",
+      "last_scanned_utc": "2026-09-16T15:40:17.851812+00:00"
+    },
+    {
+      "type": "control_plane",
+      "path": "/run/media/matt/Data/matt/Coding/dadm-main-framework/runtime/bios.routing.yaml",
+      "name": "bios.routing.yaml",
+      "sha256": "e9e0e02d0dbf2f89f94027c814fcdf78c86354c4a7d9dfdc362573d7a0246a4e",
+      "last_scanned_utc": "2026-09-16T15:40:17.899812+00:00"
+    }
+  ],
+  "project_config": null,
+  "policies": [],
+  "skills": [],
+  "agents": []
+}

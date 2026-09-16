@@ -1,0 +1,8 @@
+{
+  "extends": "../tsconfig.base.json",
+  "include": [
+    "../core/**/*.ts",
+    "./**/*.ts",
+    "/run/media/matt/Data/matt/Coding/foundry-vtt-reference-v13/types/src/index.d.mts"
+  ]
+}

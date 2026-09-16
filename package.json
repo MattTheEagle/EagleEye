@@ -1,0 +1,19 @@
+{
+  "name": "eagleeye",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "description": "EagleEye - Kommunikationsschnittstelle zwischen eigenen Modulen, Fremdmodulen, Systemen und Foundry VTT (Forschungsprojekt).",
+  "scripts": {
+    "build:v13": "esbuild v13/module.ts --bundle --format=esm --outfile=v13/dist/module.js",
+    "build:v14": "esbuild v14/module.ts --bundle --format=esm --outfile=v14/dist/module.js",
+    "build": "npm run build:v13 && npm run build:v14",
+    "typecheck:v13": "tsc -p v13/tsconfig.json",
+    "typecheck:v14": "tsc -p v14/tsconfig.json",
+    "typecheck": "npm run typecheck:v13 && npm run typecheck:v14"
+  },
+  "devDependencies": {
+    "esbuild": "^0.24.0",
+    "typescript": "^5.6.0"
+  }
+}
