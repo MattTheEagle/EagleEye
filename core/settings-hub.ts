@@ -22,7 +22,14 @@ export interface SettingsRegistrySource {
 }
 
 function defaultSource(): SettingsRegistrySource {
-  return game.settings as unknown as SettingsRegistrySource;
+  // game.settings is the ClientSettings instance; the registry Map lives at
+  // game.settings.settings, not on the instance itself.
+  const clientSettings = game.settings!;
+  return {
+    entries: () => clientSettings.settings.entries() as Iterable<[string, RawSettingConfig]>,
+    get: (namespace, key) => clientSettings.get(namespace as never, key as never),
+    set: (namespace, key, value) => clientSettings.set(namespace as never, key as never, value as never),
+  };
 }
 
 export function listSettings(source: SettingsRegistrySource = defaultSource()): SettingEntry[] {

@@ -50,3 +50,24 @@ describe("updateSetting", () => {
     expect(source.get("eagleeye-dummy-a", "enabled")).toBe(true);
   });
 });
+
+describe("defaultSource (real game.settings shape)", () => {
+  it("adapts game.settings (ClientSettings instance) instead of confusing it with game.settings.settings", () => {
+    const registry = new Map<string, RawSettingConfig>([
+      ["eagleeye-dummy-a.enabled", { namespace: "eagleeye-dummy-a", key: "enabled", scope: "client" }],
+    ]);
+    const fakeClientSettings = {
+      settings: registry,
+      get: vi.fn(() => true),
+      set: vi.fn((_ns: string, _key: string, value: unknown) => Promise.resolve(value)),
+    };
+    vi.stubGlobal("game", { settings: fakeClientSettings });
+
+    const entries = listSettings();
+
+    expect(entries).toHaveLength(1);
+    expect(fakeClientSettings.get).toHaveBeenCalledWith("eagleeye-dummy-a", "enabled");
+
+    vi.unstubAllGlobals();
+  });
+});
