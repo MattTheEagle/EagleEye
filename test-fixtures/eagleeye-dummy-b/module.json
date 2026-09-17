@@ -1,0 +1,9 @@
+{
+  "id": "eagleeye-dummy-b",
+  "title": "EagleEye Dummy Test Module B",
+  "description": "Statisches Test-Fixture fuer M4 (Settings-Hub-Proof). Keine echte Funktionalitaet.",
+  "version": "0.0.1",
+  "authors": [{ "name": "Projektleiter" }],
+  "compatibility": { "minimum": "11" },
+  "scripts": ["module.js"]
+}

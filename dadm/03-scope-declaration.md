@@ -13,6 +13,8 @@ freigegeben werden.
 - `./v14/` — Entry-Point + Modul-Manifest für Foundry VTT v14
 - `./dadm/` — Projekt-Artefakte (Brief, Safety Boundaries, Scope Declaration,
   Milestone Plan, Approvals, Human-Decision-Records, BIOS-Registry)
+- `./test-fixtures/` — statische Dummy-Module für Milestone-Proofs (kein Build,
+  keine echte Funktionalität), seit M4
 - Projekt-Root-Konfigurationsdateien (z. B. `package.json`, `tsconfig.json`,
   Build-Config, `.gitignore`, `README.md`) im Wurzelverzeichnis von EagleEye
 
