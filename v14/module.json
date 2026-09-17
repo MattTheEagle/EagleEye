@@ -4,6 +4,6 @@
   "description": "Kommunikationsschnittstelle zwischen eigenen Modulen, Fremdmodulen, Systemen und Foundry VTT (Forschungsprojekt). Minimaler M1-Testbuild.",
   "version": "0.0.1",
   "authors": [{ "name": "Projektleiter" }],
-  "compatibility": { "minimum": "14" },
+  "compatibility": { "minimum": "14", "verified": "14" },
   "esmodules": ["dist/module.js"]
 }

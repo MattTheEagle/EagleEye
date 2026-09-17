@@ -2,7 +2,7 @@
 artifact: deploy-output
 milestone: M1
 phase: DEPLOY
-status: incomplete
+status: complete
 date: 2026-09-17
 ```
 
@@ -47,25 +47,37 @@ date: 2026-09-17
   Version)
 - `npm run typecheck` — keine Ausgabe = keine Typfehler, beide Versionen
 - `node --version` → `v24.21.0`, `npm --version` → `12.0.2`
-- **Ausstehend:** Forge-Ladetest v13/v14 — manuell durch Projektleiter,
-  Terminal-/Konsolen-Beleg folgt (siehe Discover Q2)
+- v13-Forge-Ladetest (Projektleiter, manuell hochgeladen, reale Welt mit D&D5e-
+  System + mehreren Fremdmodulen, u. a. libWrapper): Konsolen-Log zeigt
+  `module.js:4 eagleeye | ready (Foundry v13)` ohne zugehörige Fehler. Der einzige
+  Konsolenfehler (404 für ein `beyond20`-Icon) gehört zu einem fremden Modul, nicht
+  zu EagleEye.
+- v14-Forge-Ladetest (Projektleiter, manuell hochgeladen, reale Welt mit D&D5e-
+  System): Konsolen-Log zeigt `module.js:4 eagleeye | ready (Foundry v14)` ohne
+  zugehörige Fehler. Die beiden im Log sichtbaren `Error:`-Einträge stammen aus
+  Forges eigenem Bundle (`ForgeVTTFilePicker.mjs`/`ForgeCompatibility.mjs`, Meldung
+  zur `FilePicker`-Namespace-Migration in v13→v15) — nicht von EagleEye verursacht.
 
 ## Acceptance Checklist
 - [x] AC-M1-01: Node 24.x installiert
 - [x] AC-M1-02: `npm run build:v13` fehlerfrei
 - [x] AC-M1-03: `npm run build:v14` fehlerfrei
-- [ ] AC-M1-04: v13-Modul lädt fehlerfrei auf Forge (Projektleiter-Beleg ausstehend)
-- [ ] AC-M1-05: v14-Modul lädt fehlerfrei auf Forge (Projektleiter-Beleg ausstehend)
+- [x] AC-M1-04: v13-Modul lädt fehlerfrei auf Forge (Beleg: Konsolen-Log, s. o.)
+- [x] AC-M1-05: v14-Modul lädt fehlerfrei auf Forge (Beleg: Konsolen-Log, s. o.)
 - [x] AC-M1-06: Git-Repo initialisiert mit initialem Commit
+
+Alle M1-Acceptance-Criteria erfüllt.
 
 ## Risks and Assumptions
 | # | Description | Severity | Blocking |
 |---|---|---|---|
 | R1 | esbuild-Postinstall mit `npm install-scripts approve` freigegeben (lädt offizielles Plattform-Binary von esbuild) | info | no |
-| R2 | `compatibility.verified` in beiden Manifesten noch nicht final gesetzt (siehe Apply T2) — folgt nach Forge-Ladetest | low | no |
+| R2 | Forges eigenes Bundle wirft `FilePicker`-Deprecation-Warnings (Fremdcode, nicht EagleEye) — nur als Umgebungsrauschen vermerkt, keine Aktion nötig | info | no |
+
+## Open TBDs (aus Apply übernommen, jetzt aufgelöst)
+- T1 (Node-Installationsmethode): **resolved** — `nodejs-lts-krypton` via pacman
+- T2 (`compatibility.verified` final setzen): **resolved** — auf `"13"` bzw. `"14"`
+  gesetzt nach erfolgreichem Ladetest (siehe `v13/module.json`, `v14/module.json`)
 
 ## Next Step
-Projektleiter lädt `v13/` (Inhalt: `module.json` + `dist/module.js`) und `v14/`
-(analog) manuell auf die Forge-Instanz hoch und bestätigt hier mit Terminal-/
-Konsolen-Beleg, ob beide fehlerfrei laden (AC-M1-04, AC-M1-05). Danach wird dieses
-Deploy-Output geschlossen und M1 geht in Monitor.
+Deploy für M1 ist geschlossen. Weiter mit Monitor für M1.
