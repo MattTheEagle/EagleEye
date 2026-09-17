@@ -13,10 +13,17 @@ EagleEye
 - Foundry VTT selbst
 
 Primärer, konkreter Treiber ist die saubere Unterstützung eigener **DnD 5e**-Module.
-Multi-System-Anbindung (Übersetzer-Funktion) ist erwünscht, aber sekundär — bei
-Zielkonflikt hat eine saubere DnD5e-Umsetzung immer Vorrang. EagleEye selbst bleibt
-dabei system-agnostisch aufgebaut (siehe Non-Goals); nur die Priorisierung bei
-Konflikten ist fixiert (siehe M7 in der Milestone Plan).
+EagleEye selbst bleibt dabei system-agnostisch aufgebaut (siehe Non-Goals).
+
+**Update nach M7 (2026-09-17):** Die Multi-System-Übersetzer-Funktion wurde nach
+Machbarkeitsstudie gestrichen (siehe `dadm/m7-02-apply-output.md`) — kein
+generisches Datenschema über Foundry-Systeme hinweg, reales Präzedenzbeispiel
+("Actor Export") bestätigt, dass selbst der einfachere Export-Fall nur über
+handgeschriebene Pro-System-Provider lösbar ist. Als Nice-to-have für mögliche
+zukünftige, dediziert darauf ausgerichtete Projekte vorgemerkt, nicht Teil von
+EagleEye. Der DnD5e-Fokus sowie die übrigen Funktionen (Kompatibilitäts-
+erkennung, Settings-Hub, Konflikt-Erkennung, Spracherkennung) sind davon
+unberührt.
 
 ## Funktionen
 - Zentrale Bündelung aller Einstellungen zukünftiger eigener Module an einer Stelle
