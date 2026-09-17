@@ -10,13 +10,16 @@
     "build": "npm run build:v13 && npm run build:v14",
     "typecheck:v13": "tsc -p v13/tsconfig.json",
     "typecheck:v14": "tsc -p v14/tsconfig.json",
-    "typecheck": "npm run typecheck:v13 && npm run typecheck:v14"
+    "typecheck": "npm run typecheck:v13 && npm run typecheck:v14",
+    "test": "vitest run"
   },
   "devDependencies": {
     "esbuild": "^0.24.0",
-    "typescript": "^5.6.0"
+    "typescript": "^5.6.0",
+    "vitest": "^2.1.0"
   },
   "allowScripts": {
-    "esbuild@0.24.2": true
+    "esbuild@0.24.2": true,
+    "esbuild@0.21.5": true
   }
 }
