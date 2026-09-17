@@ -50,6 +50,20 @@ noch nicht final entschieden.
 
 Vitest (reine Logik ohne Foundry-Kontext) ist von dieser Einschränkung nicht betroffen.
 
+## Projektspezifischer Override: Ausgehendes Publizieren
+**status: overridden** (ergänzt in M2, ursprünglich nicht von den Defaults erfasst)
+
+Öffentliches Publizieren von Projektinhalten ist erlaubt, seit M2 (Forge-
+Deployment-Entscheidung) explizit freigegeben. Aktuell freigegeben: das
+öffentliche Repository [github.com/MattTheEagle/EagleEye](https://github.com/MattTheEagle/EagleEye)
+inkl. Releases, ausschließlich für den in M2 vereinbarten Hybrid-Workflow (Import
+Wizard bleibt Standardweg für laufende Iterationen, GitHub+Manifest-URL nur für
+echte Meilenstein-Abschlüsse).
+
+Grund: Forschungs-/Alpha-Phase, ein öffentliches Repo wurde dafür als unkritisch
+eingestuft. Neue/zusätzliche öffentliche Ziele außerhalb dieses einen Repos
+bleiben freigabepflichtig.
+
 ## Eingriffstiefe (projektspezifisches Prinzip, kein Safety-Boundary-Verbot)
 Tiefe Eingriffe in Foundry/fremde Module (z. B. via `libWrapper`) sind grundsätzlich
 erlaubt (Forge-Cloud-Instanz, keine geteilte Produktivumgebung mit Dritten). Es gilt

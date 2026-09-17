@@ -16,3 +16,13 @@ bootstrap_overrides:
       pruefen, ob sich die Funktionen fuer echte Nutzer wie beabsichtigt anfuehlen -
       das ist noch nicht final entschieden. Vitest (reine Logik ohne Foundry-Kontext)
       ist von dieser Einschraenkung nicht betroffen.
+    outbound_publishing: >-
+      Oeffentliches Publizieren von Projektinhalten (z. B. GitHub-Repo/-Releases)
+      ist erlaubt, seit M2 (Forge-Deployment-Entscheidung) explizit vom
+      Projektleiter freigegeben. Aktuell freigegeben: das oeffentliche Repository
+      github.com/MattTheEagle/EagleEye inkl. Releases, ausschliesslich fuer den in
+      M2 vereinbarten Hybrid-Workflow (GitHub+Manifest-URL nur fuer echte
+      Meilenstein-Abschluesse, Import Wizard bleibt Standardweg fuer laufende
+      Iterationen). Grund: Projekt befindet sich in Forschungs-/Alpha-Phase, ein
+      oeffentliches Repo wurde dafuer als unkritisch eingestuft. Neue/zusaetzliche
+      oeffentliche Ziele ausserhalb dieses einen Repos bleiben freigabepflichtig.
