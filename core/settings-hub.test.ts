@@ -11,6 +11,7 @@ function makeSource(configs: RawSettingConfig[], values: Record<string, unknown>
       store.set(`${namespace}.${key}`, value);
       return Promise.resolve(value);
     }),
+    localize: (stringId: string) => stringId,
   };
 }
 
@@ -61,7 +62,8 @@ describe("defaultSource (real game.settings shape)", () => {
       get: vi.fn(() => true),
       set: vi.fn((_ns: string, _key: string, value: unknown) => Promise.resolve(value)),
     };
-    vi.stubGlobal("game", { settings: fakeClientSettings });
+    const fakeI18n = { localize: (stringId: string) => stringId };
+    vi.stubGlobal("game", { settings: fakeClientSettings, i18n: fakeI18n });
 
     const entries = listSettings();
 

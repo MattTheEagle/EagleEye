@@ -22,18 +22,21 @@ function renderRow(entry: SettingEntry): string {
 export class HubApplication extends ApplicationV2 {
   static override DEFAULT_OPTIONS = {
     id: "eagleeye-hub",
-    window: { title: "EagleEye Hub" },
+    window: { title: "EagleEye Hub", resizable: true },
+    position: { width: 700, height: 600 },
   };
 
   protected override async _renderHTML(): Promise<string> {
     const rows = listSettings().map(renderRow).join("");
     return `
-      <table class="eagleeye-hub-table">
-        <thead>
-          <tr><th>Namespace.Key</th><th>Name</th><th>Scope</th><th>Value</th></tr>
-        </thead>
-        <tbody>${rows}</tbody>
-      </table>
+      <div style="max-height: 100%; height: 100%; overflow-y: auto;">
+        <table class="eagleeye-hub-table">
+          <thead>
+            <tr><th>Namespace.Key</th><th>Name</th><th>Scope</th><th>Value</th></tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>
     `;
   }
 
