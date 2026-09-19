@@ -2,15 +2,15 @@
 
 > **Namen:** Dieses Dokument verwendet die echten Modulnamen: Eagle Flight Control (ehemals Eagle Eye), Eagle Library (ehemals Eagle Eyrie), Eagle Character Edit (ehemals Eagle Egg), Eagle Homebrew (ehemals Eagle Beak), Eagle Journal (ehemals Eagle Talon), Eagle Ruling (ehemals Eagle Prey), Eagle Roll Out (ehemals Eagle Wings).
 
-status: bestätigt vom Projektleiter am 2026-09-19 (Milestone-Acceptance von M15, siehe `dadm/m15-06-human-decision-output.md`)
+status: bestätigt vom Projektleiter am 2026-09-19 (Milestone-Acceptance von M15, siehe `dadm/archive/planning-phase-3/m15-06-human-decision-output.md`)
 retention: durable
 Stand: 2026-09-19
 
 Dieses Dokument ist die technische Fassung des Projektplans. Es ersetzt den Stand der Planungsphase 2
 (dessen Milestone-Outputs liegen unter `dadm/archive/planning-phase-2/`, der frühere Text im Git-Verlauf).
 Die für Leser ohne Vorwissen geschriebene Fassung ist `EAGLE-MODULES-PLAN.md`. Belege stehen in den
-Milestone-Outputs (`dadm/m<N>-0<Phase>-*-output.md`) und im Ergebnisdokument
-`dadm/spezifikationsabgleich.md`; Quellenverweise (Datei:Zeile) dort und in den Discover-Outputs.
+Milestone-Outputs (`dadm/archive/planning-phase-3/m<N>-0<Phase>-*-output.md`) und im Ergebnisdokument
+`dadm/archive/planning-phase-3/spezifikationsabgleich.md`; Quellenverweise (Datei:Zeile) dort und in den Discover-Outputs.
 
 Die Milestone-Nummern in diesem Dokument (M1–M15, M8a) sind die der Planungsphase 3.
 
@@ -19,12 +19,12 @@ Die Milestone-Nummern in diesem Dokument (M1–M15, M8a) sind die der Planungsph
 ## 1. Rahmen
 
 Quelle der Spezifikation: PDF "Eagle Modules - Aufbau" (wortgetreu in `dadm/reference/eagle-modules-aufbau.md`), Entscheidungen E1–E8
-(`dadm/01-project-brief.md`), Antworten Q0–Q15 (`dadm/m4-05-human-decision-output.md`) und N1–N9 (`dadm/m8-05-human-decision-output.md`).
+(`dadm/archive/planning-phase-3/01-project-brief.md`), Antworten Q0–Q15 (`dadm/archive/planning-phase-3/m4-05-human-decision-output.md`) und N1–N9 (`dadm/archive/planning-phase-3/m8-05-human-decision-output.md`).
 
 | Entscheidung | Inhalt |
 |---|---|
 | E1 | Nur Foundry v13 (v14 gestrichen und aus der Codebasis entfernt, M1); DnD-5e-Linie zu Foundry 13 (dnd5e 5.x) |
-| E2 | Eagle Ruling neben Custom D&D 5e, nicht darauf aufbauend |
+| E2 | Eagle Ruling unabhängig von Custom D&D 5e, nicht darauf aufbauend. Klarstellung (2026-09-19): Beide gleichzeitig zu aktivieren ist möglich, aber nicht das Ziel von Eagle Ruling; ein reibungsloses Zusammenspiel wird nicht zugesagt |
 | E3 | Eigene Lösung statt Fremdmodul für Bedingungen wie "nur gegen Typ X" |
 | E4 | Vorerst keine Lizenz (Hobbyprojekt) |
 | E5 | Umbenennung nur in Dokumenten (Modul-ID `eagleeye`, Manifest, Repo unverändert) |
@@ -34,7 +34,7 @@ Quelle der Spezifikation: PDF "Eagle Modules - Aufbau" (wortgetreu in `dadm/refe
 | Q3 a | Alle Foundry-**Änderungen** über Flight Control; Lesen direkt (N9); Editor-Logik bleibt in den Modulen (N4) |
 | Q2 a | Verträglichkeit mit verbreiteten Fremdmodulen bleibt ein Ziel (durch Bauweise) |
 | N1, N3 | Nutzungsrechte je Modul und Nutzer später in den Moduleinstellungen; Klartext Englisch |
-| N10–N20 | Antworten vom 2026-09-19 (`dadm/m15-05-human-decision-output.md`): Herkunft auf der Quelle, Abhängigkeiten mitkopieren, Unterart-Marker, Besitzer = Ersteller und fortsetzbare Charaktere, Homebrew S1 mit Library-Eintrag bei "Edit with" und "Name (Duplicate)", `rulesVersion` der Welt, Journal-Einstiege ersetzen und alle Einträge einordnen, UI-Weg O1, **libWrapper als Abhängigkeit freigegeben**, Roll Out Eigenbau ohne dauerhafte Ausschlüsse |
+| N10–N20 | Antworten vom 2026-09-19 (`dadm/archive/planning-phase-3/m15-05-human-decision-output.md`): Herkunft auf der Quelle, Abhängigkeiten mitkopieren, Unterart-Marker, Besitzer = Ersteller und fortsetzbare Charaktere, Homebrew S1 mit Library-Eintrag bei "Edit with" und "Name (Duplicate)", `rulesVersion` der Welt, Journal-Einstiege ersetzen und alle Einträge einordnen, UI-Weg O1, **libWrapper als Abhängigkeit freigegeben**, Roll Out Eigenbau ohne dauerhafte Ausschlüsse |
 
 ---
 
@@ -56,7 +56,7 @@ Quelle der Spezifikation: PDF "Eagle Modules - Aufbau" (wortgetreu in `dadm/refe
 ## 3. Module im Detail
 
 ### 3.1 Eagle Flight Control (M5, M9-Anteile)
-Spezifikation: P-FC1 bis P-FC8. Belege: `dadm/m5-0*-output.md`.
+Spezifikation: P-FC1 bis P-FC8. Belege: `dadm/archive/planning-phase-3/m5-0*-output.md`.
 
 - **Hub und Registerkarten:** `ApplicationV2` hat eingebaute Tabs; der Phase-1-Hub ist bereits eine `ApplicationV2` (bisher Tabelle). Erkennung der Eagle Module über einen Manifest-`flags`-Eintrag plus Anmeldung per API;
   seit N2 werden inaktive Module ausgeblendet, damit genügt die API-Anmeldung. Start = Oberfläche öffnen (Q15 a).
@@ -68,7 +68,7 @@ Spezifikation: P-FC1 bis P-FC8. Belege: `dadm/m5-0*-output.md`.
 - Architekturrisiko: Q3 a und "kein Mega-Modul" sind vereinbar, solange Flight Control schmal und generisch bleibt (N4).
 
 ### 3.2 Eagle Library (M7, M8, M8a)
-Spezifikation: P-L1 bis P-L10. Belege: `dadm/m7-0*`, `m8-0*`, `m8a-0*`.
+Spezifikation: P-L1 bis P-L10. Belege: `dadm/archive/planning-phase-3/m7-0*`, `m8-0*`, `m8a-0*`.
 
 - **Compendien:** `CompendiumCollection.createCompendium`, nur als **Welt-Compendium** durch den GM; jede Welt hat ihre Library. "Art" = Dokumenttyp, bei Items dnd5e-Untertyp (Konvention der Library); Eagle Compendien erkennbar an Name/Label oder gespeicherter Liste.
 - **2014/2024:** `system.source.rules` bei Items, NPC, Vehicle; nicht bei Charakter-, Gruppen-, Encounter-Actors und Journalen. Fallstrick: Anfangswert folgt der Welteinstellung `rulesVersion`, der Index liefert den gespeicherten Wert.
@@ -84,7 +84,7 @@ Spezifikation: P-L1 bis P-L10. Belege: `dadm/m7-0*`, `m8-0*`, `m8a-0*`.
   Randfall Legacy-Flag `flags.dnd5e.sourceId` bei manuell gezogenen Items: Character Edit setzt es beim Hinzufügen auf die Library-Kopie, N10b). Abhängigkeiten werden automatisch mitkopiert (Bestand kann stark wachsen; nicht auflösbare Verweise werden gemeldet). Unterarten über einen Marker der Library, der automatisch beim Kopieren entsteht und von Hand gesetzt oder entfernt werden kann (N21).
 
 ### 3.3 Eagle Character Edit (M9)
-Spezifikation: P-CE1 bis P-CE6. Belege: `dadm/m9-0*`.
+Spezifikation: P-CE1 bis P-CE6. Belege: `dadm/archive/planning-phase-3/m9-0*`.
 
 - **Start:** Hub nur für neue Charaktere (Anlegen über Flight Control), Charakterblatt über `getHeaderControls…` (nur Typ `character`); bestehende Charaktere einlesen, nicht aus der Library stammende Items als "extern" erhalten.
 - **Live-Abgleich:** Das Blatt aktualisiert sich selbst. Der dnd5e-`AdvancementManager` arbeitet auf einem Klon und schreibt je Vorgang einmal ("live" = nach jedem abgeschlossenen Vorgang); empfohlen: Manager als Dialog über dem Editor.
@@ -93,7 +93,7 @@ Spezifikation: P-CE1 bis P-CE6. Belege: `dadm/m9-0*`.
 - **Entschieden (N13):** Besitzer ist der Ersteller; ein unfertiger Charakter bleibt bestehen und wird über das Blatt im Editor fortgesetzt (P-CE4). Unterarten über den Marker der Library (N12).
 
 ### 3.4 Eagle Homebrew (M10, M6)
-Spezifikation: P-HB1 bis P-HB6. Belege: `dadm/m10-0*`, `m6-0*`.
+Spezifikation: P-HB1 bis P-HB6. Belege: `dadm/archive/planning-phase-3/m10-0*`, `m6-0*`.
 
 - **Objektarten:** einfach (Loot, Tool, Weapon, Equipment, Consumable, Container), mittel (Feature, Spell, Species, Background, Rolltabelle), hoch (Class, Subclass, Facility, NPC), Sonderfälle (Encounter, Group, Vehicle). "Item" ist die Foundry-Hauptgruppe, kein Untertyp; Player Character entfällt in Homebrew (Character Edit); 18 Objektarten (N15).
 - **Ablauf:** Objekt sofort angelegt (Q9), zugleich als Welt-Dokument und Library-Eintrag; Live-Bearbeitung mit Debounce; feldgenaue Validierung über `DataModel#validate`; "Edit with" in Blatt-Kopfzeile und Verzeichnis-Kontextmenü (Q10 c), Restdaten bleiben erhalten.
@@ -102,32 +102,32 @@ Spezifikation: P-HB1 bis P-HB6. Belege: `dadm/m10-0*`, `m6-0*`.
 - Freitext-Import zurückgestellt (Q8 c); das Phase-2-Ergebnis (verlässlich nur für templatierte Eingaben) bleibt Referenz.
 
 ### 3.5 Eagle Journal (M11)
-Spezifikation: P-J1, P-J2. Belege: `dadm/m11-0*`.
+Spezifikation: P-J1, P-J2. Belege: `dadm/archive/planning-phase-3/m11-0*`.
 
 - Journal-Blatt (`JournalEntrySheet`) und -Verzeichnis (`JournalDirectory`) sind `ApplicationV2`; Hooks `render…`, `getHeaderControls…`, `get…ContextOptions` für "Open in Eagle Journal" und "Create Eagle Journal Note" (= neuer Eintrag im Vault, Q12 a).
   Exakte Hook-Namen und Selektoren gegen das laufende Foundry bestätigen (Quelltext lokal nicht vorhanden).
-- **Entschieden (N17):** Jeder Journal-Einstieg bekommt einen Eagle-Journal-Einstieg; Eagle Journal soll die normalen Einstiege ersetzen; alle neuen Einträge werden eingeordnet. Geprüft (`dadm/m15-05-human-decision-output.md`): Öffnen über `DocumentSheetConfig.registerSheet` (`makeDefault`)
+- **Entschieden (N17):** Jeder Journal-Einstieg bekommt einen Eagle-Journal-Einstieg; Eagle Journal soll die normalen Einstiege ersetzen; alle neuen Einträge werden eingeordnet. Geprüft (`dadm/archive/planning-phase-3/m15-05-human-decision-output.md`): Öffnen über `DocumentSheetConfig.registerSheet` (`makeDefault`)
   oder je Eintrag über libWrapper auf `_getSheetClass`; Erstellen über libWrapper auf `JournalEntry.createDialog` und Verzeichnis-Hooks; `preCreateJournalEntry` erfasst jeden Erstellweg. dnd5e-Seitenblätter (Klasse, Regel, Zauberliste, Karte) müssen in einem ersetzenden Blatt darstellbar sein;
   Massenimporte behalten ihre Ordnerstruktur in einem Unterordner des Vaults; Compendium- und Systeminhalte werden nicht ersetzt (N22).
 - Rechte: `JOURNAL_CREATE` Standard Trusted; Spieler-Vault braucht GM-Anfrageweg oder Rechtefreigabe (N1). Ordner ohne Berechtigung, Privatheit über Einträge. Automatische Ablage über `preCreateJournalEntry`, Geltungsbereich N17.
 - Phase-2-Ergebnis gilt weiter (native `@UUID`-Verlinkung, Tags über `flags`); Restrisiko: Rechtsklick-Menü im ProseMirror-Editor nicht verifiziert.
 
 ### 3.6 Eagle Ruling (M13)
-Spezifikation: P-R1, P-R2. Belege: `dadm/m13-0*`.
+Spezifikation: P-R1, P-R2. Belege: `dadm/archive/planning-phase-3/m13-0*`.
 
-- Korrektur: Custom D&D 5e Releases 2.0 bis 4.1.2 laufen auf Foundry 13 mit dnd5e 5.x; Koexistenz ist real. Neubewertung: Ebene 1 (170 Regelbegriffe) und 2 (45 Einstellungen, etwa 25 regelrelevant) machbar/niedrig;
+- Korrektur: Custom D&D 5e Releases 2.0 bis 4.1.2 laufen auf Foundry 13 mit dnd5e 5.x; gleichzeitiger Betrieb ist technisch möglich, aber nicht das Ziel von Eagle Ruling (Klarstellung, E2). Neubewertung: Ebene 1 (170 Regelbegriffe) und 2 (45 Einstellungen, etwa 25 regelrelevant) machbar/niedrig;
   Ebene 3 geteilt: 3a `CONFIG.DND5E` (134 Bereiche) niedrig-mittel, 3b Hooks mittel, 3c Wrapper hoch (mit dem freigegebenen libWrapper machbar, N19), 3d neue Regeln aus fester Bausteinliste. Bauweise für Verträglichkeit: einzelne Schlüssel einfügen, Hooks vor Wrappern.
 - Lizenz: von Custom D&D 5e nur Muster, kein Code.
 
 ### 3.7 Eagle Roll Out (M14, Vorab-Plan)
-Belege: `dadm/m14-0*`.
+Belege: `dadm/archive/planning-phase-3/m14-0*`.
 
 - 15 Bereiche; 12 als Eigenbau mit offiziellen Hooks planbar; Reaktionen, Makro-Ebene, Undo nicht empfohlen. dnd5e nativ: Konzentration, Schadensberechnung je Ziel, Anfrage-Nachrichten, Aufladung, Beschwörung. Fehlt nativ: automatisches Anwenden, Auren, Token-Effekte, Over-Time.
 - Wege nach Q13 c: P-E1 (nur Hooks), P-E2 (mit libWrapper), P-A1 (auf Midi-QOL), P-A2 (Koordinator, Spannung zu Q1 a). **Entschieden (N20, N19):** P-E2, Eigenbau, für tiefe Bereiche mit libWrapper; nichts dauerhaft ausgeschlossen, Ziel ist die höchstmögliche Automationsstufe, der Grad wird später in den Einstellungen von Roll Out gewählt.
   Ausbaupfad Stufen 0–5, danach Reaktionen, Makro-Ebene und Undo als späte Stufen; Ruling besitzt Regeldefinition, Roll Out die Ausführung.
 
 ### 3.8 Einheitliche UI (M12)
-Belege: `dadm/m12-0*`. Bausteine in v13: `ApplicationV2`, `HandlebarsApplicationMixin`, Tabs, `CategoryBrowser`, Formularelemente und -Helfer, `DialogV2`, `ContextMenu`, `DragDrop`; Hell/Dunkel folgt automatisch, solange keine eigenen Farben gesetzt werden.
+Belege: `dadm/archive/planning-phase-3/m12-0*`. Bausteine in v13: `ApplicationV2`, `HandlebarsApplicationMixin`, Tabs, `CategoryBrowser`, Formularelemente und -Helfer, `DialogV2`, `ContextMenu`, `DragDrop`; Hell/Dunkel folgt automatisch, solange keine eigenen Farben gesetzt werden.
 **Entschieden (N18):** O1, nur Foundry-Bausteine plus schriftlicher Leitfaden (verworfen bzw. vorerst nicht gewählt: O2 geteilte Basis über Flight Control, O3 UI-Bibliotheksmodul, O4 geteilter Quellcode zur Bauzeit). Nicht verifiziert: CSS-Schichten für Modul-Stile, Klassenstabilität, Fenster-Module.
 
 ---
@@ -168,12 +168,12 @@ Eagle Flight Control (Hub, Anfragekanal, alle Änderungen an Foundry-Daten)
 Siehe Abschnitt 2. Größte Einzelrisiken: (1) Schnittstellenstabilität zwischen sieben getrennt veröffentlichten Modulen, (2) Umschreiben aller Verweise in der Library, (3) Umfang der Homebrew-Editoren,
 (4) Regeln nur im Fließtext (Zauber-Tab), (5) Roll Out insgesamt.
 
-## 8. Nur im Live-System prüfbar (braucht Freigabe des Projektleiters)
-Ladereihenfolge und deaktivierte Abhängigkeit; Menge beim Kopieren; Advancement-Dialog aus eigenem Fenster; häufige Update-Hooks bei Live-Bearbeitung; Hook-Namen der Verzeichnisse; CSS-Schichten und Fenster-Module; Zusammenspiel mit Custom D&D 5e;
+## 8. Nur im Live-System prüfbar (der Projektleiter gibt Tests einzeln und nach Bedarf frei)
+Ladereihenfolge und deaktivierte Abhängigkeit; Menge beim Kopieren; Advancement-Dialog aus eigenem Fenster; häufige Update-Hooks bei Live-Bearbeitung; Hook-Namen der Verzeichnisse; CSS-Schichten und Fenster-Module; Überschneidungen mit Custom D&D 5e bei gleichzeitigem Betrieb (kein Ziel);
 `properties`-Einträge und Hook-Ergänzung in Weg C; `toCompendium` bei eingebetteten Dokumenten; `keepId` in großer Menge.
 
 ## 9. Offene Fragen an den Projektleiter
-**Keine.** N1–N22 sind beantwortet (`dadm/m8-05-human-decision-output.md`, `dadm/m15-05-human-decision-output.md`, `dadm/m15-06-human-decision-output.md`); die Auslegungen zu "Item" und zu N20 sind bestätigt.
+**Keine.** N1–N22 sind beantwortet (`dadm/archive/planning-phase-3/m8-05-human-decision-output.md`, `dadm/archive/planning-phase-3/m15-05-human-decision-output.md`, `dadm/archive/planning-phase-3/m15-06-human-decision-output.md`); die Auslegungen zu "Item" und zu N20 sind bestätigt.
 
 ## 10. Korrekturen aus dieser Phase
 - Custom D&D 5e und weitere Module haben Releases für Foundry 13 (Tabelle in `dadm/reference/source-analysis/README.md`, Abschnitt 4); die frühere Aussage "verlangt Foundry 14" galt nur für die neuesten Releases.

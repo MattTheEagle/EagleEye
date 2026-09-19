@@ -10,9 +10,10 @@ Entwickelt gegen Foundry v13 (siehe `v13/`), mit gemeinsamer Logik unter
 `core/`. Foundry v14 wird vorerst nicht weiterverfolgt und ist aus der
 Codebasis entfernt; der Stand liegt im Git-Verlauf.
 
-Projekt-Prozess (DAD-M) und alle Entscheidungs-/Planungsartefakte: siehe `dadm/`.
-Research Phase 1 (M1–M7) ist abgeschlossen und archiviert unter
-`dadm/archive/research-phase-1/` (Kurzfassung: `SUMMARY.md` darin).
+Projekt-Prozess (DAD-M) und alle Entscheidungs-/Planungsartefakte: siehe `dadm/`
+(Stand: keine Phase aktiv; drei abgeschlossene Phasen liegen unter `dadm/archive/`, die
+bestätigten Projektpläne unter `dadm/eagle-modules-projektplan.md` und
+[`EAGLE-MODULES-PLAN.md`](./EAGLE-MODULES-PLAN.md)).
 
 Die größere Vision ("Eagle Modules" — Eagle Flight Control (ehemals Eagle Eye) als Kernmodul plus sechs
 weitere, aufeinander abgestimmte Module) samt Machbarkeitsprüfung je Modul:

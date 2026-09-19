@@ -56,7 +56,7 @@ statt ein großes "Mega-Modul" zu bauen.
 | **Eagle Character Edit** | Einfacher Editor zum Erstellen und Bearbeiten von Spielercharakteren |
 | **Eagle Homebrew** | Editor zum Erstellen und Bearbeiten von Homebrew-Inhalten (Actors, Gegenstände, Zufallstabellen) |
 | **Eagle Journal** | Obsidian-artige, verknüpfbare Notizen- und Journal-Verwaltung |
-| **Eagle Ruling** | Nachschlagewerk und Anpassung von Spielregeln, läuft neben dem Modul "Custom D&D 5e" |
+| **Eagle Ruling** | Nachschlagewerk und Anpassung von Spielregeln, unabhängig vom Modul "Custom D&D 5e" |
 | **Eagle Roll Out** | Bündelung von Automatisierungs- und Komfortfunktionen (später) |
 
 ### 2.2 Rahmen und Grundsätze
@@ -237,7 +237,7 @@ Aktivieren oder Deaktivieren von Abhängigkeiten. Sie entfallen auch für die Ea
 ### 3.6 Eagle Ruling (Regeln nachschlagen und anpassen)
 
 **Geplante Funktionen:** Alle Regeln des laufenden DnD-5e-Systems automatisch erfassen und verständlich darstellen (als Text und als Klartext-Mechanik), jede Regel anpassbar,
-neue Regeln hinzufügbar. Es **läuft neben dem Modul "Custom D&D 5e"** und baut nicht darauf auf.
+neue Regeln hinzufügbar. Es ist **unabhängig vom Modul "Custom D&D 5e"** und baut nicht darauf auf. Beide gleichzeitig zu aktivieren ist technisch möglich, aber nicht das Ziel von Eagle Ruling.
 
 **Stand der Prüfung (nach Auswertung des Moduls "Custom D&D 5e" und weiterer Module):** **Deutlich einfacher als zunächst gedacht, weil ein großer Teil keine tiefen Eingriffe braucht.**
 - **Regeln nachschlagen:** machbar (Risiko niedrig). Das System liefert selbst ein Verzeichnis mit **170** Regelbegriffen samt Verweis auf die Regelseiten.
@@ -247,7 +247,8 @@ neue Regeln hinzufügbar. Es **läuft neben dem Modul "Custom D&D 5e"** und baut
   Änderungen sind flüchtig und rückgängig machbar. **(b) Änderungen über die offiziellen Einhängepunkte der Würfel- und Aktivierungsabläufe:** machbar (mittel). **(c) Überschreiben von Programmteilen des Systems:**
   hohes Risiko; mit dem freigegebenen Hilfsmodul libWrapper sauber machbar, ohne wäre es fragil. Neue Regeln sind nur aus einer festen Liste von Auslösern und Aktionen baubar.
 - **Zusammenspiel mit Custom D&D 5e:** Wichtig ist eine Korrektur: Custom D&D 5e läuft in den Versionen bis 4.1.2 auf Foundry 13 mit DnD 5e 5.x, also auf dem Zielstand. Beide Module verändern teils dieselben Bereiche.
-  Das ist beherrschbar durch die Bauweise (einzelne Werte statt ganze Bereiche ersetzen, Einhängepunkte vor Programmüberschreibungen, Änderungen sichtbar machen), aber im laufenden Foundry nicht geprüft.
+  Beide gleichzeitig zu aktivieren ist möglich, **Eagle Ruling ist dafür aber nicht gedacht** (Klarstellung des Projektleiters): Ein reibungsloses Zusammenspiel ist kein Ziel und wird nicht zugesagt. Wer beide aktiviert, muss mit Überschneidungen rechnen.
+  Ob und wann das im laufenden Foundry getestet wird, entscheidet der Projektleiter im Einzelfall.
 
 ### 3.7 Eagle Roll Out (Automatisierung, später)
 
@@ -311,7 +312,7 @@ Die Kette zeigt: Weil alle Änderungen über Eagle Flight Control laufen, steht 
 | Eagle Character Edit | machbar | mittel | Lücken des Systems (Unterarten, Ausgangsausrüstung, Zauberregeln im Fließtext) |
 | Eagle Homebrew | machbar | mittel | Umfang der Editoren (18 Objektarten), Abgleich Welt ↔ Library |
 | Eagle Journal | machbar | niedrig | genaue Einhängepunkte, Rechte für Spieler |
-| Eagle Ruling | teils einfach, teils schwer | niedrig bis hoch je Ebene | tiefe Programmeingriffe (mit libWrapper machbar), Zusammenspiel mit Custom D&D 5e |
+| Eagle Ruling | teils einfach, teils schwer | niedrig bis hoch je Ebene | tiefe Programmeingriffe (mit libWrapper machbar); Überschneidungen mit Custom D&D 5e bei gleichzeitigem Betrieb nicht ausgeschlossen |
 | Eagle Roll Out | Vorab-Plan liegt vor, Weg entschieden (Eigenbau mit libWrapper) | hoch (größtes Modul) | Umfang; späte Stufen (Reaktionen, Makro-Ebene, Rückgängig) sehr aufwendig |
 | Oberfläche im Foundry-Stil | machbar | niedrig bis mittel | Drift zwischen sieben Repos ohne geteilte Bausteine |
 
@@ -346,10 +347,10 @@ bedingte Effekte in zwei Stufen; alle Verlinkungen werden umgeschrieben; Suche n
 
 **Keine.** Die Rückfragen zur Herkunftsmarke, zur Entstehung des Unterarten-Markers und zu Massenimporten im Journal sind beantwortet und eingearbeitet, die Auslegungen bestätigt.
 
-### 8.3 Nur im laufenden Foundry prüfbar (braucht Freigabe des Projektleiters)
+### 8.3 Nur im laufenden Foundry prüfbar (der Projektleiter gibt Tests einzeln und nach Bedarf frei)
 
 Ladereihenfolge und Verhalten bei deaktiviertem Flight Control; Laufzeit beim Kopieren großer Bestände; Verhalten des Fortschrittssystems als Fenster über dem Editor; Nebenwirkungen häufiger Speichervorgänge auf andere Module; Namen der Einhängepunkte in den Verzeichnissen;
-Verhalten bei Fenster-Modulen; Zusammenspiel mit Custom D&D 5e.
+Verhalten bei Fenster-Modulen; Überschneidungen mit Custom D&D 5e bei gleichzeitigem Betrieb (kein Ziel von Eagle Ruling).
 
 ### 8.4 Nicht weiterverfolgte Ideen
 
@@ -361,7 +362,7 @@ Verhalten bei Fenster-Modulen; Zusammenspiel mit Custom D&D 5e.
 ## Weiterführende Dokumente
 
 - Technischer Projektplan mit Belegen je Modul: `dadm/eagle-modules-projektplan.md`
-- Ergebnisdokument der Planungsrunde (Vergleich Vision ↔ neue Spezifikation, Ergebnisse je Milestone, Fragen und Antworten): `dadm/spezifikationsabgleich.md`
+- Ergebnisdokument der Planungsrunde (Vergleich Vision ↔ neue Spezifikation, Ergebnisse je Milestone, Fragen und Antworten): `dadm/archive/planning-phase-3/spezifikationsabgleich.md`
 - Neue Spezifikation im Wortlaut samt Antworten des Projektleiters: `dadm/reference/eagle-modules-aufbau.md`
 - Ursprüngliche Vision (Entwicklungsnamen): `dadm/reference/eagle-modules-vision.md`
 - Analyse zehn bestehender Foundry-Module: `dadm/reference/source-analysis/README.md`

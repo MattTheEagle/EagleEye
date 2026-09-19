@@ -241,7 +241,7 @@ Da das Vorhaben nur Foundry v13 zielt (E1), zählt der letzte v13-fähige Stand.
 | Midi-QOL | Zweig v13 (`6b10be5`) | Zweig v13 | laut früherer Analyse |
 
 Folgen: Die Code-Analysen in diesem Ordner beziehen sich auf den **neuesten** Stand (bei Custom D&D 5e 5.5.x). Für Foundry 13 relevant ist dort die Reihe bis 4.1.2; eine Durchsicht dieses Standes
-(Commit `2b57702`) steht in `dadm/m13-01-discover-output.md`. Die Aussage in K11 und im Plan, Custom D&D 5e sei auf dem Zielstand nicht lauffähig, gilt nur für die neuesten Releases.
+(Commit `2b57702`) steht in `dadm/archive/planning-phase-3/m13-01-discover-output.md`. Die Aussage in K11 und im Plan, Custom D&D 5e sei auf dem Zielstand nicht lauffähig, gilt nur für die neuesten Releases.
 
 ## 5. Offene Fragen an den Projektleiter
 

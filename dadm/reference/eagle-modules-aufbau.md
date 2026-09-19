@@ -171,7 +171,7 @@ Module, die Foundry 14 verlangen, sind nicht Ziel).
 
 ## Antworten des Projektleiters zur Klärungsliste von M4 (2026-09-19)
 
-Fragen und Optionen: `dadm/spezifikationsabgleich.md` und `dadm/m4-02-apply-output.md`. Die Spalte "Antwort" ist der Wortlaut, "Bedeutung" die ausgeschriebene Option.
+Fragen und Optionen: `dadm/archive/planning-phase-3/spezifikationsabgleich.md` und `dadm/archive/planning-phase-3/m4-02-apply-output.md`. Die Spalte "Antwort" ist der Wortlaut, "Bedeutung" die ausgeschriebene Option.
 
 | # | Thema | Antwort (Wortlaut) | Bedeutung |
 |---|---|---|---|
@@ -194,7 +194,7 @@ Fragen und Optionen: `dadm/spezifikationsabgleich.md` und `dadm/m4-02-apply-outp
 
 ## Antworten des Projektleiters zu den offenen Punkten N1–N9 (2026-09-19)
 
-Die Punkte wurden in M5 bis M8 gesammelt (`dadm/spezifikationsabgleich.md`).
+Die Punkte wurden in M5 bis M8 gesammelt (`dadm/archive/planning-phase-3/spezifikationsabgleich.md`).
 
 | # | Antwort (Wortlaut) | Bedeutung |
 |---|---|---|
@@ -215,7 +215,7 @@ Rückfragen zu N6 bis N8 und Antworten (Auswahl):
 
 ## Antworten des Projektleiters zu den offenen Punkten N10–N20 (2026-09-19)
 
-Die Punkte stehen in `dadm/spezifikationsabgleich.md`. Auslegungen von mir sind gekennzeichnet; Prüfergebnisse und Folgen stehen in `dadm/m15-05-human-decision-output.md`.
+Die Punkte stehen in `dadm/archive/planning-phase-3/spezifikationsabgleich.md`. Auslegungen von mir sind gekennzeichnet; Prüfergebnisse und Folgen stehen in `dadm/archive/planning-phase-3/m15-05-human-decision-output.md`.
 
 | # | Antwort (Wortlaut) | Bedeutung |
 |---|---|---|
@@ -241,8 +241,13 @@ Die Punkte stehen in `dadm/spezifikationsabgleich.md`. Auslegungen von mir sind 
 | Auslegungen | "4. bestätige beide Auslegungen" | "Item" ist die Foundry-Hauptgruppe, die Untertypen sind die 13 dnd5e-Typen; "N29" war N20 und "b)" der Weg (b) Eigenbau mit libWrapper |
 | Bestätigung | "Beide Pläne bestätigen, Commit kann durchgeführt werden" | `EAGLE-MODULES-PLAN.md` und `dadm/eagle-modules-projektplan.md` sind bestätigt (Milestone-Acceptance von M15); ein lokaler Commit ist freigegeben (kein Push ausdrücklich genannt) |
 
+## Klarstellungen nach der Bestätigung der Pläne (2026-09-19)
+
+- Live-Tests in Forge werden **einzeln und nach Bedarf** vom Projektleiter entschieden, nicht vorab pauschal.
+- Wörtlich: "es ist generell möglich dass Custom D&D 5e und Eagle Ruling beide active sind, aber Eagle Ruling ist nicht dafür gedacht". Der gleichzeitige Betrieb ist damit kein Ziel von Eagle Ruling (Präzisierung zu E2).
+
 ## Entscheidungen E1–E8 (Kurzform)
-Maßgeblich ist `dadm/01-project-brief.md`; hier nur zum Nachschlagen.
+Maßgeblich ist `dadm/archive/planning-phase-3/01-project-brief.md`; hier nur zum Nachschlagen.
 
 | # | Entscheidung | Quelle |
 |---|---|---|
