@@ -115,8 +115,10 @@ export function createHubApplicationClass(context: HubContext) {
       section.dataset.group = TAB_GROUP;
       section.dataset.tab = module.id;
 
-      section.append(element("h3", module.title));
-      section.append(
+      // The module's block is a native fieldset: the module title is its legend, everything else sits inside.
+      const block = element("fieldset");
+      block.append(element("legend", module.title));
+      block.append(
         element(
           "p",
           context.text("EAGLEEYE.hub.version", { version: module.version, apiVersion: module.apiVersion }),
@@ -127,11 +129,11 @@ export function createHubApplicationClass(context: HubContext) {
         button.type = "button";
         button.dataset.action = "openModule";
         button.dataset.moduleId = module.id;
-        section.append(button);
+        block.append(button);
       }
 
       const settings = listHubSettings(module.id, context.settings);
-      if (settings.length === 0) section.append(element("p", context.text("EAGLEEYE.hub.noSettings")));
+      if (settings.length === 0) block.append(element("p", context.text("EAGLEEYE.hub.noSettings")));
       for (const setting of settings) {
         this.#shown.set(`${setting.namespace}.${setting.key}`, setting);
         if (setting.kind === "unsupported") {
@@ -139,8 +141,9 @@ export function createHubApplicationClass(context: HubContext) {
             `eagleeye | hub: ${setting.namespace}.${setting.key} is not editable (type ${setting.typeName})`,
           );
         }
-        section.append(this.#renderSetting(setting));
+        block.append(this.#renderSetting(setting));
       }
+      section.append(block);
       return section;
     }
 

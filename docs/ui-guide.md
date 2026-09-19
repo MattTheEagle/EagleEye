@@ -67,7 +67,9 @@ running Foundry (v13, build 351, on Forge, dark theme; 2026-09-19 and 2026-09-20
 **Observed, no rule yet**
 
 - In a `standard-form` window a heading (`h3`) is shown large, close to the tab bar and with a wide gap below it
-  (the module heading in the hub, 2026-09-20). The guide gives no rule for headings yet.
+  (the module heading in the hub, 2026-09-20). The hub now groups the module block in a `fieldset` with the module
+  title as its `legend` instead; how that looks is not yet checked in a running Foundry. The guide gives no rule for
+  headings or groups yet.
 
 **Not yet verified in a running Foundry** (`unverified`)
 
