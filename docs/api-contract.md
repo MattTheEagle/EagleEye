@@ -293,17 +293,30 @@ The version rules, the registry, the shape of the API object, the logic behind t
 action) and the request kernel (envelope checks, sender check, handlers, versions, JSON rule, results) are covered by
 unit tests of the pure logic.
 
-**Verified in a running Foundry** (Foundry v13 on Forge, a dnd5e world, 2026-09-19; part 1 only):
+**Verified in a running Foundry** (Foundry v13, build 351, on Forge, a dnd5e world, 2026-09-19; API `0.3.0`, four
+test modules):
 
 - Flight Control attaches the API to its module object during `init`, and other modules can read it from their
-  `setup` hook.
+  `setup` hook. Registration runs inside Foundry's `setup` phase.
 - A registration with a compatible API version is accepted (`ok: true`); one with an incompatible version is
   rejected with `incompatible-api-version`. Both results have the shapes documented above.
+- The hub opens from the settings menu and shows one tab per registered active module. A module that never
+  registers, and a rejected module, have no tab. Switching tabs works. Each tab shows the header, the Open button
+  (only with `open`) and the settings; the Open button calls your `open` function. A changed checkbox, select list or
+  number field reaches the `onChange` of the setting.
+- Requests: `flightcontrol.ping` from a registered module returns `ok: true`. The same request from a module that
+  is not registered returns `not-registered`; an unknown request type returns `unknown-request`; a payload with
+  `echo: 5` returns `invalid-payload` (detail "payload.echo must be a string"). Flight Control logs a warning for each
+  failure and nothing for a success.
+- The language file loads from the manifest entry `languages`; the hub shows no raw text keys.
 
 **Not verified in a running Foundry** (`unverified`):
 
-- how the hub looks and behaves: tabs, native styling, the settings fields, the Open button, saving values (part 2);
-- how requests behave in a running Foundry: the ping and the failure reasons with real modules (part 3);
+- that a value saved in the hub is still there after the hub is closed and opened again or after a reload; that a
+  refused value (out of range) is reset with a notification; how the hub looks for a player (the menu is restricted
+  to the Gamemaster);
+- the fields of a successful ping result (`apiVersion`, `module`, `echo`; only `ok: true` was seen);
+- the request failure reasons `invalid-request`, `unsupported-version`, `handler-failed` and `internal-error` (unit tests only);
 - the order in which Foundry runs the `init` callbacks of Flight Control and of your module (this contract does
   not depend on it: you register in `setup`);
 - what happens when a required module is installed but deactivated;
