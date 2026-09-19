@@ -79,3 +79,22 @@ Laufzeit-Aktivierung.
 Vollständige Belege: `dadm/m3-01-discover-output.md`, `dadm/m3-02-apply-output.md`.
 
 ---
+
+## M4 — Eagle Eyrie: Compendium-Dedup & Suche
+
+**Ergebnis: Machbar, reine Kompositionsaufgabe aus offiziellen Foundry-APIs.**
+Compendium-Erstellung (`CompendiumCollection.createCompendium`), performante
+Index-basierte Suche/Dedup (`.index`, kein volles Dokumentladen nötig),
+bestehende Such-Infrastruktur (`DirectoryCollectionMixin.searchMode`) und
+Dokument-Kopie (`importDocument`) sind alle vorhanden und dokumentiert. Kein
+Feature erfordert unbelegte Annahmen.
+
+**API-Umwandlung-Relevanz — geringer als im Plan vermutet:** Inhalte sind
+bereits beim Erstellen auf das jeweilige System-Schema normalisiert
+(unabhängig von der Quelle: System, DDB-Importer, Forge). Eyries eigentliches
+Problem ist Duplikat-Erkennung, nicht Formatübersetzung — der M2-Befund ist
+hier nicht direkt anwendbar.
+
+Vollständige Belege: `dadm/m4-01-discover-output.md`, `dadm/m4-02-apply-output.md`.
+
+---
