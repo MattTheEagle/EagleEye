@@ -23,8 +23,8 @@ UI library.
 | R-02 | Give the window a stable `id`, a localization key as `window.title` and a Font Awesome `window.icon`. | A stable id lets Foundry track the window; a key keeps the title translatable. | `client/applications/api/application.d.mts:125` `client/applications/api/application.d.mts:198` | `v13/hub-application.ts#DEFAULT_OPTIONS` |
 | R-03 | Handle clicks with `actions` and `data-action`, not with inline handlers or global listeners. | Foundry binds the handler to the window and cleans up with it. | `client/applications/api/application.d.mts:159` | `v13/hub-application.ts#onOpenModule` |
 | R-04 | Build tabs with `tabGroups` and `_prepareTabs`, and render the navigation with Foundry's core template `templates/generic/tab-navigation.hbs`. Mark each tab body with `data-group` and `data-tab`. | The core template produces the native tab bar, and `changeTab` switches between tab bodies. | `client/applications/api/application.d.mts:348` `client/applications/api/application.d.mts:377` `client/applications/api/application.d.mts:554` `client/applications/api/application.d.mts:663` | `v13/hub-application.ts#NAV_TEMPLATE` |
-| R-05 | Create inputs with Foundry's field helpers (`foundry.applications.fields`), not with handwritten markup. | The helpers produce the native input elements. | `client/applications/forms/fields.d.mts:137` `client/applications/forms/fields.d.mts:170` `client/applications/forms/fields.d.mts:231` | `v13/hub-application.ts#createCheckboxInput` |
-| R-06 | Put label, input and hint together with `createFormGroup`. | It produces Foundry's form-group markup. How the group is arranged (label beside the field or above it) depends on Foundry's CSS; see section 4. | `client/applications/forms/fields.d.mts:132` | `v13/hub-application.ts#createFormGroup` |
+| R-05 | Create inputs with Foundry's field helpers (`foundry.applications.fields`), not with handwritten markup. For a number with a range use `foundry.applications.elements.HTMLRangePickerElement.create` (a slider with a number field). | The helpers produce the native input elements; the range picker is what Foundry's settings window shows for a range. | `client/applications/forms/fields.d.mts:137` `client/applications/forms/fields.d.mts:170` `client/applications/forms/fields.d.mts:231` `client/applications/elements/range-picker.d.mts:30` | `v13/hub-application.ts#createCheckboxInput` `v13/hub-application.ts#HTMLRangePickerElement` |
+| R-06 | Put label, input and hint together with `createFormGroup`, and give the window content the class `standard-form` through the window option `contentClasses`. | `createFormGroup` produces Foundry's form-group markup; the class arranges label and field side by side, as in Foundry's settings window. Without the class the groups are stacked, with the label above the field. | `client/applications/forms/fields.d.mts:132` `client/applications/api/application.d.mts:239` | `v13/hub-application.ts#createFormGroup` `v13/hub-application.ts#DEFAULT_OPTIONS` |
 | R-07 | Never concatenate data into `innerHTML`. Use helpers, `textContent`, `dataset` or Foundry templates; to turn the output of a Foundry template into DOM use `foundry.utils.parseHTML`. | Strings from settings or module manifests can contain markup; the first Flight Control hub concatenated them unescaped (Git commit `77daf6d`). | `client/utils/helpers.d.mts:187` | `v13/hub-application.ts#parseHTML` |
 | R-08 | Ask for confirmations and short inputs with `DialogV2`. | It is Foundry's native dialog. | `client/applications/api/dialog.d.mts:175` `client/applications/api/dialog.d.mts:198` | — |
 | R-09 | Put every user-visible text into `lang/<code>.json`, list the file under `languages` in the manifest and read it with `game.i18n`. The language of the interface is English. | Foundry loads the files and localizes keys; a missing file shows raw keys, which is visible. | `common/packages/base-package.d.mts:337` `client/helpers/localization.d.mts:127` | `v13/hub-application.ts#EAGLEEYE.hub.title` |
@@ -38,7 +38,7 @@ UI library.
 - [ ] It is an `ApplicationV2` with a stable `id`, a localized title key and an icon (R-01, R-02).
 - [ ] Clicks go through `actions` (R-03).
 - [ ] Tabs use the core navigation template (R-04).
-- [ ] Inputs come from the field helpers and sit in a form group (R-05, R-06).
+- [ ] Inputs come from the field helpers and sit in a form group; the window content has the class `standard-form` (R-05, R-06).
 - [ ] No data is concatenated into `innerHTML` (R-07).
 - [ ] Texts are keys in `lang/en.json`, and the file is listed in the manifest and in your zip (R-09).
 - [ ] The window opens from a settings menu or from the Flight Control hub (R-10, contract section 2).
@@ -48,38 +48,32 @@ UI library.
 ## 4. What is verified
 
 All rules are backed by the Foundry reference or by code in the hub (section 1). The hub has also been opened in a
-running Foundry (v13, build 351, on Forge, dark theme, 2026-09-19).
+running Foundry (v13, build 351, on Forge, dark theme; 2026-09-19 and 2026-09-20).
 
 **Verified in a running Foundry**
 
 - R-01 to R-03: the hub is an `ApplicationV2` window with title, icon, close button and resize handle; the Open button works through `actions`.
 - R-04: the convention works. The core navigation template renders the tab bar, and `changeTab` switches the tab bodies
   that carry `data-group` and `data-tab`. Switching a tab does not render the window again.
-- R-05: the field helpers produce working inputs (checkbox, select list, number field, text field), and a change reaches the setting.
+- R-05: the field helpers produce working inputs (checkbox, select list, text field), and a change reaches the setting.
+  A number with a range shown through `HTMLRangePickerElement.create` is a slider with a number field, as in Foundry's
+  settings window.
+- R-06: with `contentClasses: ["standard-form"]` the form groups are arranged like in Foundry's settings window (label
+  on the left, field on the right, hint below the label). In the first live test (2026-09-19), without the class, the
+  groups were stacked, with the label above the field.
 - R-09, R-10, R-12: the language file loads and no raw keys appear; the settings menu shows one entry; settings with the
   supported types appear, and none is reported as not editable.
 
-**Looked different from Foundry's settings window in the first live test** (observed; the cause was not verified)
+**Observed, no rule yet**
 
-- R-06: a form group made with `createFormGroup` is arranged stacked in the hub window (label above, field across the full
-  width, hint below). Foundry's settings window shows the label on the left and the field on the right. The reference
-  contains no CSS, so what gives the native arrangement is open. One candidate is the window option `contentClasses`
-  (`client/applications/api/application.d.mts:239`), which the v14 reference shows with the class `standard-form`; the
-  v13 reference does not mention that class. Until it is checked, rely on R-06 for the markup, not for the arrangement.
-- R-05: `createNumberInput` renders a plain number field. Foundry's settings window shows a slider with a number field for
-  a setting with a `range`. The reference offers `HTMLRangePickerElement.create` for it
-  (`client/applications/elements/range-picker.d.mts:30`).
-
-**Changed afterwards, not yet checked in a running Foundry**
-
-- The hub window now sets `window.contentClasses: ["standard-form"]` (R-06) and shows a setting with a full `range`
-  through `HTMLRangePickerElement.create` (R-05). Whether this gives the native arrangement is checked with the next
-  live test of the hub. Until then the rules above stay as they are.
+- In a `standard-form` window a heading (`h3`) is shown large, close to the tab bar and with a wide gap below it
+  (the module heading in the hub, 2026-09-20). The guide gives no rule for headings yet.
 
 **Not yet verified in a running Foundry** (`unverified`)
 
 - everything about CSS (R-13): the reference contains no CSS;
 - whether the active tab is marked clearly enough;
-- what a refused value looks like in the hub, and how the hub looks for a player.
+- what the hub does with a value above the maximum typed into the range picker (a limit by the element is likely, not
+  confirmed), and how the hub looks for a player.
 
 This section is updated after each live test.

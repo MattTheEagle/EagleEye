@@ -322,8 +322,8 @@ action), the request kernel (envelope checks, sender check, handlers, versions, 
 (where a request runs, forwarding, the Gamemaster's side, limits, failure reasons) are covered by unit tests of the
 pure logic.
 
-**Verified in a running Foundry** (Foundry v13, build 351, on Forge, a dnd5e world, 2026-09-19; API `0.3.0`, four
-test modules; the live check ran before part 4):
+**Verified in a running Foundry** (Foundry v13, build 351, on Forge, a dnd5e world; four test modules; live checks on
+2026-09-19 with API `0.3.0` and on 2026-09-20 with API `0.4.0`):
 
 - Flight Control attaches the API to its module object during `init`, and other modules can read it from their
   `setup` hook. Registration runs inside Foundry's `setup` phase.
@@ -332,21 +332,31 @@ test modules; the live check ran before part 4):
 - The hub opens from the settings menu and shows one tab per registered active module. A module that never
   registers, and a rejected module, have no tab. Switching tabs works. Each tab shows the header, the Open button
   (only with `open`) and the settings; the Open button calls your `open` function. A changed checkbox, select list or
-  number field reaches the `onChange` of the setting.
+  number field reaches the `onChange` of the setting exactly once per change. A number with a `range` that has a
+  minimum and a maximum is a slider with a number field. Values changed in the hub are still there after the hub is closed and opened again and after a reload.
 - Requests: `flightcontrol.ping` from a registered module returns `ok: true`. The same request from a module that
   is not registered returns `not-registered`; an unknown request type returns `unknown-request`; a payload with
   `echo: 5` returns `invalid-payload` (detail "payload.echo must be a string"). Flight Control logs a warning for each
-  failure and nothing for a success.
+  failure and nothing for a success. The value of a successful `flightcontrol.ping` has `apiVersion`, `module` and
+  `echo` (seen as `ok, api 0.4.0, module eagleeye-dummy-a, echo hello`).
+- Part 4, the relay: a request for a type that runs on the Gamemaster's client (`flightcontrol.gmping`) from a player
+  is forwarded to the connected Gamemaster, and the result comes back with `ranBy` naming the Gamemaster's user, not the
+  player's. Without a connected Gamemaster the request returns `no-gm`. A Gamemaster who asks runs it in their own
+  client. The results (with a nested object) arrive unchanged, and the wait time of 15 seconds plus 2 seconds reaches
+  the Gamemaster's client as the query option `timeout`.
+- What Foundry hands to a query handler: the query data and one extra argument, the query options (`{ timeout }`).
+  It gives no information about the user who asked, so Flight Control cannot tell on the Gamemaster's side which user
+  asked. This matters for the rights per module and user, a later part.
 - The language file loads from the manifest entry `languages`; the hub shows no raw text keys.
 
 **Not verified in a running Foundry** (`unverified`):
 
-- part 4, the relay: a request from a player reaching a connected Gamemaster and coming back (`flightcontrol.gmping`),
-  `no-gm` without a Gamemaster, the timeout, and what Foundry hands to a query handler beyond the query data;
-- that a value saved in the hub is still there after the hub is closed and opened again or after a reload; that a
-  refused value (out of range) is reset with a notification; how the hub looks for a player (the menu is restricted
-  to the Gamemaster);
-- the fields of a successful ping result (`apiVersion`, `module`, `echo`; only `ok: true` was seen);
+- part 4, the failure paths of the relay: `relay-timeout`, and `relay-failed` (the Gamemaster's client cannot be
+  reached, has no handler, or fails), and the behaviour with more than one Gamemaster connected (unit tests and a
+  simulation only);
+- what the hub does with a refused value: it resets the field and shows a notification (unit tests only); for a number
+  with a range the slider element may limit a value typed above the maximum itself (not confirmed); how the hub looks
+  for a player (the menu is restricted to the Gamemaster);
 - the request failure reasons `invalid-request`, `unsupported-version`, `handler-failed` and `internal-error` (unit tests only);
 - the order in which Foundry runs the `init` callbacks of Flight Control and of your module (this contract does
   not depend on it: you register in `setup`);
