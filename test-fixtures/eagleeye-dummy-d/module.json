@@ -1,7 +1,7 @@
 {
   "id": "eagleeye-dummy-d",
   "title": "EagleEye Dummy Test Module D",
-  "description": "Statisches Test-Fixture (M4): meldet sich mit API 0.3.0 an, ohne Open-Aktion, mit einer Text-Einstellung, und stellt zwei fehlerhafte Anfragen. Keine echte Funktionalitaet.",
+  "description": "Statisches Test-Fixture (M5): meldet sich mit API 0.4.0 an, ohne Open-Aktion, mit einer Text-Einstellung, und stellt zwei fehlerhafte Anfragen. Keine echte Funktionalitaet.",
   "version": "0.0.1",
   "authors": [{ "name": "Projektleiter" }],
   "compatibility": { "minimum": "11" },

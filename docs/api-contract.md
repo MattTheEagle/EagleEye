@@ -1,10 +1,12 @@
-# Eagle Flight Control — API contract, parts 1 to 3: registration, the hub and requests
+# Eagle Flight Control — API contract, parts 1 to 4: registration, the hub, requests and the Gamemaster relay
 
-**API version:** `0.3.0`
+**API version:** `0.4.0`
 **Status:** development. Before `1.0.0` a minor version may break the API (see section 5).
 **Scope of this version:** how an Eagle module gets the API and registers itself (part 1), how it appears in the
 Flight Control hub: tab, settings and open action (part 2), and how it asks Flight Control to do things: the request
-channel (part 3). Later parts (GM relay, permissions, system version guard) will extend the API and raise its version.
+channel (part 3), and where a request runs: requests that need the Gamemaster's rights run on the Gamemaster's
+client (part 4). Later parts (permissions per module and user, system version guard) will extend the API and raise
+its version.
 **Audience:** authors of Eagle modules. Flight Control does not integrate third-party modules. Registration by a
 third-party module is not a supported use; it cannot be prevented technically, and such a module would simply
 count as registered.
@@ -56,7 +58,11 @@ type RequestFailure =
   | "unsupported-version"
   | "invalid-payload"
   | "handler-failed"
-  | "internal-error";
+  | "internal-error"
+  | "no-gm"
+  | "relay-timeout"
+  | "relay-failed"
+  | "not-permitted";
 
 type RequestResult =
   | { readonly ok: true; readonly value: JsonValue }
@@ -95,7 +101,7 @@ Hooks.once("setup", () => {
 
   const result = api.registerModule({
     id: "my-eagle-module",
-    apiVersion: "0.3.0",
+    apiVersion: "0.4.0",
     open: () => new MyModuleApp().render({ force: true }), // optional
   });
   if (!result.ok) {
@@ -150,7 +156,7 @@ For your module the hub shows a tab titled with the `title` of your module manif
 |---|---|
 | `Boolean` | checkbox |
 | `String` | text field; a select list if the setting has `choices` |
-| `Number` | number field; `range` gives minimum, maximum and step |
+| `Number` | number field; `range` gives minimum, maximum and step. With a minimum and a maximum the field is a slider with a number field, as in Foundry's settings window |
 
 The type may be registered as the constructor (`Boolean`, `String`, `Number`) or as a `BooleanField`,
 `StringField` or `NumberField`. Settings of any other type are listed by name with the note "Cannot be edited
@@ -169,8 +175,8 @@ no tab. With no registered modules the hub says so.
 ## 4. Requests
 
 Once your module is registered, it can ask Flight Control to do things. All changes to Foundry data go through
-Flight Control, while your module keeps its own UI and logic. In this version Flight Control offers a single request
-type as a proof that the channel works; further request types come with the modules that need them.
+Flight Control, while your module keeps its own UI and logic. In this version Flight Control offers two request
+types as proofs that the channels work; further request types come with the modules that need them.
 
 ```js
 const result = await api.request({
@@ -179,7 +185,7 @@ const result = await api.request({
   payload: { echo: "hello" },
 });
 if (result.ok) {
-  console.log(result.value); // { apiVersion: "0.3.0", module: "my-eagle-module", echo: "hello" }
+  console.log(result.value); // { apiVersion: "0.4.0", module: "my-eagle-module", echo: "hello" }
 } else {
   console.warn(result.reason, result.detail);
 }
@@ -201,8 +207,7 @@ Additional fields are ignored.
 
 **JSON only:** requests and results contain only JSON values: `null`, booleans, finite numbers, strings, arrays and
 plain objects of these. No `undefined`, functions, class instances (such as `Date` or `Map`) or DOM elements. This
-keeps requests transportable: a later part of this contract lets Flight Control run a request on the Gamemaster's
-client.
+is what lets Flight Control send a request to the Gamemaster's client (see "Where a request runs").
 
 **Failure reasons of requests** (stable codes, part of the contract)
 
@@ -215,28 +220,51 @@ client.
 | `invalid-payload` | The payload does not fit the request type; `detail` says why. | Fix the payload. |
 | `handler-failed` | The request was understood but carrying it out failed: an error in Foundry, missing rights, or a result that is not JSON. | Show the message; retry only if that makes sense. |
 | `internal-error` | Unexpected error inside Flight Control. | Report it. |
+| `no-gm` | The request has to run on the Gamemaster's client and no Gamemaster is connected. Nothing was sent. | Tell the user that a Gamemaster has to be online; try again later. |
+| `relay-timeout` | The Gamemaster's client did not answer within 15 seconds. **The outcome is unknown: the request may still run.** | Do not assume it failed; ask again only if the request type tolerates being run twice. |
+| `relay-failed` | The request could not be delivered or answered (Foundry refused the transfer, or the answer was not a result); `detail` says what happened. | Show the message; retry only if that makes sense. |
+| `not-permitted` | The receiving side refused to run the request: it is not a Gamemaster's client, or the request type is not run for other clients. | Do not retry. Rights per module and user (a later part) will use this reason as well. |
 
 Treat every reason you do not know as a failure: later parts of this contract may add reasons, for example for
-missing permissions.
+missing permissions per module and user.
 
 **Versions:** a request without `version` always means version `1`. A version of a request type stays supported as
 long as its contract lists it, so a module keeps working when Flight Control adds a newer version. New request types
 and new versions of a request type do not change the API version of this contract.
 
-**Where a request runs:** in this version in your own client, with the rights of the current user. A request that
-changes documents therefore fails with `handler-failed` for a user who lacks Foundry's permission for it. Forwarding
-such requests to the Gamemaster comes with a later part of this contract.
+**Where a request runs:** every request type says where it runs (last table of this section). Most types run in
+your own client, with the rights of the current user. A type that needs the Gamemaster's rights runs on the
+Gamemaster's client: a user without a Gamemaster role (a player, a trusted player) does not need any Foundry
+permission for it, because Flight Control sends the request to the connected Gamemaster and returns the answer. A user
+with a Gamemaster role (Gamemaster or Assistant) runs every type in their own client.
+
+**Forwarded requests**
+
+- Flight Control sends only the four fields of the request (`module`, `type`, `version`, `payload`). The Gamemaster's
+  client checks everything again and does not trust what the sender says about itself, so the failure reasons above
+  are the same as for a request that runs locally.
+- A forwarded request may be at most 65,536 characters of JSON text; larger requests fail with `invalid-request`.
+  The caller waits at most 15 seconds (`relay-timeout`). Keep requests and results small.
+- Whoever the sender is, only request types that are marked as running on the Gamemaster's client are ever run there.
+  A client that is not a Gamemaster's client refuses relayed requests with `not-permitted`.
+- If a request that ran on the Gamemaster's client fails with `handler-failed` or `internal-error`, `detail` is a
+  general sentence; the details are in the Gamemaster's console. Other reasons keep their `detail`.
+- Request types that run on the Gamemaster's client are added by Flight Control itself. None of them changes data
+  before the rights per module and user exist (a later part of this contract).
 
 **The sender is trusted:** `module` is the id your module states; Foundry cannot prove which code made the call.
-Treat it as an honest label, not as security.
+Treat it as an honest label, not as security. Forwarding does not change that: Flight Control does not decide by
+user, and who may use which request type per module and user is a later part of this contract.
 
 **Request types in this version**
 
-| Type | Version | Payload | Result |
-|---|---|---|---|
-| `flightcontrol.ping` | `1` | none, `null`, or `{ echo?: string }` (`echo` up to 200 characters) | `{ apiVersion, module, echo }`; `echo` is `null` when not given |
+| Type | Version | Runs on | Payload | Result |
+|---|---|---|---|---|
+| `flightcontrol.ping` | `1` | your own client | none, `null`, or `{ echo?: string }` (`echo` up to 200 characters) | `{ apiVersion, module, echo }`; `echo` is `null` when not given |
+| `flightcontrol.gmping` | `1` | the Gamemaster's client | the same as `flightcontrol.ping` | `{ apiVersion, module, echo, ranBy: { userId, isGm } }`; `ranBy` names the user whose client ran the request |
 
-Use `flightcontrol.ping` to check that the channel works.
+Use `flightcontrol.ping` to check that the channel works, and `flightcontrol.gmping` to check that a request reaches
+the Gamemaster's client: for a player it answers with the Gamemaster's `userId`, or with `no-gm` if none is connected.
 
 ## 5. API version and compatibility
 
@@ -290,11 +318,12 @@ Declare Flight Control as a required module:
 ## 8. What is verified
 
 The version rules, the registry, the shape of the API object, the logic behind the hub (tabs, settings, saving, open
-action) and the request kernel (envelope checks, sender check, handlers, versions, JSON rule, results) are covered by
-unit tests of the pure logic.
+action), the request kernel (envelope checks, sender check, handlers, versions, JSON rule, results) and the relay
+(where a request runs, forwarding, the Gamemaster's side, limits, failure reasons) are covered by unit tests of the
+pure logic.
 
 **Verified in a running Foundry** (Foundry v13, build 351, on Forge, a dnd5e world, 2026-09-19; API `0.3.0`, four
-test modules):
+test modules; the live check ran before part 4):
 
 - Flight Control attaches the API to its module object during `init`, and other modules can read it from their
   `setup` hook. Registration runs inside Foundry's `setup` phase.
@@ -312,6 +341,8 @@ test modules):
 
 **Not verified in a running Foundry** (`unverified`):
 
+- part 4, the relay: a request from a player reaching a connected Gamemaster and coming back (`flightcontrol.gmping`),
+  `no-gm` without a Gamemaster, the timeout, and what Foundry hands to a query handler beyond the query data;
 - that a value saved in the hub is still there after the hub is closed and opened again or after a reload; that a
   refused value (out of range) is reset with a notification; how the hub looks for a player (the menu is restricted
   to the Gamemaster);
@@ -324,9 +355,9 @@ test modules):
 
 ## 9. Not part of this version
 
-Request types that read or change Foundry data, the forwarding of requests to the Gamemaster, permissions per module
-and user (until then the hub is for the Gamemaster only), and the system version guard. They will be added in later
-parts of this contract.
+Request types that read or change Foundry data (only the two proofs exist), permissions per module and user (until
+then the hub is for the Gamemaster only), and the system version guard. They will be added in later parts of this
+contract.
 
 ## 10. Change history
 
@@ -335,3 +366,4 @@ parts of this contract.
 | `0.1.0` | Initial version: `version` and `registerModule`. |
 | `0.2.0` | Part 2: optional `open` in the descriptor; the hub shows a tab per registered module with its settings and an Open button. |
 | `0.3.0` | Part 3: `request` and the request kernel with one request type, `flightcontrol.ping`. |
+| `0.4.0` | Part 4: every request type says where it runs; requests for types that run on the Gamemaster's client are forwarded to it; new failure reasons `no-gm`, `relay-timeout`, `relay-failed`, `not-permitted`; request type `flightcontrol.gmping`. |

@@ -4,9 +4,13 @@ import type { ModuleRegistry, RegisteredModule } from "../core/module-registry";
 import { applySettingInput, listHubSettings, type HubSetting, type HubSettingsSource } from "../core/settings-hub";
 
 const { ApplicationV2 } = foundry.applications.api;
+const { HTMLRangePickerElement } = foundry.applications.elements;
 const fields = foundry.applications.fields;
 
 type Tab = foundry.applications.api.ApplicationV2.Tab;
+type RangePicker = foundry.applications.elements.HTMLRangePickerElement;
+// The elements the hub listens to: the native inputs and Foundry's range picker (a slider with a number field).
+type SettingInput = HTMLInputElement | HTMLSelectElement | RangePicker;
 
 const TAB_GROUP = "primary";
 // Foundry core template that renders the tab navigation for the tabs returned by _prepareTabs.
@@ -46,13 +50,16 @@ export function createHubApplicationClass(context: HubContext) {
   return class EagleHubApplication extends ApplicationV2 {
     static override DEFAULT_OPTIONS = {
       id: "eagleeye-hub",
-      window: { title: "EAGLEEYE.hub.title", icon: "fa-solid fa-eye", resizable: true },
+      // "standard-form" is the class Foundry's own form windows put on their content; it arranges the form groups.
+      window: { title: "EAGLEEYE.hub.title", icon: "fa-solid fa-eye", resizable: true, contentClasses: ["standard-form"] },
       position: { width: 640 },
       actions: { openModule: onOpenModule },
     };
 
     // The settings currently shown, by "namespace.key" (the name of their input).
     readonly #shown = new Map<string, HubSetting>();
+    // The names of the fields that are being saved right now.
+    readonly #saving = new Set<string>();
 
     protected override _prepareTabs(group: string): Record<string, Tab> {
       const model = buildHubModel(context.registry.list(), this.tabGroups[group]);
@@ -96,9 +103,7 @@ export function createHubApplicationClass(context: HubContext) {
     }
 
     protected override async _onRender(): Promise<void> {
-      for (const input of this.element.querySelectorAll<HTMLInputElement | HTMLSelectElement>(
-        "input[name], select[name]",
-      )) {
+      for (const input of this.element.querySelectorAll<SettingInput>("input[name], select[name], range-picker")) {
         input.addEventListener("change", () => void this.#onSettingChange(input));
       }
     }
@@ -157,13 +162,12 @@ export function createHubApplicationClass(context: HubContext) {
           return fields.createCheckboxInput({ name, value: setting.value === true });
         case "number": {
           const value = typeof setting.value === "number" && Number.isFinite(setting.value) ? setting.value : undefined;
-          return fields.createNumberInput({
-            name,
-            value,
-            min: setting.range?.min,
-            max: setting.range?.max,
-            step: setting.range?.step,
-          });
+          const { min, max, step } = setting.range ?? {};
+          // A full range gets Foundry's own slider with a number field, as in the settings window.
+          if (min !== undefined && max !== undefined) {
+            return HTMLRangePickerElement.create({ name, value: value ?? min, min, max, ...(step !== undefined ? { step } : {}) });
+          }
+          return fields.createNumberInput({ name, value, min, max, step });
         }
         case "string": {
           const value = typeof setting.value === "string" ? setting.value : String(setting.value ?? "");
@@ -178,35 +182,46 @@ export function createHubApplicationClass(context: HubContext) {
       }
     }
 
-    async #onSettingChange(input: HTMLInputElement | HTMLSelectElement): Promise<void> {
+    async #onSettingChange(input: SettingInput): Promise<void> {
       const setting = this.#shown.get(input.name);
       if (!setting) return;
       const isCheckbox = input instanceof HTMLInputElement && input.type === "checkbox";
-      const raw = isCheckbox ? input.checked : input.value;
+      const raw = isCheckbox ? input.checked : String(input.value);
 
-      const result = await applySettingInput(
-        setting.namespace,
-        setting.key,
-        raw,
-        context.registry.list().map((module) => module.id),
-        context.settings,
-      );
-      if (result.ok) return;
+      // A value that is already stored needs no saving. That also swallows a repeated change event and the event
+      // that follows when a refused value is put back into the field.
+      if (String(context.settings.get(setting.namespace, setting.key) ?? "") === String(raw)) return;
+      if (this.#saving.has(input.name)) return;
+      this.#saving.add(input.name);
+      try {
+        const result = await applySettingInput(
+          setting.namespace,
+          setting.key,
+          raw,
+          context.registry.list().map((module) => module.id),
+          context.settings,
+        );
+        if (result.ok) return;
 
-      context.log.warn(
-        `eagleeye | hub could not save ${setting.namespace}.${setting.key}: ${result.reason} - ${result.detail}`,
-      );
-      // Show the stored value again and tell the user why nothing changed.
-      const stored = context.settings.get(setting.namespace, setting.key);
-      if (isCheckbox) (input as HTMLInputElement).checked = stored === true;
-      else input.value = String(stored ?? "");
-      const message =
-        result.reason === "not-permitted"
-          ? context.text("EAGLEEYE.hub.notify.notPermitted")
-          : result.reason === "invalid-value"
-            ? context.text("EAGLEEYE.hub.notify.invalidValue", { name: setting.label, detail: result.detail })
-            : context.text("EAGLEEYE.hub.notify.writeFailed", { name: setting.label });
-      context.notify("warn", message);
+        context.log.warn(
+          `eagleeye | hub could not save ${setting.namespace}.${setting.key}: ${result.reason} - ${result.detail}`,
+        );
+        // Show the stored value again and tell the user why nothing changed.
+        const stored = context.settings.get(setting.namespace, setting.key);
+        if (isCheckbox) (input as HTMLInputElement).checked = stored === true;
+        else if (input instanceof HTMLRangePickerElement) {
+          if (Number.isFinite(Number(stored))) input.value = Number(stored);
+        } else input.value = String(stored ?? "");
+        const message =
+          result.reason === "not-permitted"
+            ? context.text("EAGLEEYE.hub.notify.notPermitted")
+            : result.reason === "invalid-value"
+              ? context.text("EAGLEEYE.hub.notify.invalidValue", { name: setting.label, detail: result.detail })
+              : context.text("EAGLEEYE.hub.notify.writeFailed", { name: setting.label });
+        context.notify("warn", message);
+      } finally {
+        this.#saving.delete(input.name);
+      }
     }
   };
 }

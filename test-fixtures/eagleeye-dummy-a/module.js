@@ -48,7 +48,7 @@ Hooks.once("init", () => {
   });
 });
 
-// Registers with Flight Control (API 0.3.0) and provides an open action (expected result: ok).
+// Registers with Flight Control (API 0.4.0) and provides an open action (expected result: ok).
 Hooks.once("setup", () => {
   const api = game.modules.get("eagleeye")?.api;
   if (!api) {
@@ -57,7 +57,7 @@ Hooks.once("setup", () => {
   }
   const result = api.registerModule({
     id: "eagleeye-dummy-a",
-    apiVersion: "0.3.0",
+    apiVersion: "0.4.0",
     open: () => {
       ui.notifications.info("eagleeye-dummy-a: open action called");
     },
@@ -65,14 +65,31 @@ Hooks.once("setup", () => {
   console.log("eagleeye-dummy-a | registerModule result", result);
 });
 
-// Asks Flight Control for a ping after every module has registered (expected result: ok with apiVersion, module and echo).
+// One line of text per request, so that nothing has to be expanded in the console.
+function dummyADescribe(result) {
+  if (!result.ok) return `${result.reason} - ${result.detail}`;
+  const { apiVersion, module, echo, ranBy } = result.value;
+  const by = ranBy ? `, ran by ${ranBy.userId} (GM: ${ranBy.isGm})` : "";
+  return `ok, api ${apiVersion}, module ${module}, echo ${echo}${by}`;
+}
+
+// After every module has registered: a ping (runs here) and a gmping (runs on the Gamemaster's client).
+// Expected for a player with a Gamemaster connected: gmping ok, ran by the Gamemaster (not this user);
+// for the Gamemaster: gmping ok, ran by this user; for a player without a Gamemaster: gmping no-gm.
 Hooks.once("ready", async () => {
   const api = game.modules.get("eagleeye")?.api;
   if (!api) return;
-  const result = await api.request({
+
+  const ping = await api.request({ module: "eagleeye-dummy-a", type: "flightcontrol.ping", payload: { echo: "hello" } });
+  console.log("eagleeye-dummy-a | ping result", ping);
+  console.log(`eagleeye-dummy-a | ping: ${dummyADescribe(ping)}`);
+
+  console.log(`eagleeye-dummy-a | this user: ${game.user.id} (GM: ${game.user.isGM})`);
+  const gmping = await api.request({
     module: "eagleeye-dummy-a",
-    type: "flightcontrol.ping",
-    payload: { echo: "hello" },
+    type: "flightcontrol.gmping",
+    payload: { echo: `from ${game.user.name}` },
   });
-  console.log("eagleeye-dummy-a | ping result", result);
+  console.log("eagleeye-dummy-a | gmping result", gmping);
+  console.log(`eagleeye-dummy-a | gmping: ${dummyADescribe(gmping)}`);
 });

@@ -1,18 +1,20 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import type { RegisteredModule } from "./module-registry";
-import { defaultRequestHandlers } from "./request-handlers";
+import { defaultRequestHandlers, type Executor } from "./request-handlers";
 
-const MODULE: RegisteredModule = { id: "mod-a", title: "Module A", version: "1.0.0", apiVersion: "0.3.0" };
+const API = "0.4.0";
+const MODULE: RegisteredModule = { id: "mod-a", title: "Module A", version: "1.0.0", apiVersion: API };
+const GM: Executor = { userId: "gm-1", isGm: true };
 
-function ping() {
-  const handler = defaultRequestHandlers("0.3.0").find((h) => h.type === "flightcontrol.ping");
-  if (!handler) throw new Error("test setup: flightcontrol.ping is missing");
+function find(type: string, executor: () => Executor = () => GM) {
+  const handler = defaultRequestHandlers(API, executor).find((h) => h.type === type);
+  if (!handler) throw new Error(`test setup: ${type} is missing`);
   return handler;
 }
 
 describe("flightcontrol.ping", () => {
   it("validates the payload and answers with apiVersion, module and echo", async () => {
-    const handler = ping();
+    const handler = find("flightcontrol.ping");
 
     // accepted payloads
     for (const payload of [undefined, null, {}, { echo: null }, { echo: undefined }]) {
@@ -29,15 +31,50 @@ describe("flightcontrol.ping", () => {
 
     // the answer
     if (!check.ok) throw new Error("unreachable");
-    expect(await handler.run(check.value, { module: MODULE })).toEqual({ apiVersion: "0.3.0", module: "mod-a", echo: "hello" });
-    expect(await handler.run({ echo: null }, { module: MODULE })).toEqual({ apiVersion: "0.3.0", module: "mod-a", echo: null });
+    expect(await handler.run(check.value, { module: MODULE })).toEqual({ apiVersion: API, module: "mod-a", echo: "hello" });
+    expect(await handler.run({ echo: null }, { module: MODULE })).toEqual({ apiVersion: API, module: "mod-a", echo: null });
+  });
+});
+
+describe("flightcontrol.gmping", () => {
+  it("runs on the Gamemaster's client, validates like ping and says who ran it", async () => {
+    const executor = vi.fn(() => GM);
+    const handler = find("flightcontrol.gmping", executor);
+    const ping = find("flightcontrol.ping");
+
+    expect(handler.runsOn).toBe("gm");
+    expect(handler.versions).toEqual([1]);
+
+    // the same payload rules as ping
+    for (const payload of [undefined, null, {}, { echo: "x" }, { echo: "x".repeat(200) }]) {
+      expect(handler.validate(payload), `payload ${JSON.stringify(payload)}`).toEqual(ping.validate(payload));
+    }
+    for (const payload of ["text", 5, [], { echo: 5 }, { echo: "x".repeat(201) }]) {
+      expect(handler.validate(payload), `payload ${JSON.stringify(payload)}`).toMatchObject({ ok: false });
+    }
+
+    // the answer names the client that ran it, not the sender
+    const check = handler.validate({ echo: "hello" });
+    if (!check.ok) throw new Error("unreachable");
+    expect(await handler.run(check.value, { module: MODULE })).toEqual({
+      apiVersion: API,
+      module: "mod-a",
+      echo: "hello",
+      ranBy: { userId: "gm-1", isGm: true },
+    });
+    expect(executor).toHaveBeenCalledTimes(1);
   });
 });
 
 describe("defaultRequestHandlers", () => {
-  it("offers exactly one request type, flightcontrol.ping in version 1", () => {
-    const handlers = defaultRequestHandlers("0.3.0");
+  it("offers exactly two request types, and only flightcontrol.gmping runs on the Gamemaster's client", () => {
+    const handlers = defaultRequestHandlers(API, () => GM);
 
-    expect(handlers.map((h) => [h.type, h.versions])).toEqual([["flightcontrol.ping", [1]]]);
+    expect(handlers.map((h) => [h.type, h.versions, h.runsOn ?? "caller"])).toEqual([
+      ["flightcontrol.ping", [1], "caller"],
+      ["flightcontrol.gmping", [1], "gm"],
+    ]);
+    // A handler that runs with Gamemaster rights needs the Apply of its milestone and, if it changes data, milestone M6.
+    expect(handlers.filter((h) => h.runsOn === "gm").map((h) => h.type)).toEqual(["flightcontrol.gmping"]);
   });
 });

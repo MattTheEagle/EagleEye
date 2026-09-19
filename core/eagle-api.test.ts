@@ -1,7 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
 import { createEagleApi } from "./eagle-api";
 import { ModuleRegistry, type ModuleInfo, type ModuleInfoSource } from "./module-registry";
-import type { RequestKernel } from "./request-kernel";
+import { createRequestKernel, type RequestHandler, type RequestKernel } from "./request-kernel";
+import { createRequestRelay, type RelayEnvironment } from "./request-relay";
 
 const API = "0.1.0";
 
@@ -118,5 +119,51 @@ describe("createEagleApi", () => {
       type: "flightcontrol.ping",
     };
     await expect(api.request(throwingGetter)).resolves.toMatchObject({ ok: false });
+  });
+
+  it("works with the relay as its kernel: a relayed result comes back, and no-gm, relay-failed and relay-timeout are logged via warn but a success is not", async () => {
+    const log = makeLogger();
+    const registry = new ModuleRegistry(makeSource(), API);
+    registry.registerModule({ id: "mod-a", apiVersion: API });
+    const handlers: RequestHandler[] = [
+      {
+        type: "test.gm",
+        versions: [1],
+        runsOn: "gm",
+        validate: (payload) => ({ ok: true, value: payload }),
+        run: async () => ({ ran: "on the gm" }),
+      },
+    ];
+    const apiFor = (environment: RelayEnvironment, timeoutMs?: number) => {
+      const kernel = createRequestKernel(registry, handlers);
+      return createEagleApi(registry, log, createRequestRelay({ kernel, handlers, registry, environment, log, timeoutMs }));
+    };
+    const player = (over: Partial<RelayEnvironment>): RelayEnvironment => ({
+      isGm: () => false,
+      hasGm: () => true,
+      send: async () => ({ ok: true, value: { relayed: true } }),
+      ...over,
+    });
+    const request = { module: "mod-a", type: "test.gm" };
+
+    // a relayed success comes back and is not logged
+    await expect(apiFor(player({})).request(request)).resolves.toEqual({ ok: true, value: { relayed: true } });
+    expect(log.warn).not.toHaveBeenCalled();
+
+    // the three relay failures come back with their reason and are logged
+    const failures: Array<[string, RelayEnvironment, number | undefined]> = [
+      ["no-gm", player({ hasGm: () => false }), undefined],
+      ["relay-failed", player({ send: () => Promise.reject(new Error("socket closed")) }), undefined],
+      ["relay-timeout", player({ send: () => new Promise(() => undefined) }), 10],
+    ];
+    for (const [reason, environment, timeoutMs] of failures) {
+      await expect(apiFor(environment, timeoutMs).request(request), reason).resolves.toMatchObject({ ok: false, reason });
+    }
+    expect(log.warn).toHaveBeenCalledTimes(3);
+    expect(log.warn.mock.calls.map((call) => String(call[0]))).toEqual([
+      expect.stringContaining("no-gm"),
+      expect.stringContaining("relay-failed"),
+      expect.stringContaining("relay-timeout"),
+    ]);
   });
 });

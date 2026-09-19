@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import type { JsonValue } from "./json-value";
 import { ModuleRegistry, type ModuleInfo, type ModuleInfoSource } from "./module-registry";
-import { createRequestKernel, type PayloadCheck, type RequestHandler } from "./request-kernel";
+import { createRequestKernel, findSender, parseEnvelope, type PayloadCheck, type RequestHandler } from "./request-kernel";
 
 const API = "0.3.0";
 
@@ -55,11 +55,58 @@ describe("createRequestKernel", () => {
       ["fractional version", [handler({ versions: [1.5] })]],
       ["negative version", [handler({ versions: [-1] })]],
       ["duplicate type", [handler(), handler()]],
+      ["runsOn nowhere", [handler({ runsOn: "nowhere" as never })]],
     ];
     for (const [name, handlers] of bad) {
       expect(() => createRequestKernel(registry, handlers), name).toThrow();
     }
     expect(() => createRequestKernel(registry, [handler(), handler({ type: "test.other" })])).not.toThrow();
+    expect(() =>
+      createRequestKernel(registry, [handler({ runsOn: "caller" }), handler({ type: "test.other", runsOn: "gm" })]),
+    ).not.toThrow();
+  });
+});
+
+describe("parseEnvelope", () => {
+  it("keeps exactly the four known fields and rejects a malformed envelope with invalid-request", () => {
+    const full = parseEnvelope({ module: "mod-a", type: "test.echo", version: 2, payload: { a: [1] }, extra: () => 1 });
+    expect(full).toEqual({ ok: true, value: { module: "mod-a", type: "test.echo", version: 2, payload: { a: [1] } } });
+
+    // a version or payload that is given as undefined counts as absent
+    const bare = parseEnvelope({ module: "mod-a", type: "test.echo", version: undefined, payload: undefined });
+    if (!bare.ok) throw new Error("test setup: the bare envelope should be valid");
+    expect(Object.keys(bare.value)).toEqual(["module", "type"]);
+
+    const invalid: unknown[] = [
+      null,
+      "text",
+      42,
+      [],
+      {},
+      { module: "", type: "test.echo" },
+      { module: "mod-a", type: "Test" },
+      { module: "mod-a", type: "test.echo", version: 0 },
+      { module: "mod-a", type: "test.echo", payload: () => 1 },
+    ];
+    for (const request of invalid) {
+      expect(parseEnvelope(request), JSON.stringify(request)).toMatchObject({
+        ok: false,
+        failure: { ok: false, reason: "invalid-request" },
+      });
+    }
+  });
+});
+
+describe("findSender", () => {
+  it("finds a registered active sender and reports not-registered for an unknown or inactive one", () => {
+    const source = makeSource();
+    const registry = makeRegistry(source);
+
+    expect(findSender(registry, "mod-a")).toMatchObject({ ok: true, value: { id: "mod-a" } });
+    expect(findSender(registry, "stranger")).toMatchObject({ ok: false, failure: { ok: false, reason: "not-registered" } });
+
+    source.setActive("mod-b", false);
+    expect(findSender(registry, "mod-b")).toMatchObject({ ok: false, failure: { ok: false, reason: "not-registered" } });
   });
 });
 

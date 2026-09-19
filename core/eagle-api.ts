@@ -1,5 +1,5 @@
 import type { ModuleRegistry, RegistrationResult } from "./module-registry";
-import { defaultRequestHandlers } from "./request-handlers";
+import { defaultRequestHandlers, type Executor } from "./request-handlers";
 import { createRequestKernel, type RequestKernel, type RequestResult } from "./request-kernel";
 
 export interface EagleFlightControlApi {
@@ -35,11 +35,14 @@ function describeError(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
 }
 
+// For callers without Foundry (the default kernel below, tests). The Foundry wiring in v13/module.ts passes the real one.
+const NO_EXECUTOR = (): Executor => ({ userId: "", isGm: false });
+
 // The public surface other modules see: exactly `version`, `registerModule` and `request`.
 export function createEagleApi(
   registry: ModuleRegistry,
   log: ApiLogger = consoleLogger,
-  kernel: RequestKernel = createRequestKernel(registry, defaultRequestHandlers(registry.apiVersion)),
+  kernel: RequestKernel = createRequestKernel(registry, defaultRequestHandlers(registry.apiVersion, NO_EXECUTOR)),
 ): Readonly<EagleFlightControlApi> {
   const registerModule = (descriptor: unknown): RegistrationResult => {
     let result: RegistrationResult;

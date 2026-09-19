@@ -16,11 +16,21 @@ export type RequestFailure =
   | "unsupported-version"
   | "invalid-payload"
   | "handler-failed"
-  | "internal-error";
+  | "internal-error"
+  // added with the Gamemaster relay (request-relay.ts)
+  | "no-gm"
+  | "relay-timeout"
+  | "relay-failed"
+  | "not-permitted";
 
 export type RequestResult =
   | { readonly ok: true; readonly value: JsonValue }
   | { readonly ok: false; readonly reason: RequestFailure; readonly detail: string };
+
+export type RequestFailureResult = Extract<RequestResult, { readonly ok: false }>;
+
+// The outcome of one check: the checked value, or the failure to hand back to the caller.
+export type Checked<T> = { readonly ok: true; readonly value: T } | { readonly ok: false; readonly failure: RequestFailureResult };
 
 export type PayloadCheck<P> = { readonly ok: true; readonly value: P } | { readonly ok: false; readonly detail: string };
 
@@ -28,11 +38,17 @@ export interface RequestContext {
   readonly module: RegisteredModule;
 }
 
+// Where a request type runs: in the client of the caller, or on the Gamemaster's client.
+export type RunsOn = "caller" | "gm";
+
 export interface RequestHandler<P = unknown> {
   // "<area>.<verb>", lower case, dot separated
   readonly type: string;
   // The request versions this handler understands, for example [1]
   readonly versions: readonly number[];
+  // Defaults to "caller". A request for a "gm" handler that comes from a client without a Gamemaster role is
+  // forwarded to the Gamemaster (see request-relay.ts); the kernel itself never looks at this value.
+  readonly runsOn?: RunsOn;
   validate(payload: unknown): PayloadCheck<P>;
   run(payload: P, context: RequestContext): Promise<JsonValue>;
 }
@@ -46,12 +62,48 @@ export const REQUEST_TYPE_PATTERN = /^[a-z][a-z0-9]*(\.[a-z][a-z0-9]*)+$/;
 
 const TYPE_HINT = 'must look like "<area>.<verb>" in lower case';
 
-function fail(reason: RequestFailure, detail: string): RequestResult {
+function fail(reason: RequestFailure, detail: string): RequestFailureResult {
   return { ok: false, reason, detail };
 }
 
 function describeError(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
+}
+
+// Step 1 of a request: the envelope is an object with a module, a request type, an optional version and an optional
+// JSON payload. The checked value holds exactly these four fields; anything else is dropped.
+export function parseEnvelope(request: unknown): Checked<RequestEnvelope> {
+  const invalid = (detail: string): Checked<RequestEnvelope> => ({ ok: false, failure: fail("invalid-request", detail) });
+
+  if (typeof request !== "object" || request === null || Array.isArray(request)) {
+    return invalid("request must be an object");
+  }
+  const { module: moduleId, type, version, payload } = request as Record<string, unknown>;
+  if (typeof moduleId !== "string" || moduleId === "") return invalid("request.module must be a non-empty string");
+  if (typeof type !== "string" || !REQUEST_TYPE_PATTERN.test(type)) return invalid(`request.type ${TYPE_HINT}`);
+  if (version !== undefined && !(typeof version === "number" && Number.isInteger(version) && version >= 1)) {
+    return invalid("request.version must be a positive integer when given");
+  }
+  if (payload !== undefined && !isJsonValue(payload)) {
+    return invalid("request.payload must be JSON-serializable when given");
+  }
+
+  const envelope: RequestEnvelope = { module: moduleId, type };
+  if (version !== undefined) envelope.version = version;
+  if (payload !== undefined) envelope.payload = payload;
+  return { ok: true, value: envelope };
+}
+
+// Step 2 of a request: the sender must be registered and active.
+export function findSender(registry: Pick<ModuleRegistry, "list">, moduleId: string): Checked<RegisteredModule> {
+  const sender = registry.list().find((entry) => entry.id === moduleId);
+  if (!sender) {
+    return {
+      ok: false,
+      failure: fail("not-registered", `module "${moduleId}" is not registered with Flight Control or is not active`),
+    };
+  }
+  return { ok: true, value: sender };
 }
 
 // Throws on an invalid handler definition; that is a programming error, not a runtime condition.
@@ -67,6 +119,9 @@ export function createRequestKernel(
     if (handler.versions.length === 0 || !handler.versions.every((v) => Number.isInteger(v) && v >= 1)) {
       throw new Error(`request handler "${handler.type}" needs a non-empty list of positive integer versions`);
     }
+    if (handler.runsOn !== undefined && handler.runsOn !== "caller" && handler.runsOn !== "gm") {
+      throw new Error(`request handler "${handler.type}" must run on "caller" or "gm"`);
+    }
     if (byType.has(handler.type)) {
       throw new Error(`request handler "${handler.type}" is defined twice`);
     }
@@ -76,28 +131,14 @@ export function createRequestKernel(
   async function execute(request: unknown): Promise<RequestResult> {
     try {
       // 1. envelope
-      if (typeof request !== "object" || request === null || Array.isArray(request)) {
-        return fail("invalid-request", "request must be an object");
-      }
-      const { module: moduleId, type, version, payload } = request as Record<string, unknown>;
-      if (typeof moduleId !== "string" || moduleId === "") {
-        return fail("invalid-request", "request.module must be a non-empty string");
-      }
-      if (typeof type !== "string" || !REQUEST_TYPE_PATTERN.test(type)) {
-        return fail("invalid-request", `request.type ${TYPE_HINT}`);
-      }
-      if (version !== undefined && !(typeof version === "number" && Number.isInteger(version) && version >= 1)) {
-        return fail("invalid-request", "request.version must be a positive integer when given");
-      }
-      if (payload !== undefined && !isJsonValue(payload)) {
-        return fail("invalid-request", "request.payload must be JSON-serializable when given");
-      }
+      const parsed = parseEnvelope(request);
+      if (!parsed.ok) return parsed.failure;
+      const { module: moduleId, type, version, payload } = parsed.value;
 
       // 2. sender
-      const caller = registry.list().find((entry) => entry.id === moduleId);
-      if (!caller) {
-        return fail("not-registered", `module "${moduleId}" is not registered with Flight Control or is not active`);
-      }
+      const sender = findSender(registry, moduleId);
+      if (!sender.ok) return sender.failure;
+      const caller = sender.value;
 
       // 3. handler
       const handler = byType.get(type);

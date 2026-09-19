@@ -59,7 +59,7 @@ running Foundry (v13, build 351, on Forge, dark theme, 2026-09-19).
 - R-09, R-10, R-12: the language file loads and no raw keys appear; the settings menu shows one entry; settings with the
   supported types appear, and none is reported as not editable.
 
-**Looks different from Foundry's settings window** (observed; the cause is not yet verified)
+**Looked different from Foundry's settings window in the first live test** (observed; the cause was not verified)
 
 - R-06: a form group made with `createFormGroup` is arranged stacked in the hub window (label above, field across the full
   width, hint below). Foundry's settings window shows the label on the left and the field on the right. The reference
@@ -68,7 +68,13 @@ running Foundry (v13, build 351, on Forge, dark theme, 2026-09-19).
   v13 reference does not mention that class. Until it is checked, rely on R-06 for the markup, not for the arrangement.
 - R-05: `createNumberInput` renders a plain number field. Foundry's settings window shows a slider with a number field for
   a setting with a `range`. The reference offers `HTMLRangePickerElement.create` for it
-  (`client/applications/elements/range-picker.d.mts:30`); the hub does not use it yet.
+  (`client/applications/elements/range-picker.d.mts:30`).
+
+**Changed afterwards, not yet checked in a running Foundry**
+
+- The hub window now sets `window.contentClasses: ["standard-form"]` (R-06) and shows a setting with a full `range`
+  through `HTMLRangePickerElement.create` (R-05). Whether this gives the native arrangement is checked with the next
+  live test of the hub. Until then the rules above stay as they are.
 
 **Not yet verified in a running Foundry** (`unverified`)
 

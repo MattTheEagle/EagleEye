@@ -2,8 +2,12 @@ import { EAGLEEYE_ID, logEagleEyeReady } from "../core/index";
 import { EAGLE_API_VERSION } from "../core/api-version";
 import { createEagleApi, type ApiLogger, type EagleFlightControlApi } from "../core/eagle-api";
 import { defaultModuleInfoSource, ModuleRegistry } from "../core/module-registry";
+import { defaultRequestHandlers } from "../core/request-handlers";
+import { createRequestKernel, type RequestKernel } from "../core/request-kernel";
+import { createRequestRelay } from "../core/request-relay";
 import { defaultHubSettingsSource } from "../core/settings-hub";
 import { createHubApplicationClass } from "./hub-application";
+import { foundryExecutor, foundryRelayEnvironment, registerRelayQuery } from "./relay";
 
 // Types game.modules.get("eagleeye")?.api for readers (see docs/api-contract.md).
 declare global {
@@ -44,7 +48,21 @@ Hooks.once("init", () => {
   // Other modules read the API from their "setup" hook on, which runs after every "init" callback.
   // Attach it synchronously (before any await) so it exists by then, whatever the module load order.
   try {
-    game.modules!.get(EAGLEEYE_ID).api = createEagleApi(registry);
+    const handlers = defaultRequestHandlers(EAGLE_API_VERSION, foundryExecutor);
+    const kernel = createRequestKernel(registry, handlers);
+
+    // Requests for handlers that run on the Gamemaster's client are forwarded by the relay. If the relay cannot be
+    // set up, every request runs in the caller's client with the caller's own rights, which is the safe direction.
+    let requests: RequestKernel = kernel;
+    try {
+      const relay = createRequestRelay({ kernel, handlers, registry, environment: foundryRelayEnvironment(), log: consoleLog });
+      registerRelayQuery(relay, consoleLog);
+      requests = relay;
+    } catch (error) {
+      console.error("eagleeye | failed to set up the Gamemaster relay; requests run in the caller's client only", error);
+    }
+
+    game.modules!.get(EAGLEEYE_ID).api = createEagleApi(registry, consoleLog, requests);
     console.log(`eagleeye | API attached (v${EAGLE_API_VERSION})`);
   } catch (error) {
     console.error("eagleeye | failed to attach the API to the module object", error);
