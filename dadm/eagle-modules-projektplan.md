@@ -159,3 +159,28 @@ Implementierungs-Detail für eine spätere Umsetzung.
 Vollständige Belege: `dadm/m7-01-discover-output.md`, `dadm/m7-02-apply-output.md`.
 
 ---
+
+## M8 — Eagle Prey: Automatische Regel-Extraktion aus dnd5e-Code
+
+**Ergebnis: Zweigeteilt, deutlich differenzierter als im Plan angenommen.**
+(1) **Schriftliche Regeldarstellung** ist voll automatisch machbar:
+`CONFIG.DND5E.rules` ist ein von dnd5e selbst gepflegtes, deklaratives
+Mapping von ~60+ Regelbegriffen auf offizielle Regelwerkstext-Referenzen —
+kein Extraktionsaufwand nötig, bleibt automatisch mit der installierten
+dnd5e-Version synchron. (2) **Mechanik als editierbarer Wert** ist nur dort
+machbar, wo dnd5e die Mechanik bereits als Game-Setting exponiert (am
+Beispiel kritischer Trefferschaden konkret verifiziert — direkt über den
+bestehenden Settings-Hub aus Phase 1 nutzbar). Für die übrigen, überwiegend
+in imperativem Code verankerten Mechaniken bestätigt sich die ursprüngliche
+Erwartung: nur über tiefe Eingriffe lösbar, wie in der Vision selbst bereits
+als Fallback vorgesehen.
+
+**Empfehlung:** Eagle Prey in drei Ebenen aufteilen — Regel-Nachschlagewerk
+(sofort machbar), Regel-Settings soweit exponiert (Erweiterung des
+bestehenden Hubs), "Change Rule to Homebrew" für den Rest (tiefe Eingriffe,
+bewusster Fallback). Vollständige Bestandsaufnahme der exponierten Settings
+wäre erste Aufgabe einer künftigen Umsetzungsphase.
+
+Vollständige Belege: `dadm/m8-01-discover-output.md`, `dadm/m8-02-apply-output.md`.
+
+---
