@@ -1,9 +1,7 @@
 # Eagle Modules — Projektplan (im Aufbau)
 
-status: in Arbeit — wird von jedem Milestone (M1–M10, siehe
-`04-milestone-plan.md`, Version 2) inkrementell ergänzt. M10 (Synthese)
-schließt mit Abhängigkeitsgraph, Gesamt-Risiko-/Machbarkeitsmatrix,
-API-Umwandlung-Übersicht und priorisierter Umsetzungsempfehlung ab.
+status: M1–M10 inhaltlich abgeschlossen, wartet auf Projektleiter-Bestätigung
+für M10 (siehe Milestone-Acceptance in `04-milestone-plan.md`)
 retention: durable
 
 Quelle der Ideen: `dadm/reference/eagle-modules-vision.md`.
@@ -195,5 +193,94 @@ bewährt hat), statt Eigenentwicklung anzunehmen. Berührt außerdem M3
 (Modul-Ersatz/-Migration, fehlende programmatische Modul-Aktivierung).
 
 Vollständige Belege: `dadm/m9-01-discover-output.md`, `dadm/m9-02-apply-output.md`.
+
+---
+
+## M10 — Synthese
+
+status: zur Bestätigung durch den Projektleiter (Milestone-Acceptance
+verlangt explizite Bestätigung, siehe `04-milestone-plan.md`)
+
+### Modul-Übersicht & Gesamtverdict
+
+| Modul | Kernergebnis | Verdict |
+|---|---|---|
+| Eagle Eye (Basis) | 4/5 Anforderungen belegt, 2 nachgereicht (M3) | überwiegend belegt |
+| Eagle Eye (Settings-Impact/Aktivierung, M3) | Stufe 1 machbar, Stufe 2 nicht, Aktivierung UI-only mit Reload | differenziert machbar |
+| Eagle Eyrie | alle Bausteine offizielle Foundry-APIs | **voll machbar** |
+| Eagle Egg | machbar via Wiederverwendung von dnd5e's Advancement-System | machbar, Risiko herabgestuft |
+| Eagle Beak (strukturiert, = M2) | machbar als Komposition zweier Mechanismen | machbar |
+| Eagle Beak (Freitext-Import) | nur für templatierte Eingaben zuverlässig | eingeschränkt machbar |
+| Eagle Talon | native `@UUID`-Verlinkung deckt Kernfunktion ab | **voll machbar** |
+| Eagle Prey | Text-Teil voll automatisch, Mechanik-Teil teils/teils | differenziert machbar |
+| Eagle Wings | bewusst nicht bewertet | zurückgestellt |
+
+### Abhängigkeitsgraph
+
+```
+Eagle Eye (Basis + Settings-Impact/Aktivierung, M1+M3)
+  │
+  ├─→ Eagle Eyrie (M4) ──┬─→ Eagle Egg (M5)
+  │                      └─→ Eagle Beak strukturiert (M2)
+  │                              └─→ Eagle Beak Freitext-Import (M6)
+  │
+  ├─→ Eagle Talon (M7)            [unabhängig von Eyrie/Egg/Beak]
+  │
+  ├─→ Eagle Prey (M8)             [unabhängig von Eyrie/Egg/Beak]
+  │
+  └─→ Eagle Wings (M9)  ← benötigt alle anderen (Projektleiter-Vorgabe)
+```
+
+Eagle Talon und Eagle Prey hängen **nur** von Eagle Eye ab und könnten daher
+parallel zu Eyrie/Egg/Beak entwickelt werden, nicht zwingend danach.
+
+### Gesamt-Risiko-/Machbarkeitsmatrix
+
+| Modul | Technisches Risiko | Größter offener Punkt |
+|---|---|---|
+| Eagle Eye Basis | niedrig | Eagle Eye als aktiv nutzbare API für Drittmodule (F1 aus M1-Monitor) |
+| Eagle Eye Settings-Impact/Aktivierung | niedrig (Stufe 1), entfällt (Stufe 2 nicht verfolgt) | keiner (Stufe 2 bewusst nicht verfolgt) |
+| Eagle Eyrie | niedrig | Performance bei vollem Dokumentladen (Design-Hinweis, kein Blocker) |
+| Eagle Egg | niedrig-mittel | UI-Integration um dnd5e's AdvancementManager |
+| Eagle Beak strukturiert | mittel | Abdeckung exotischer/neuartiger Mechaniken über die 11 Activity-Typen hinaus |
+| Eagle Beak Freitext | hoch | strukturell erwartete Grenze, kein neuer Fund |
+| Eagle Talon | niedrig | Folder-vs-Entry-Berechtigungsmodell (Implementierungsdetail) |
+| Eagle Prey | mittel-hoch (nur für Mechanik-Teil ohne Settings-Zugang) | unbekannter Anteil der Mechaniken mit/ohne Settings-Zugang |
+| Eagle Wings | nicht bewertet | vollständig offen, absichtlich |
+
+### API-Umwandlung-Übersicht (durchgängige Analyse-Linse)
+
+| Modul | Relevanz | Befund |
+|---|---|---|
+| Eagle Eye / Eagle Beak strukturiert (M2) | zentral | machbar als Komposition (natives Schema + Bedingungsmechanismus) |
+| Eagle Eyrie | gering | nicht anwendbar — Duplikat-, kein Formatproblem |
+| Eagle Egg | hoch | direkteste Anwendung, nutzt vorhandene dnd5e-Übersetzungsschicht (Advancement) |
+| Eagle Talon | sehr gering | triviale 1:1-Übersetzung |
+| Eagle Prey | hoch (aber Rückrichtung) | nicht direkt aus M2 übertragbar, eigenständig untersucht |
+
+### Priorisierte Empfehlung für eine mögliche künftige Umsetzungsphase
+
+1. **Eagle Eyrie zuerst** — voll machbar, keine offenen Risiken, schafft die
+   Grundlage (Eagle Library) für Egg und Beak
+2. **Eagle Talon und Eagle Prey (Text-/Settings-Teil) parallel dazu** — beide
+   unabhängig von Eyrie, niedriges Risiko, schnelle sichtbare Ergebnisse
+3. **Eagle Egg** — nach Eyrie, Risiko durch Wiederverwendung von dnd5e's
+   Advancement-System bereits reduziert
+4. **Eagle Beak strukturiert** — nach Eyrie, teilt Erkenntnisse mit Egg (M2)
+5. **Eagle Beak Freitext-Import** — erst nach strukturierter Erstellung,
+   da der Korrektur-Editor (gemeinsame Infrastruktur) dort ohnehin gebaut wird
+6. **Eagle Prey "Change Rule to Homebrew"** (Mechaniken ohne Settings-Zugang)
+   — höchster Aufwand/Risiko, zuletzt vor Eagle Wings
+7. **Eagle Wings** — wie vom Projektleiter selbst vorgegeben, erst wenn alles
+   andere reibungslos läuft
+
+### Übergreifende Erkenntnis dieser Phase
+Ein Muster zog sich durch M2, M5 und M8: dnd5e exponiert deutlich mehr
+öffentliche, deklarative Erweiterungspunkte (`game.dnd5e`-Namespace,
+`CONFIG.DND5E`-Konfigurationsobjekte, registrierte Settings) als eine grobe
+Einschätzung ohne Quellcode-Recherche vermuten lässt. Für jede künftige
+Machbarkeitsfrage in diesem Ökosystem empfiehlt sich als erster Schritt:
+prüfen, ob dnd5e (oder das zu ersetzende Fremdmodul) bereits eine öffentliche
+Erweiterungsschicht dafür bietet, bevor Eigenentwicklung angenommen wird.
 
 ---
