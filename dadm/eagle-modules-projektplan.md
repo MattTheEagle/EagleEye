@@ -139,3 +139,23 @@ Funktion, nicht das Parsen selbst.
 Vollständige Belege: `dadm/m6-01-discover-output.md`, `dadm/m6-02-apply-output.md`.
 
 ---
+
+## M7 — Eagle Talon: Journal-/Obsidian-artiges Vault-System
+
+**Ergebnis: Machbar.** Verlinkung/Backlinks sind einfacher als angenommen —
+Foundrys natives `@UUID[...]`-Content-Link-System (`TextEditor.enrichHTML`)
+deckt das bereits vollständig ab, keine Eigenentwicklung nötig. Tags sind
+über das Standard-`flags`-Muster jedes Dokuments lösbar. Einzige Nuance:
+`Folder`-Dokumente tragen selbst keine Berechtigung (anders als
+Actor/Item/JournalEntry) — der "private Vault pro Nutzer" muss über
+konsistente Ownership auf jedem einzelnen Journal-Eintrag umgesetzt werden,
+nicht über eine Ordner-Einstellung. Kein Machbarkeits-Blocker, aber ein
+Implementierungs-Detail für eine spätere Umsetzung.
+
+**API-Umwandlung-Relevanz:** bestätigt als sehr schwache Ausprägung — reine
+1:1-Übersetzung (Auswahl -> `@UUID`-String bzw. Flag), kein
+Übersetzungsproblem im eigentlichen Sinn.
+
+Vollständige Belege: `dadm/m7-01-discover-output.md`, `dadm/m7-02-apply-output.md`.
+
+---
