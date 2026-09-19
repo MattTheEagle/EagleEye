@@ -3,15 +3,15 @@
 ## Aktueller Stand
 **Umsetzungsphase 4 "Eagle Flight Control" läuft.** Bootstrap abgeschlossen, Milestone Plan Version 1 (M1–M8) am 2026-09-19 freigegeben. Discover und Apply laufen
 eigenständig, vor jedem Deploy wartet der Ablauf auf das "Go" (`06-working-mode.md`). Die drei früheren Phasen liegen unter `archive/`.
-**Der Stand von M1 bis M4 ist lokal committet, aber nicht gepusht** (Push nur auf Anweisung des Projektleiters); der Live-Check-Nachtrag (`m4-05`) und alles danach liegt im Arbeitsbaum.
+**Der Stand bis einschließlich Discover und Apply von M5 ist lokal committet, aber nicht gepusht** (letzter Commit `9509921`; Push nur auf Anweisung des Projektleiters); Deploy und Monitor von M5 samt Hub-Nacharbeit liegen im Arbeitsbaum.
 
 | Milestone | Stand | Artefakte | Live-Prüfung |
 |---|---|---|---|
 | M1 Phase-1-Code schneiden | abgeschlossen | `m1-01` bis `m1-04` | Startlog und Menü bestätigt (`m2-05`, `m4-05`) |
 | M2 Modul-Anmeldung und Erkennung | abgeschlossen | `m2-01` bis `m2-05` | bestanden (`m2-05-live-check-output.md`, R1 geschlossen) |
-| M3 Hub-Oberfläche mit UI-Leitfaden | abgeschlossen | `m3-01` bis `m3-04` | bestanden mit Befund F1 (Feld-Anordnung weicht vom nativen Look ab, `medium`, Entscheidung offen): `m4-05-live-check-output.md` |
+| M3 Hub-Oberfläche mit UI-Leitfaden | abgeschlossen, Nacharbeit 1 im M5-Deploy | `m3-01` bis `m3-04`, `m3-rework-1-output.md` | bestanden mit Befund F1 (Feld-Anordnung weicht vom nativen Look ab, `medium`): `m4-05-live-check-output.md`; Nacharbeit (Option A) umgesetzt, Live-Prüfung offen |
 | M4 Anfragekanal-Kern | abgeschlossen | `m4-01` bis `m4-04` | bestanden (`m4-05-live-check-output.md`) |
-| M5 GM-Weiterleitung | Discover und Apply abgeschlossen, wartet auf das "Go" für den Deploy | `m5-01`, `m5-02` | — |
+| M5 GM-Weiterleitung | abgeschlossen | `m5-01` bis `m5-04` | offen (GM und Spieler gleichzeitig); Anleitung und Pakete: `m5-04-monitor-output.md`, `v13/dist/live-check/` |
 | M6 bis M8 | offen | — | — |
 
 ## Aktive Phase (Bootstrap-Artefakte)
