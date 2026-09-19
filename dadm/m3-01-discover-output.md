@@ -2,7 +2,7 @@
 artifact: discover-output
 milestone: M3
 phase: DISCOVER
-status: incomplete
+status: complete
 date: 2026-09-19
 ```
 
@@ -83,10 +83,11 @@ angenommen zu werden.
 
 ## Open Questions
 
-| # | Frage | Priorität | Owner |
-|---|---|---|---|
-| Q1 | Ist mit A3b "generische Erkennung beliebiger Cross-Modul-Auswirkungen" (Lesart 1) oder "Nutzung bereits deklarierter Modul-Abhängigkeiten" (Lesart 2) gemeint? | blocking | Projektleiter |
+| # | Frage | Priorität | Owner | Antwort |
+|---|---|---|---|---|
+| Q1 | Ist mit A3b Lesart 1, Lesart 2, oder beides gemeint? | blocking | Projektleiter | **Beides, als zwei getrennte Stufen** — Lesart 2 (deklarierte Abhängigkeiten) als machbare Basis-Stufe, Lesart 1 (generische Verhaltens-Erkennung) als separat zu bewertende, ambitioniertere Erweiterungsstufe |
 
 ## Next Step
-Automatischer Ablauf gestoppt für Q1. Teilfrage (b) ist bereits vollständig
-geklärt und kann in Apply übernommen werden, sobald Q1 beantwortet ist.
+Alle Fragen aufgelöst. Apply bewertet beide Stufen getrennt (Basis: deklarierte
+Abhängigkeiten; Erweiterung: generische Verhaltens-Auswirkung) sowie
+Teilfrage (b) (Modul-Aktivierung, bereits vollständig geklärt).

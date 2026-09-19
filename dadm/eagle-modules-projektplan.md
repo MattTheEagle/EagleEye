@@ -55,3 +55,27 @@ statt Neuerstellung), eigene Recherche nötig.
 Vollständige Belege: `dadm/m2-01-discover-output.md`, `dadm/m2-02-apply-output.md`.
 
 ---
+
+## M3 — Eagle Eye: Cross-Modul-Settings-Impact & Modul-(De)Aktivierung
+
+**Ergebnis (Teilfrage a, Stufe 1 — deklarierte Abhängigkeiten):** Machbar,
+großteils bereits vorhanden. Erweiterung des bestehenden
+Manifest-Scanners (Phase 1 M3) um eine Warnfunktion beim Versuch, ein
+Modul zu deaktivieren, von dem andere aktive Module deklariert abhängen.
+
+**Ergebnis (Teilfrage a, Stufe 2 — generische Verhaltens-Erkennung):** Nicht
+robust machbar. Kein Foundry-Mechanismus verknüpft Settings-Änderungen mit
+Verhaltensänderungen undeklariert verbundener Module. Nur über eine
+kuratierte, manuell gepflegte Wissensbasis denkbar — das ist kein
+automatisches Erkennen.
+
+**Ergebnis (Teilfrage b — Modul-Aktivierung):** Nur über die Standard-UI
+(`ModuleManagement`, selbst in Foundrys Typdefinitionen nur als Stub
+vorhanden), erfordert zwingend einen Welt-Neustart. Keine öffentliche API für
+programmatisches Umschalten durch ein Drittmodul gefunden. Eagle Eye könnte
+höchstens eine komfortablere Oberfläche darüber bauen, keine echte
+Laufzeit-Aktivierung.
+
+Vollständige Belege: `dadm/m3-01-discover-output.md`, `dadm/m3-02-apply-output.md`.
+
+---
