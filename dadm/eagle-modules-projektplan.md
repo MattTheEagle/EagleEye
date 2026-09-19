@@ -1,7 +1,7 @@
 # Eagle Modules — Projektplan (im Aufbau)
 
-status: M1–M10 inhaltlich abgeschlossen, wartet auf Projektleiter-Bestätigung
-für M10 (siehe Milestone-Acceptance in `04-milestone-plan.md`)
+status: final — vom Projektleiter am 2026-09-19 bestätigt (vollständig und
+korrekt, siehe Milestone-Acceptance in `04-milestone-plan.md`)
 retention: durable
 
 Quelle der Ideen: `dadm/reference/eagle-modules-vision.md`.
