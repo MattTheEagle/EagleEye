@@ -46,9 +46,15 @@ eine Erweiterung des genehmigten Plans ist, entscheidet der Projektleiter.
 ```
 AC-M1-01: Abgleichtabelle vollständig (siehe Discover-Output) — erfüllt.
 AC-M1-02: Liste offener Fragen für spätere Milestones vorhanden — erfüllt.
-AC-M1-03: Entscheidung zu R1/Q1 vom Projektleiter eingeholt, bevor mit M2
-          fortgefahren wird.
+AC-M1-03: Entscheidung zu R1/Q1 vom Projektleiter eingeholt — erfüllt:
+          Option A gewählt, Milestone Plan v2 mit neuem M3 (Eagle Eye
+          Kernfragen) erstellt und genehmigt (siehe
+          `05-milestone-plan-approval-v2.md`).
 ```
+
+**Entscheidung umgesetzt:** Milestone Plan auf Version 2 aktualisiert, neues
+M3 "Eagle Eye: Cross-Modul-Settings-Impact & Modul-(De)Aktivierung"
+eingefügt, Folge-Milestones zu M4–M10 verschoben.
 
 ## Risks and Assumptions
 Keine neuen — siehe Discover R1/R2.

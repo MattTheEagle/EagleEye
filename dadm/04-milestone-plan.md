@@ -1,7 +1,12 @@
 # Milestone Plan — EagleEye: Eagle Modules Machbarkeitsplanung
 
-plan-version: 1
+plan-version: 2
 retention: durable (bei signifikanter Änderung: neue Version + neue Approval)
+
+Änderung gegenüber Version 1 (siehe `05-milestone-plan-approval-v2.md`): M3
+(Eagle Eye Kernfragen) neu eingefügt, Folge-Milestones verschoben. Auslöser:
+M1-Discover fand zwei explizite Eagle-Eye-Anforderungen (A3b/A3c), die von
+keinem Milestone in Version 1 abgedeckt waren.
 
 Hinweis zu Proofs/Artefakten dieser Phase: Da reine Recherche/Analyse
 betrieben wird (kein Code, kein Live-Test), besteht der Proof je Milestone
@@ -43,8 +48,8 @@ zutrifft, statt das Thema separat neu zu erforschen.
 - Scope: dnd5e Activity-/ActiveEffect-Datenmodell (v3+), Item-Schema
 - Deliverables: Machbarkeitsbewertung anhand des Referenzfalls, Einschätzung
   der Generalisierbarkeit (wie viele Homebrew-/Anwendungsfälle deckt dieser
-  Ansatz realistisch ab?) — als direkt wiederverwendbare Grundlage für M3,
-  M4, M6, M7
+  Ansatz realistisch ab?) — als direkt wiederverwendbare Grundlage für M4,
+  M5, M7, M8
 - Acceptance: dokumentierte Aussage mit Quellenbelegen aus dem dnd5e-Quellcode
   (Activities-System)
 - Risiken: mittel (Activities sind laut erster Einschätzung ein sanktionierter
@@ -52,7 +57,29 @@ zutrifft, statt das Thema separat neu zu erforschen.
 - Dependencies: M1
 - Priorität: hoch (zentrale, wiederverwendbare Erkenntnis für mehrere Module)
 
-## M3 — Eagle Eyrie: Compendium-Dedup & Suche
+## M3 — Eagle Eye: Cross-Modul-Settings-Impact & Modul-(De)Aktivierung
+- Ziel: Die beiden in M1 gefundenen, unabgedeckten Eagle-Eye-Kernfragen
+  klären: (a) lässt sich erkennen, dass die Einstellungsänderung eines
+  Moduls ein anderes Modul beeinflusst, und den DM darüber informieren? (b)
+  können Module durch Eagle Eye programmatisch aktiviert/deaktiviert werden
+  (auch wenn dafür ein Welt-Neustart nötig ist)?
+- Scope: Foundry Modul-Konfigurations-API (World-Settings-Ebene,
+  `game.settings`-Namespace `core`), Recherche nach einer generischen
+  Cross-Modul-Auswirkungs-API (falls vorhanden)
+- Deliverables: getrennte Machbarkeitsbewertung für (a) und (b), mit
+  Quellenbelegen; falls (a) nicht generisch möglich ist, Einschätzung
+  alternativer Ansätze (z. B. ein von Eagle Eye selbst gepflegtes
+  Konflikt-Wissen statt automatischer Erkennung — mit klarer Unterscheidung
+  zwischen "erkennen" und "kuratiertes Wissen anwenden")
+- Acceptance: dokumentierte Aussage zu (a) und (b), mit Quellenbelegen
+- Risiken: hoch für (a) (kein bekannter genereller Foundry-Mechanismus dafür
+  — reine Vermutung ohne Beleg); mittel für (b) (Modul-Aktivierung ist ein
+  bekannter Mechanismus, Live-Toggle ohne Neustart aber unklar)
+- Dependencies: M1, M2
+- Priorität: hoch (Eagle-Eye-Kernanforderung, in Version 1 des Plans
+  übersehen)
+
+## M4 — Eagle Eyrie: Compendium-Dedup & Suche
 - Ziel: Klären, ob/wie sich Foundrys Compendium-API für automatische
   Compendium-Erstellung, namensbasierte Dedup-Prüfung (mit Ausnahme für
   Klassen/Spezies/Subklassen/Backgrounds, siehe Klärung) und übergreifende
@@ -71,7 +98,7 @@ zutrifft, statt das Thema separat neu zu erforschen.
 - Dependencies: M1, M2
 - Priorität: mittel
 
-## M4 — Eagle Egg: Geführter Charakter-Builder
+## M5 — Eagle Egg: Geführter Charakter-Builder
 - Ziel: Klären, ob ein externes Modul zuverlässig ein dnd5e-Actor-Sheet live
   mitgestalten kann (dynamische Optionen je nach vorheriger Wahl), inkl.
   Class/Species/Background/Spell-Gating nach Level
@@ -91,7 +118,7 @@ zutrifft, statt das Thema separat neu zu erforschen.
 - Dependencies: M1, M2
 - Priorität: mittel
 
-## M5 — Eagle Beak: Freitext-Homebrew-Import (Parsing-Machbarkeit)
+## M6 — Eagle Beak: Freitext-Homebrew-Import (Parsing-Machbarkeit)
 - Ziel: Klären, wie zuverlässig sich freier Homebrew-Text zu strukturierten
   Foundry-Daten parsen lässt — unabhängig von M2, da qualitativ anderes
   Problem (Texterkennung statt strukturierter Eingabe). Die strukturierte
@@ -108,7 +135,7 @@ zutrifft, statt das Thema separat neu zu erforschen.
   geparste Freitexte am Ende übersetzt werden müssten)
 - Priorität: mittel
 
-## M6 — Eagle Talon: Journal-/Obsidian-artiges Vault-System
+## M7 — Eagle Talon: Journal-/Obsidian-artiges Vault-System
 - Ziel: Klären, ob sich ein Obsidian-artiges Vault-/Tag-/Verlinkungssystem
   sauber auf Foundrys Journal-Dokumentstruktur abbilden lässt, inkl.
   automatischer Pro-Nutzer-Ordnerstruktur und Backlink-Suche
@@ -125,7 +152,7 @@ zutrifft, statt das Thema separat neu zu erforschen.
 - Dependencies: M1, M2
 - Priorität: mittel
 
-## M7 — Eagle Prey: Automatische Regel-Extraktion aus dnd5e-Code
+## M8 — Eagle Prey: Automatische Regel-Extraktion aus dnd5e-Code
 - Ziel: Klären, ob sich Spielregeln (Combat/Attack/Damage Rules etc.)
   automatisch und robust aus dem laufenden dnd5e-Systemcode extrahieren
   lassen (Klärung: explizit **nicht** handgepflegter Katalog gewünscht)
@@ -147,21 +174,21 @@ zutrifft, statt das Thema separat neu zu erforschen.
 - Dependencies: M1, M2
 - Priorität: mittel
 
-## M8 — Eagle Wings: Kurz-Scoping (bewusst zurückgestellt)
+## M9 — Eagle Wings: Kurz-Scoping (bewusst zurückgestellt)
 - Ziel: Nur eine kurze Notiz, warum dieses Modul zurückgestellt ist und
-  welche Voraussetzungen (aus M1–M7) erfüllt sein müssten, bevor es sinnvoll
+  welche Voraussetzungen (aus M1–M8) erfüllt sein müssten, bevor es sinnvoll
   angegangen werden kann — **keine** tiefe Recherche in dieser Phase
 - Scope: kurze Zusammenfassung
-- API-Umwandlung-Relevanz: nur falls sich aus M1–M7 ein offensichtlicher
+- API-Umwandlung-Relevanz: nur falls sich aus M1–M8 ein offensichtlicher
   Bezug ergibt, kurz erwähnen — keine eigene Untersuchung
 - Deliverables: 1 Abschnitt im Gesamtplan
 - Acceptance: Abschnitt vorhanden, verweist auf relevante Vorbedingungen
 - Risiken: keine (bewusst nicht vertieft) — info
-- Dependencies: M1–M7 (inhaltlich, als Vorbedingung)
+- Dependencies: M1–M8 (inhaltlich, als Vorbedingung)
 - Priorität: niedrig (wie vom Projektleiter selbst vorgegeben)
 
-## M9 — Synthese: Projektplan mit Risiko- und Machbarkeitsanalyse
-- Ziel: Alle Ergebnisse aus M1–M8 zu einem zusammenhängenden Projektplan
+## M10 — Synthese: Projektplan mit Risiko- und Machbarkeitsanalyse
+- Ziel: Alle Ergebnisse aus M1–M9 zu einem zusammenhängenden Projektplan
   verdichten — das eigentliche, im Project Brief definierte Enddeliverable.
   Enthält eine eigene Übersicht, wo/wie "API-Umwandlung" über die Module
   hinweg zutrifft oder nicht
@@ -171,7 +198,7 @@ zutrifft, statt das Thema separat neu zu erforschen.
   priorisierte Empfehlung für die Reihenfolge einer möglichen künftigen
   Umsetzungsphase
 - Acceptance: Projektleiter bestätigt, dass der Plan vollständig ist und die
-  in M1–M8 erarbeiteten Ergebnisse korrekt wiedergibt
+  in M1–M9 erarbeiteten Ergebnisse korrekt wiedergibt
 - Risiken: keine neuen (reine Zusammenführung) — info
-- Dependencies: M1–M8
+- Dependencies: M1–M9
 - Priorität: hoch
