@@ -30,3 +30,28 @@ Plan-Erweiterung (neues M3, siehe unten) nachträglich aufgenommen.
 Vollständige Belege: `dadm/m1-01-discover-output.md`, `dadm/m1-02-apply-output.md`.
 
 ---
+
+## M2 — API-Umwandlung: Grundsatzfrage (Eagle Eye / Eagle Beak)
+
+**Ergebnis:** Machbar für den Referenzfall (magisches Langschwert, +2W6 Feuer
+vs. Untote), aber als **Komposition zweier Mechanismen**, nicht eine einzelne
+API: (1) dnd5e's natives Activity-/DamageData-Schema deckt Schadensmenge,
+-typ und "magisch"-Kennzeichnung vollständig deklarativ ab — kein Code nötig.
+(2) Zielkreaturentyp-Bedingungen ("vs. Untote") fehlen im dnd5e-Kern
+nachweislich (offizielles, offenes dnd5e-Issue #4477), sind aber durch das
+reale Community-Modul "Build-a-Bonus" bereits bewiesen lösbar (UI-basiert,
+kein Code).
+
+**Generalisierbarkeit:** dnd5e bietet 11 Activity-Typen, bewusst breit für
+code-freie Item-Mechaniken angelegt — der Ansatz dürfte für die Mehrheit
+gängiger Homebrew-Wünsche funktionieren. Grenze: grundlegend neuartige
+Mechaniken außerhalb dieser 11 Typen brauchen echten Custom-Code.
+
+**Übertragbarkeit:** hoch für M5 (Egg — Klassenmerkmale nutzen ebenfalls
+Activities), gering für M4 (Eyrie) und M7 (Talon), **nicht übertragbar** auf
+M8 (Prey) — dort ist die Fragerichtung umgekehrt (Override bestehender Logik
+statt Neuerstellung), eigene Recherche nötig.
+
+Vollständige Belege: `dadm/m2-01-discover-output.md`, `dadm/m2-02-apply-output.md`.
+
+---
