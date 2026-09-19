@@ -98,3 +98,25 @@ hier nicht direkt anwendbar.
 Vollständige Belege: `dadm/m4-01-discover-output.md`, `dadm/m4-02-apply-output.md`.
 
 ---
+
+## M5 — Eagle Egg: Geführter Charakter-Builder
+
+**Ergebnis: Machbar, Risiko niedriger als im Plan angenommen — bei
+Strategiewechsel von "eigene Logik" zu "dnd5e's Advancement-System als Engine
+wiederverwenden".** dnd5e exponiert sein komplettes Advancement-System
+öffentlich (`game.dnd5e.applications.advancement.AdvancementManager`) mit
+fertigen Factory-Methoden (`forNewItem`, `forLevelChange`, u. a.) und acht
+nativen Advancement-Typen, die alle sechs Vision-Tabs (Attributes, Class,
+Species, Background, Spells, Equipment) 1:1 abdecken. Eagle Eggs Aufgabe wäre
+primär UI/UX-Orchestrierung über diese bestehende Engine, nicht Neubau von
+Charaktererstellungs-Logik. **Risiko-Herabstufung empfohlen:** von
+"mittel-hoch" (Plan-Annahme) auf "niedrig-mittel" (verbleibendes Risiko:
+UI-Integration, nicht Kern-Machbarkeit).
+
+**API-Umwandlung-Relevanz:** bestätigt als direkteste Anwendung des
+M2-Prinzips, nutzt hier aber eine bereits vorhandene Übersetzungsschicht
+(dnd5e's Advancement-System) statt einer neu zu bauenden.
+
+Vollständige Belege: `dadm/m5-01-discover-output.md`, `dadm/m5-02-apply-output.md`.
+
+---
