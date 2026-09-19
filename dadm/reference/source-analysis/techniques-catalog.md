@@ -1,5 +1,7 @@
 # Techniken-Katalog: was sich aus den zehn Quellen wiederverwenden lässt
 
+> **Namen:** Dieses Dokument verwendet die echten Modulnamen: Eagle Flight Control (ehemals Eagle Eye).
+
 status: Referenzmaterial, Stand 2026-09-19 — Methode, Commit-Stände und
 Lizenzlage siehe [`README.md`](README.md).
 
@@ -59,7 +61,7 @@ Strategie) → Settings-Menü (nur GM) + Enable-Flag + Objekt-Setting
 (`scope:"world"`, `config:false`) → beim Start in `CONFIG.DND5E` mischen →
 Hook für Dritte. Original-Standardwerte werden separat gesichert, damit
 Rücksetzen möglich ist. Einzelheiten:
-[`prey-rules-customization.md`](prey-rules-customization.md).
+[`ruling-rules-customization.md`](ruling-rules-customization.md).
 
 ## 5. Laufzeit-Erweiterung von Attributen/Skills
 
@@ -126,7 +128,7 @@ Zugriff auf Rollen-Actor, Gegner-Actor und Item (`opponentActor.creatureType`,
 Spieler dürfen fremde Dokumente nicht ändern → Anfrage per socketlib an den GM,
 der validiert und ausführt (Schaden anwenden, Effekte erzeugen, Token bewegen).
 Belegt in Midi-QOL (`GMAction.ts`) und Active Auras (`CONFIG.AA.Socket`).
-Relevanz für Eagle Eye: derselbe Zwang gilt für jede Hub-Funktion, die
+Relevanz für Eagle Flight Control: derselbe Zwang gilt für jede Hub-Funktion, die
 Spielereinstellungen oder fremde Dokumente ändert.
 
 ## 10. libWrapper-Praxis
@@ -137,15 +139,15 @@ Spielereinstellungen oder fremde Dokumente ändert.
   harmlose Überschneidungen zu erklären (Active Auras gegen DAE).
 - Abhängigkeitsprüfung mit klarer Fehlermeldung beim Fehlen von libWrapper
   (Active Auras).
-Reale Zielliste: [`prey-rules-customization.md`](prey-rules-customization.md) §Wrapper
-und [`wings-automation.md`](wings-automation.md) §Midi-QOL.
+Reale Zielliste: [`ruling-rules-customization.md`](ruling-rules-customization.md) §Wrapper
+und [`roll-out-automation.md`](roll-out-automation.md) §Midi-QOL.
 
 ## 11. Import-UX: Vorschau, Konfidenz, Provenienz, Schema-Version
 
 Statblock Importer (Markierung erkannter Textstellen), Item Importer
 (Konfidenz/Beleg/Prüfvorschläge, YAML-Schema mit Version und Migration,
 Ablehnung zu neuer Schemas, Exporter). Einzelheiten:
-[`beak-importers.md`](beak-importers.md).
+[`homebrew-importers.md`](homebrew-importers.md).
 
 ## 12. Migration und Versionsanpassung
 

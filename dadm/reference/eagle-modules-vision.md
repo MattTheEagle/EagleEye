@@ -1,5 +1,7 @@
 # The Eagle Modules — Easy VTT for Complex Ideas
 
+> **Hinweis (2026-09-19):** Dieses Quelldokument nutzt die Entwicklungsnamen der Module. Die echten Modulnamen stehen in `eagle-modules-aufbau.md` (Abschnitt Namenszuordnung). Inhalt und Wortlaut dieses Dokuments sind unverändert.
+
 retention: durable (Quelldokument dieser Planungsphase)
 Quelle: vom Projektleiter als PDF bereitgestellt ("The Eagle Modules.pdf"),
 hier als Markdown transkribiert für dauerhafte Projekt-Referenz. Ergänzt um

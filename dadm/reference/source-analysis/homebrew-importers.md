@@ -1,10 +1,12 @@
-# Import-Module: Erkenntnisse für Eagle Beak (und Eagle Eye)
+# Import-Module: Erkenntnisse für Eagle Homebrew (und Eagle Flight Control)
+
+> **Namen:** Dieses Dokument verwendet die echten Modulnamen: Eagle Flight Control (ehemals Eagle Eye), Eagle Homebrew (ehemals Eagle Beak).
 
 status: Referenzmaterial, Stand 2026-09-19 — siehe [`README.md`](README.md) für Methode
 und Commit-Stände.
 
 Betrachtet: **5e Statblock Importer**, **5e Item Importer**, **5e Spellblock
-Importer**. Sie lösen dasselbe Grundproblem wie der Import-Teil von Eagle Beak
+Importer**. Sie lösen dasselbe Grundproblem wie der Import-Teil von Eagle Homebrew
 (Text → Foundry-Dokument), in drei unterschiedlichen Reifegraden.
 
 ## 1. 5e Statblock Importer (Aioros) — das ausgereifteste freie Vorbild
@@ -13,7 +15,7 @@ Importer**. Sie lösen dasselbe Grundproblem wie der Import-Teil von Eagle Beak
 mit Werten, Aktionen, Zaubern, Legendary/Lair-Aktionen. **Lizenz MIT**,
 gepflegt (letzter Commit 2026-03-25), deckt Foundry 12–14 und dnd5e 4.3–5.x ab.
 
-### Bedienablauf (deckt sich mit dem Eagle-Beak-Konzept)
+### Bedienablauf (deckt sich mit dem Eagle-Homebrew-Konzept)
 Text einfügen → **Parse** (oder Auto-Parse bei jeder Änderung) → erkannte
 Informationen werden im Eingabefeld **markiert/unterstrichen**, damit man vor
 dem Import prüfen kann, was gefunden wurde → **Import** erzeugt den Actor.
@@ -142,7 +144,7 @@ offen.
   "imported-spells" mit einer Seite je Klasse angelegt und der Zauber dort
   eingetragen.
 
-## 4. Was das für Eagle Beak bedeutet
+## 4. Was das für Eagle Homebrew bedeutet
 
 Aus den Quellen ableitbar (Schlüsse, keine Festlegungen):
 

@@ -7,20 +7,22 @@ date: 2026-09-19
 ```
 
 ## Input Summary
-- `dadm/m6-03-deploy-output.md`
+- `dadm/m6-03-deploy-output.md`, `dadm/spezifikationsabgleich.md`
 
 ## Validation Result
-Ergebnis entspricht der im Milestone Plan formulierten Erwartung ("hoch",
-"kein Scheitern") — Wert liegt hier weniger in einer Überraschung als in der
-klaren Handlungsempfehlung (Template-first statt Freitext-first) und der
-Erkenntnis, dass der Korrektur-Editor der eigentliche Kern ist.
+Entscheidung E3 (keine Fremdmodul-Abhängigkeit) ist eingehalten: Weg E ist ausgeschlossen, Fremdmodule wurden nur als Vergleichsmuster benannt, kein Code wurde
+übernommen. Der Phase-2-Befund "Langschwert machbar" ist mit neuer Grundlage bestätigt: machbar, mit Grundlinie ohne Laufzeitcode.
+Es gab keine Absichtsfrage, die den Ablauf stoppen müsste; N5 betrifft Zuständigkeit und Zeitpunkt, nicht die Machbarkeit.
 
 ## Evidence Summary
-- Modulseite "Foundry VTT Content Parser"
+Quellen in `dadm/m6-01-discover-output.md` (dnd5e 5.3.3, Issue #4477).
 
 ## Residual Findings
-Keine.
+
+| # | Fund | Severity | Behandlung |
+|---|---|---|---|
+| F1 | Verhalten unbekannter `properties`, Hook-Ergänzung von `config.rolls`, unregistrierter Activity-Typ nicht verifiziert | medium | Live-Test nur mit Freigabe |
+| F2 | N5 offen | low | gesammelt, spätestens in M15 |
 
 ## Recommendation
-**Close M6.** Weiter mit **M7 — Eagle Talon: Journal-/Obsidian-artiges
-Vault-System**, wie im Plan (Version 2) vorgesehen.
+**Close M6.** Weiter mit **M7 — Eagle Library: Kopieren, Zuordnung 2014/2024, Einmaligkeit**.

@@ -7,27 +7,23 @@ date: 2026-09-19
 ```
 
 ## Input Summary
-- `dadm/m1-03-deploy-output.md` (geschlossen)
+- `dadm/m1-03-deploy-output.md`
 
 ## Validation Result
-M1 hat seinen eigentlichen Zweck (Bestandsaufnahme) erfüllt und zusätzlich
-eine echte Lücke im frisch genehmigten Plan aufgedeckt — ein gutes frühes
-Signal, dass die "kleine Schritte"-Struktur funktioniert: die Lücke wurde
-sofort sichtbar, statt erst spät (z. B. in M10) aufzufallen.
+Die Änderung blieb im freigegebenen Scope: Gelöscht wurde nur `v14/`, geändert nur die Skripte in `package.json` und die v14-Aussagen in `README.md`. Der Vorher-/Nachher-Vergleich der
+Proofs zeigt dasselbe Ergebnis für v13 (10 von 10 Tests, Typecheck fehlerfrei, Build erfolgreich). Die drei Kommentare im `README.md` "beide Versionen" wurden mitgeführt (in Apply begründet).
 
 ## Evidence Summary
-- Abgleichtabelle mit 7 Anforderungen, je mit Quellenbeleg oder als "offen"
-  markiert
-- Milestone Plan v2 genehmigt, Lücke geschlossen
+Proof-Ausgaben und `git status` in `dadm/m1-03-deploy-output.md`.
 
 ## Residual Findings
 
-| # | Beschreibung | Severity | Blocking |
+| # | Fund | Severity | Behandlung |
 |---|---|---|---|
-| F1 | A1 (EagleEye als aktiv nutzbare API für Drittmodule, nicht nur beobachtend) bleibt auch nach M3 (neu) unadressiert — in keinem der M2–M10-Milestones explizit Thema. Vormerken für M10-Synthese als bewusst offen gelassener Punkt, nicht automatisch nachträglich ein weiteres Milestone einfügen | info | nein |
-
-Keine offenen `medium`-oder-höher-Findings.
+| F1 | Kommentar zu v14 in `core/manifest-scanner.ts` | low | bleibt (Scope); spätere Umsetzungsphase |
+| F2 | Historischer Satz in `EAGLE-MODULES-PLAN.md` | low | M15 |
+| F3 | GitHub-Releases nicht geprüft | low | nur auf Wunsch des Projektleiters |
+| F4 | Nichts committet; die Löschung von `v14/` liegt unversioniert im Arbeitsbaum | info | Commit nur auf Wunsch |
 
 ## Recommendation
-**Close M1.** Weiter mit **M2 — API-Umwandlung: Grundsatzfrage**, wie im
-Plan (Version 2) vorgesehen.
+**Close M1.** Der Ablauf bleibt nach M8 pausiert.

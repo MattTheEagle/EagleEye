@@ -7,28 +7,20 @@ date: 2026-09-19
 ```
 
 ## Input Summary
-- `dadm/m8-03-deploy-output.md`
+- `dadm/m8-03-deploy-output.md`, `dadm/spezifikationsabgleich.md`
 
 ## Validation Result
-Bisher der Milestone mit dem größten Abstand zwischen Plan-Erwartung ("hoch,
-stark eingeschränkt") und tatsächlichem Befund (deutlich differenzierter,
-teils sofort machbar). Bestätigt erneut das Muster aus M2/M5: dnd5e bringt
-mehr deklarative, öffentlich nutzbare Bausteine mit, als eine grobe
-Einschätzung ohne Quellcode-Recherche vermuten lässt.
+Bewertung im Rahmen von Q3 a und Q7 a (durchsucht wird nur die Eagle Library). Es wurde nichts über Suchumfang, Anzahl der Hotkeys oder Lesepfad angenommen; die drei Details sind als N9 gesammelt.
 
 ## Evidence Summary
-- `CONFIG.DND5E.rules` (config.mjs), kritischer Trefferschaden-Mechanismus
-  (damage-roll.mjs)
+`dadm/m8-01-discover-output.md`.
 
 ## Residual Findings
 
-| # | Beschreibung | Severity | Blocking |
+| # | Fund | Severity | Behandlung |
 |---|---|---|---|
-| F1 | Unbekannt, welcher Anteil der Mechaniken insgesamt als Settings exponiert ist (nur 1 Beispiel geprüft) — als Aufgabe für eine künftige Umsetzungsphase vormerken, nicht in dieser Planungsphase erschöpfend klärbar | info | nein |
-| F2 | Drittes Beispiel des wiederkehrenden Musters (nach M2, M5): dnd5e hat oft schon mehr eingebaute Erweiterungspunkte als angenommen — für M10-Synthese als generelle Empfehlung verstärken | info | nein |
-
-Keine offenen `medium`-oder-höher-Findings.
+| F1 | N9 offen | low | gesammelt |
+| F2 | Antwortzeit bei großen Beständen nicht verifiziert | low | Live-Test nur mit Freigabe |
 
 ## Recommendation
-**Close M8.** Weiter mit **M9 — Eagle Wings: Kurz-Scoping**, wie im Plan
-(Version 2) vorgesehen.
+**Close M8.** Weiter mit **M9 — Eagle Character Edit: Startwege und Live-Abgleich**.

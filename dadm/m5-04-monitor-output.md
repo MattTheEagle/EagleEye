@@ -7,28 +7,23 @@ date: 2026-09-19
 ```
 
 ## Input Summary
-- `dadm/m5-03-deploy-output.md`
+- `dadm/m5-03-deploy-output.md`, `dadm/spezifikationsabgleich.md`
 
 ## Validation Result
-Wichtigstes Muster dieser Phase bisher: mehrfach (M2, jetzt M5) stellt sich
-heraus, dass dnd5e bereits mehr eingebaute, öffentlich nutzbare
-Erweiterungspunkte hat, als der ursprüngliche Plan (ohne Detailrecherche)
-angenommen hatte. Das spricht für die gewählte "kleine Schritte"-Struktur —
-solche Funde wären in einer groben Gesamtplanung ohne Einzel-Recherche
-leicht übersehen worden.
+Die Bewertung bleibt im Rahmen der Antworten aus M4 (Q1 a, Q2 a, Q3 a, Q15 a): keine Funktion zur Kompatibilitäts-/Auswirkungs-/Abhängigkeitserkennung,
+der Anfragenkanal umfasst alle Foundry-Änderungen, "gestartet" = Oberfläche öffnen. Es wurden keine Annahmen über die Absicht getroffen; die offenen
+Absichtsfragen (N1–N4) sind als nicht blockierend gesammelt. Fremdmodul-Kompatibilität (Q2 a) wurde in M5 nicht als Anbindung, sondern als
+Anforderung an jedes Modul behandelt und wird in M12 (UI) sowie bei den Modul-Milestones berücksichtigt.
 
 ## Evidence Summary
-- dnd5e-Quellcode (`dnd5e.mjs`, `advancement-manager.mjs`, Advancement-Typen)
+Quellenbelege in `dadm/m5-01-discover-output.md` (Types, Foundry-Doku, dnd5e 5.3.3 Commit `965ad2d`, Midi-QOL, Custom D&D 5e).
 
 ## Residual Findings
 
-| # | Beschreibung | Severity | Blocking |
+| # | Fund | Severity | Behandlung |
 |---|---|---|---|
-| F1 | UI-Integrationsfrage (R1 aus Discover) bleibt offen für eine spätere Umsetzungsphase — kein Blocker für diese Planungsphase | info | nein |
-| F2 | Wiederkehrendes Muster (M2 + M5): dnd5e's `game.dnd5e`-Namespace exponiert viel mehr System-Internas als initial angenommen — für M10-Synthese als generelle Empfehlung vormerken ("bei jeder Machbarkeitsfrage zuerst prüfen, ob dnd5e selbst schon eine öffentliche Erweiterungsschicht dafür hat, bevor Neubau angenommen wird") | info | nein |
-
-Keine offenen `medium`-oder-höher-Findings.
+| F1 | Ladeverhalten (Reihenfolge, deaktivierte Abhängigkeit, Versionsspanne) unverifiziert | medium | Live-Test nur mit Freigabe des Projektleiters; Empfehlungen sind davon unabhängig gewählt |
+| F2 | N1–N4 offen | low | gesammelt, spätestens in M15 |
 
 ## Recommendation
-**Close M5.** Weiter mit **M6 — Eagle Beak: Freitext-Homebrew-Import
-(Parsing-Machbarkeit)**, wie im Plan (Version 2) vorgesehen.
+**Close M5.** Weiter mit **M6 — Bedingte Effekte ohne Fremdmodul (Referenzfall Langschwert, E3)**.

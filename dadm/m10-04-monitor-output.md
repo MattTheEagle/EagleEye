@@ -7,32 +7,21 @@ date: 2026-09-19
 ```
 
 ## Input Summary
-- `dadm/m10-03-deploy-output.md`
+- `dadm/m10-03-deploy-output.md`, `dadm/spezifikationsabgleich.md`
 
 ## Validation Result
-Milestone Plan Version 2 (M1–M10) vollständig abgeschlossen. Der Plan wurde
-während der Bearbeitung einmal legitim erweitert (v1 -> v2, neues M3) auf
-Basis eines in M1 gefundenen echten Lücke — nicht stillschweigend, sondern
-mit Projektleiter-Entscheidung. Zwei weitere Interpretationsfragen (M3-Q1
-zu Settings-Impact) wurden ebenfalls vor Fortsetzung geklärt statt
-angenommen — die Autonomie-Freigabe mit "bei Unklarheit stoppen" hat wie
-vorgesehen funktioniert.
+Die Bewertung setzt Q8 c (Import zurückgestellt), Q9 (sofort, Welt und Library), Q10 c, N5 (Stufe 1 zuerst) und N6 um. Beim Abgleich mit den dnd5e-Typen ist eine Unstimmigkeit in der PDF-Liste sichtbar geworden ("Item" hat keinen Typ, seit der Vision unverändert); sie wurde nicht gedeutet, sondern als N15 gefragt. Der Abgleich zwischen Welt-Dokument und Library-Eintrag ist die größte offene Entscheidung dieses Moduls (N14); der Vorschlag S1 ist als Vorschlag gekennzeichnet.
 
 ## Evidence Summary
-- 10 Milestones, je mit Discover-/Apply-/Deploy-/Monitor-Output
-- Konsolidierter Projektplan (`dadm/eagle-modules-projektplan.md`),
-  Projektleiter-bestätigt
+`dadm/m10-01-discover-output.md`.
 
 ## Residual Findings
 
-| # | Beschreibung | Severity | Blocking |
+| # | Fund | Severity | Behandlung |
 |---|---|---|---|
-| F1 | Mehrere kleinere offene Punkte aus einzelnen Milestones (z. B. Eagle-Eye-eigene API für Drittmodule, `Enchant`-Activity-Typ, Anteil settings-exponierter dnd5e-Mechaniken) sind bewusst nicht vertieft — alle im Projektplan als Hinweise für eine künftige Umsetzungsphase vermerkt, nicht verloren | info | nein |
-
-Keine offenen `medium`-oder-höher-Findings.
+| F1 | N14, N15, N16 offen | medium (N14), low | gesammelt, spätestens M15 |
+| F2 | Verzeichnis-Hooks und Nebenwirkungen häufiger Updates nicht verifiziert | medium | Live-Test nur mit Freigabe; Hook-Namen auch für M11 relevant |
+| F3 | Umfang der 19 Objektarten | medium | Aufwandsschätzung in der Umsetzungsphase |
 
 ## Recommendation
-**Close M10 und damit Milestone Plan Version 2.** Die Planungsphase
-"Eagle Modules Machbarkeit" ist damit vollständig — Entscheidung über das
-weitere Vorgehen (z. B. Umsetzungsphase gemäß der priorisierten Empfehlung
-starten, oder etwas anderes) liegt beim Projektleiter.
+**Close M10.** Weiter mit **M11 — Eagle Journal: Einstiegspunkte in der Foundry-UI**.

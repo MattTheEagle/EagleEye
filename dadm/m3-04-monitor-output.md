@@ -8,29 +8,26 @@ date: 2026-09-19
 
 ## Input Summary
 - `dadm/m3-03-deploy-output.md`
+- die zehn umgestellten Dokumente
 
 ## Validation Result
-Beide ursprünglich in M1 gefundenen Lücken sind jetzt geschlossen, mit
-differenzierten Ergebnissen statt einer pauschalen Ja/Nein-Antwort — genau
-der Detailgrad, den das Projektziel verlangt. Die Aufteilung in zwei Stufen
-(auf Wunsch des Projektleiters) hat sich gelohnt: Stufe 1 ist ein konkreter,
-kurzfristig sinnvoller Erweiterungsvorschlag für den bereits bestehenden
-Settings-Hub, Stufe 2 wäre ohne diese Trennung fälschlich als "teilweise
-möglich" durchgegangen statt klar als nicht robust machbar benannt zu werden.
+Alle sechs Acceptance Criteria erfüllt. Die Umstellung hat nur Namen geändert;
+inhaltliche Aussagen blieben unberührt, ihre Überholung ist offen gelegt (Status-
+Hinweise und Liste). Die im Deploy gefundene und nachgebesserte Stelle (K11) zeigt,
+dass die grep-Prüfung nötig war; sie ist nach der Nachbesserung erneut mit 0 Treffern
+gelaufen.
 
 ## Evidence Summary
-- Foundry-Typdefinitionen (`module-management.d.mts`, als Stub markiert)
-- Community-Wiki-Bestätigung des Reload-Erfordernisses
-- Precedent-Modul "Quick Module Enable"
+grep-Prüfung, Rückabbildungs-Diff und Vision-Diff in `dadm/m3-03-deploy-output.md`.
 
 ## Residual Findings
 
-| # | Beschreibung | Severity | Blocking |
+| # | Fund | Severity | Behandlung |
 |---|---|---|---|
-| F1 | Stufe-1-Erweiterung (deklarierte Abhängigkeiten) ist so konkret, dass sie in einer künftigen Umsetzungsphase vermutlich zu den ersten sinnvollen Erweiterungen des bestehenden Settings-Hubs gehören würde — für M10-Synthese als priorisierbarer "Quick Win" vormerken | info | nein |
-
-Keine offenen `medium`-oder-höher-Findings.
+| F1 | Dateinamen `beak-importers.md`, `prey-rules-customization.md`, `wings-automation.md` tragen noch Entwicklungsnamen | low | Frage 10 in M4 (umbenennen ja/nein) |
+| F2 | Ausdruck "Eagle Library" bezeichnet Modul und Sammlung zugleich | low | M15 (Wortwahl) |
+| F3 | Überholte Aussagen (E1, E2, E3, E6, Freitext-Import) in den lebenden Dokumenten | medium, mitigiert durch Status-Hinweise | Liste in Deploy, Einarbeitung in M15 |
 
 ## Recommendation
-**Close M3.** Weiter mit **M4 — Eagle Eyrie: Compendium-Dedup & Suche**, wie
-im Plan (Version 2) vorgesehen.
+**Close M3.** Weiter mit **M4 — Delta-Analyse Vision → Aufbau + Klärungsliste**. Der
+Ablauf endet nach M4 planmäßig, bis alle Fragen beantwortet sind.

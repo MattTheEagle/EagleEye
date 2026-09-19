@@ -1,5 +1,9 @@
 # Quellenanalyse: 10 bestehende Foundry-Module als Grundlage für die Eagle Modules
 
+> **Namen:** Dieses Dokument verwendet die echten Modulnamen: Eagle Flight Control (ehemals Eagle Eye), Eagle Library (ehemals Eagle Eyrie), Eagle Character Edit (ehemals Eagle Egg), Eagle Homebrew (ehemals Eagle Beak), Eagle Journal (ehemals Eagle Talon), Eagle Ruling (ehemals Eagle Prey), Eagle Roll Out (ehemals Eagle Wings).
+>
+> **Stand (2026-09-19):** Die vier offenen Fragen in Abschnitt 5 hat der Projektleiter beantwortet; Antworten und Folgen stehen in `../eagle-modules-aufbau.md`. Der Text von Abschnitt 5 ist unverändert.
+
 status: Referenzmaterial, Stand 2026-09-19
 retention: durable
 
@@ -22,9 +26,9 @@ Schlussfolgerungen sind als solche gekennzeichnet.
 | Datei | Inhalt | Wichtigste Eagle-Module |
 |---|---|---|
 | `README.md` (diese Datei) | Überblick, Kompatibilität, Kernerkenntnisse, Korrekturen, offene Fragen | alle |
-| [`beak-importers.md`](beak-importers.md) | Statblock-, Item- und Spellblock-Importer | Eagle Beak, Eagle Eye |
-| [`prey-rules-customization.md`](prey-rules-customization.md) | Custom D&D 5e, Custom Skills | Eagle Prey, Eagle Eye |
-| [`wings-automation.md`](wings-automation.md) | Midi-QOL, Automated Conditions 5e, Active Auras, ATL, Ready Set Roll | Eagle Wings |
+| [`homebrew-importers.md`](homebrew-importers.md) | Statblock-, Item- und Spellblock-Importer | Eagle Homebrew, Eagle Flight Control |
+| [`ruling-rules-customization.md`](ruling-rules-customization.md) | Custom D&D 5e, Custom Skills | Eagle Ruling, Eagle Flight Control |
+| [`roll-out-automation.md`](roll-out-automation.md) | Midi-QOL, Automated Conditions 5e, Active Auras, ATL, Ready Set Roll | Eagle Roll Out |
 | [`techniques-catalog.md`](techniques-catalog.md) | Wiederverwendbare Techniken, Datenstrukturen, Hook-Katalog | alle |
 
 ## 1. Die zehn Quellen im Überblick
@@ -149,7 +153,7 @@ Erweiterungsmechanismus der Automations-Module.** `ATL.<pfad>` (Token-Daten),
 bzw. `flags.ac5e.*`, `flags.ActiveAuras.*`, `macro.*` u. a. — jeweils als
 kleine Domänensprache in Effekt-Einträgen. DAE dient als Editor-/Autocomplete-
 Schicht darüber (`dae.setFieldData`). Wer Automatisierung "in einem Modul
-bündeln" will (Eagle Wings), bündelt praktisch diese Sprachen.
+bündeln" will (Eagle Roll Out), bündelt praktisch diese Sprachen.
 
 **K10 — Wiederverwendbarkeit von Code ist stark eingeschränkt.** Nur MIT-Code
 (sieben Module) ist unter Namensnennung frei wiederverwendbar. Ready Set Roll
@@ -160,25 +164,25 @@ untersagt. Custom D&D 5e nennt "not licensed for redistribution" und enthält
 Font-Awesome-Pro-Bezüge. **Konzepte und öffentliche APIs lassen sich nutzen,
 Code dieser drei nicht einfach übernehmen.**
 
-**K11 — Überschneidung Custom D&D 5e ↔ Eagle Prey/Wings.** Custom D&D 5e bietet
+**K11 — Überschneidung Custom D&D 5e ↔ Eagle Ruling/Eagle Roll Out.** Custom D&D 5e bietet
 bereits: ein Konfigurationssystem für über 30 `CONFIG.DND5E`-Bereiche (Fähigkeiten,
 Skills, Schadensarten, Zustände, Kreaturentypen, Raststypen, …), ein
 "Gameplay"-Fenster für Hausregeln, ein Trigger→Aktion-Workflow-System und
-eigene Activity-Typen. Das ist inhaltlich erheblich näher an Eagle Prey (und
-teils Eagle Wings) als jede andere Quelle. Ob daraus Koexistenz, Integration
+eigene Activity-Typen. Das ist inhaltlich erheblich näher an Eagle Ruling (und
+teils Eagle Roll Out) als jede andere Quelle. Ob daraus Koexistenz, Integration
 oder Abgrenzung folgt, ist eine Entscheidung des Projektleiters (Q2).
 
 ## 3. Zuordnung: Welche Quelle hilft welchem Eagle-Modul?
 
 | Eagle-Modul | Hilfreichste Quellen | Was genau |
 |---|---|---|
-| **Eagle Eye** | alle | Feature-erkannte Modul-APIs (`game.modules.get(id)?.api`), Integrations-Hooks (`midi-qol.midiReady`, `dae.setFieldData`, `tidy5e-sheet.ready`), Koexistenz-/Besitzer-Dokumentation als Vorbild für Konflikt-Wissen, socketlib-GM-Relay |
-| **Eagle Eyrie** | Item Importer (Compendium-Bild-Cache), Spellblock Importer (Journal "imported-spells"), Statblock Importer (SRD-Spell-Auflösung) | Compendium-Zugriff und Namensauflösung in der Praxis; kaum direkte Vorlagen für Dedup |
-| **Eagle Egg** | Custom D&D 5e (Item-Interaktionen, Sheet-Erweiterung), Custom Skills (Skills/Abilities zur Laufzeit erweitern) | Sheet-Erweiterung über `renderActorSheetV2`/Tidy5e-API; Laufzeit-Erweiterung von `CONFIG.DND5E`; **keine** direkte Vorlage für geführte Erstellung (weiterhin: dnd5e-`AdvancementManager`, siehe M5) |
-| **Eagle Beak** | Statblock, Item, Spellblock Importer | Parser-Architektur, Regex-Katalog, Vorschau/Konfidenz/Provenienz, Strict-YAML mit Schema-Version, Activity-Datenstrukturen, SRD-Klon als Vorlage |
-| **Eagle Talon** | — (keine Quelle) | Nur indirekt: Muster für Modul-Einstellungen/Menüs |
-| **Eagle Prey** | Custom D&D 5e, Custom Skills | Config-Engine-Muster, Liste realer Wrapper-Ziele, Gameplay-Optionen, Workflows/Trigger |
-| **Eagle Wings** | Midi-QOL, Automated Conditions, Active Auras, ATL, Ready Set Roll | Workflow-Pipeline, Hook-Kataloge, Flag-Sprachen, Aura-/Token-Effekt-Muster, Besitzer-Problematik, Abhängigkeitsketten |
+| **Eagle Flight Control** | alle | Feature-erkannte Modul-APIs (`game.modules.get(id)?.api`), Integrations-Hooks (`midi-qol.midiReady`, `dae.setFieldData`, `tidy5e-sheet.ready`), Koexistenz-/Besitzer-Dokumentation als Vorbild für Konflikt-Wissen, socketlib-GM-Relay |
+| **Eagle Library** | Item Importer (Compendium-Bild-Cache), Spellblock Importer (Journal "imported-spells"), Statblock Importer (SRD-Spell-Auflösung) | Compendium-Zugriff und Namensauflösung in der Praxis; kaum direkte Vorlagen für Dedup |
+| **Eagle Character Edit** | Custom D&D 5e (Item-Interaktionen, Sheet-Erweiterung), Custom Skills (Skills/Abilities zur Laufzeit erweitern) | Sheet-Erweiterung über `renderActorSheetV2`/Tidy5e-API; Laufzeit-Erweiterung von `CONFIG.DND5E`; **keine** direkte Vorlage für geführte Erstellung (weiterhin: dnd5e-`AdvancementManager`, siehe M5) |
+| **Eagle Homebrew** | Statblock, Item, Spellblock Importer | Parser-Architektur, Regex-Katalog, Vorschau/Konfidenz/Provenienz, Strict-YAML mit Schema-Version, Activity-Datenstrukturen, SRD-Klon als Vorlage |
+| **Eagle Journal** | — (keine Quelle) | Nur indirekt: Muster für Modul-Einstellungen/Menüs |
+| **Eagle Ruling** | Custom D&D 5e, Custom Skills | Config-Engine-Muster, Liste realer Wrapper-Ziele, Gameplay-Optionen, Workflows/Trigger |
+| **Eagle Roll Out** | Midi-QOL, Automated Conditions, Active Auras, ATL, Ready Set Roll | Workflow-Pipeline, Hook-Kataloge, Flag-Sprachen, Aura-/Token-Effekt-Muster, Besitzer-Problematik, Abhängigkeitsketten |
 
 ## 4. Ergänzungen und Korrekturen zu bisherigen Ergebnissen
 
@@ -200,23 +204,44 @@ berücksichtigt werden:
    Format-Drift 2014/2024 als laufender Aufwand; Activity-Erzeugung ist im
    Item Importer bewusst in ein separates (Premium-)Companion-Modul ausgelagert,
    nicht Teil des freien Kerns.
-4. **M8 (Prey), Fallback "tiefe Eingriffe":** Es gibt jetzt konkrete,
+4. **M8 (Eagle Ruling), Fallback "tiefe Eingriffe":** Es gibt jetzt konkrete,
    dokumentierte Wrapper-Ziele als Referenz (K7) und ein bewährtes
    Konfigurations-Muster (`CONFIG.DND5E`-Bereiche über Einstellungen, siehe
-   [`prey-rules-customization.md`](prey-rules-customization.md)). Außerdem
+   [`ruling-rules-customization.md`](ruling-rules-customization.md)). Außerdem
    existiert mit Custom D&D 5e bereits ein Modul mit erheblicher Überschneidung
    (K11).
-5. **M9 (Wings):** Die Empfehlung "erst prüfen, ob bestehende Module
+5. **M9 (Eagle Roll Out):** Die Empfehlung "erst prüfen, ob bestehende Module
    öffentliche Schnittstellen bieten" ist jetzt teilweise beantwortet:
    Midi-QOL (`globalThis.MidiQOL`, ~100 Hooks), AC5E (eigene API + `ac5e.*`-Hooks)
    und Custom D&D 5e (`customDnd5e.*`-Hooks) haben solche Schnittstellen (Details
-   in [`wings-automation.md`](wings-automation.md)). Nicht beantwortet bleibt,
+   in [`roll-out-automation.md`](roll-out-automation.md)). Nicht beantwortet bleibt,
    ob eine Bündelung sinnvoll ist, solange die Module sich gegenseitig
    ausschließen (K8).
 6. **M3 (Modul-(De)Aktivierung/Konflikt-Wissen):** Die dort beschriebene
    "kuratierte Wissensbasis" hat reale Vorbilder in händisch gepflegter
    Koexistenz-Dokumentation (K8). Als Datenquelle kommt Freitext-Doku in
    Frage, kein maschinenlesbares Format.
+
+### Korrektur zu K1 (2026-09-19, Milestone M13): Versionshistorie der Module
+
+K1 beschreibt jeweils den **neuesten** Stand der Default-Branches; dort verlangen mehrere Module Foundry 14. Für die meisten Module gibt es aber **ältere Releases für Foundry 13**.
+Da das Vorhaben nur Foundry v13 zielt (E1), zählt der letzte v13-fähige Stand. Ermittelt aus den `module.json` der Release-Tags (Abruf 2026-09-19); "verified" sind die Angaben der Autoren, keine eigene Prüfung.
+
+| Modul | Neuester Stand (hier analysiert) | Letzter Release für Foundry 13 | dnd5e-Angabe dort |
+|---|---|---|---|
+| Custom D&D 5e | 5.5.2 (Foundry 14.367+, dnd5e 6.x) | **4.1.2** (Foundry 13.342–13.999) | 5.2.5–5.99 |
+| Automated Conditions 5e | v14.603.2 (dnd5e 6.x) | v14.519.1 (Foundry min 13, verified 13.348) | 5.1.0–5.2 (verified 5.1.9); für dnd5e 5.3.3 kein verified Release |
+| 5e Item Importer | V14.1.2 | V14.0.0 (Foundry min 13, verified 13.351) | 5.1.10 bis verified 5.2.5 |
+| Custom Skills | v1.5.23 | v1.5.23 (Foundry min 13, verified 14.364) | 5 bis verified 5.3.3 |
+| Active Auras | 0.12.7 | 0.12.7 (Foundry 12–13) | keine Angabe |
+| Active Token Lighting | v1.1.1 | v1.1.1 (Foundry 13) | keine Angabe |
+| 5e Statblock Importer | v2.3.15 | v2.3.15 (Foundry min 12.331, verified 14.357) | 4.3.0 bis verified 5.3.0, max 5.999 |
+| 5e Spellblock Importer | 1.14.0 | 1.13.x und 1.14.0 (verified 13 bzw. 14) | verified 4.3.6 |
+| Ready Set Roll | release-3.5.0 | release-3.5.0 (Foundry 13.341–13.345) | 5.0.0 bis verified 5.0.4 |
+| Midi-QOL | Zweig v13 (`6b10be5`) | Zweig v13 | laut früherer Analyse |
+
+Folgen: Die Code-Analysen in diesem Ordner beziehen sich auf den **neuesten** Stand (bei Custom D&D 5e 5.5.x). Für Foundry 13 relevant ist dort die Reihe bis 4.1.2; eine Durchsicht dieses Standes
+(Commit `2b57702`) steht in `dadm/m13-01-discover-output.md`. Die Aussage in K11 und im Plan, Custom D&D 5e sei auf dem Zielstand nicht lauffähig, gilt nur für die neuesten Releases.
 
 ## 5. Offene Fragen an den Projektleiter
 
@@ -226,11 +251,11 @@ Keine davon wurde angenommen oder entschieden.
   Eagle Modules zielen? (Bisher: Foundry v13 **und** v14 parallel; in der
   Testwelt läuft dnd5e 5.3.3. Die neuesten Module setzen v14 + dnd5e 6.x voraus,
   ältere v13 + dnd5e 5.x. K1)
-- **Q2 — Umgang mit Custom D&D 5e:** Soll Eagle Prey (und ggf. Teile von
-  Eagle Wings) neben Custom D&D 5e koexistieren, darauf aufbauen/integrieren,
+- **Q2 — Umgang mit Custom D&D 5e:** Soll Eagle Ruling (und ggf. Teile von
+  Eagle Roll Out) neben Custom D&D 5e koexistieren, darauf aufbauen/integrieren,
   oder sich bewusst davon abgrenzen? (K11)
 - **Q3 — Bedingungsformat für "nur gegen Typ X":** Sind Abhängigkeiten auf
-  Fremdmodule (Build-a-Bonus, Automated Conditions, Midi-QOL) für Eagle Beak
+  Fremdmodule (Build-a-Bonus, Automated Conditions, Midi-QOL) für Eagle Homebrew
   akzeptabel, oder soll eine eigenständige Lösung erforscht werden? (K4)
 - **Q4 — Lizenz der Eagle Modules:** Unter welcher Lizenz sollen die Eagle
   Modules veröffentlicht werden? Das bestimmt, welcher fremde MIT-/GPL-Code

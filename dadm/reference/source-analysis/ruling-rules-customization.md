@@ -1,4 +1,6 @@
-# System-/Regelanpassung: Erkenntnisse für Eagle Prey (und Eagle Eye)
+# System-/Regelanpassung: Erkenntnisse für Eagle Ruling (und Eagle Flight Control)
+
+> **Namen:** Dieses Dokument verwendet die echten Modulnamen: Eagle Flight Control (ehemals Eagle Eye), Eagle Ruling (ehemals Eagle Prey), Eagle Roll Out (ehemals Eagle Wings).
 
 status: Referenzmaterial, Stand 2026-09-19 — Methode und Commit-Stände siehe
 [`README.md`](README.md).
@@ -7,7 +9,7 @@ Betrachtet: **Custom D&D 5e** (Larkinabout) und **Custom Abilities & Skills**
 (misthero). Beide verändern dnd5e-Regeln bzw. -Konfiguration, ohne den
 Systemcode zu ersetzen.
 
-## 1. Custom D&D 5e — der wichtigste Fund dieser Analyse für Eagle Prey
+## 1. Custom D&D 5e — der wichtigste Fund dieser Analyse für Eagle Ruling
 
 **Aufgabe (Eigenbeschreibung):** "A Foundry VTT module to customise the D&D 5e
 system." Konfiguriert Spielmechaniken und Automatisierung von Kernregeln,
@@ -95,7 +97,7 @@ Der überwiegende Rest des Moduls läuft über **Hooks**, u. a.
 bedingt aktivierter Wrapper aus; die Regelwirkung entsteht überwiegend aus
 Konfiguration und Hooks.
 
-### Workflows (Trigger → Aktion) — auch für Eagle Wings interessant
+### Workflows (Trigger → Aktion) — auch für Eagle Roll Out interessant
 Deklarative Regeln auf Welt-, Actor- oder Item-Ebene. **Trigger:** Wurf-Trigger
 (Attack Roll, Attack Rolled, Ability Check, Saving Throw, Skill, Tool,
 Initiative, Concentration, Death Save, Damage Rolled – mit optionalen
@@ -147,7 +149,7 @@ changes are just in memory".
   speichern; Charakterbögen: Standard und Tidy 5e voll, OGL und D&D-Beyond-Sheet
   nur teilweise.
 
-## 3. Was das für Eagle Prey und Eagle Eye bedeutet
+## 3. Was das für Eagle Ruling und Eagle Flight Control bedeutet
 
 Aus den Quellen ableitbar (Schlüsse, keine Festlegungen):
 
@@ -156,7 +158,7 @@ Aus den Quellen ableitbar (Schlüsse, keine Festlegungen):
    Konfigurationsbereiche in `CONFIG.DND5E` plus Weltsettings. Das Config-
    Engine-Muster (deklarative Definition → Menü + Enable-Flag + Objekt-
    Setting → Merge beim Start) ist eine bewährte Blaupause und ließe sich auch
-   für den Eagle-Eye-Hub verallgemeinern.
+   für den Eagle-Flight-Control-Hub verallgemeinern.
 2. **Ebene 3 aus M8 ("tiefe Eingriffe")** hat mit der Tabelle oben eine konkrete
    Referenz: welche Methoden tatsächlich gepatcht werden, wenn Würfelbasis,
    Traglast, Bewegung oder Sinne geändert werden sollen.
@@ -164,7 +166,7 @@ Aus den Quellen ableitbar (Schlüsse, keine Festlegungen):
    (Custom Skills in klein, Custom D&D 5e in groß) — verbunden mit dem
    Schema-Detail, dass neue Schlüssel auch in den Actor-Datenmodellen
    ergänzt werden müssen.
-4. **Überschneidung:** Ein erheblicher Teil dessen, was Eagle Prey verspricht
+4. **Überschneidung:** Ein erheblicher Teil dessen, was Eagle Ruling verspricht
    (Hausregeln konfigurieren, eigene Regeln/Automatisierung), existiert in
    Custom D&D 5e bereits. Ob Koexistenz, Integration oder Abgrenzung
    gewünscht ist, ist offen (Q2 in [`README.md`](README.md)).
@@ -181,8 +183,8 @@ Aus den Quellen ableitbar (Schlüsse, keine Festlegungen):
 
 ## 4. Offene Punkte
 
-- Wie Custom D&D 5e mit anderen Regelanpassungs-Ansätzen (z. B. Eagle Prey)
+- Wie Custom D&D 5e mit anderen Regelanpassungs-Ansätzen (z. B. Eagle Ruling)
   zusammenspielt, wurde nicht getestet.
 - Ob die 6.x-Fassung von dnd5e (Voraussetzung dieses Moduls) eine für Eagle
-  Prey relevante andere Konfigurationsstruktur hat als 5.3.3, wurde nicht
+  Ruling relevante andere Konfigurationsstruktur hat als 5.3.3, wurde nicht
   untersucht (Q1).

@@ -7,60 +7,34 @@ date: 2026-09-19
 ```
 
 ## Input Summary
-- `dadm/m1-01-discover-output.md` (geschlossen — R1/Q1: Plan-Lücke für A3b/A3c)
+- `dadm/m1-01-discover-output.md`
 
-## Solution Design: Optionen für den Umgang mit R1 (Plan-Lücke A3b/A3c)
+## Design der Änderung
 
-Zur Erinnerung, die beiden unabgedeckten Eagle-Eye-Kernanforderungen:
-- **A3b:** Erkennen, dass eine Einstellungsänderung eines Moduls ein anderes
-  Modul beeinflusst, DM informieren
-- **A3c:** Dependencies zwischen Modulen aktivieren/deaktivieren können
+| Datei | Änderung |
+|---|---|
+| `v14/` | Verzeichnis vollständig löschen (inklusive `dist/`) |
+| `package.json` | `build:v14` und `typecheck:v14` entfernen; `build` wird `npm run build:v13`, `typecheck` wird `npm run typecheck:v13`. Die Namen `build:v13` und `typecheck:v13` bleiben, weil das Verzeichnis weiter `v13/` heißt |
+| `README.md` Zeile 7 | "Entwickelt gegen Foundry v13 (siehe `v13/`), mit gemeinsamer Logik unter `core/`. Foundry v14 wird vorerst nicht weiterverfolgt und ist aus der Codebasis entfernt; der Stand liegt im Git-Verlauf." |
+| `README.md` Zeilen 25, 26 | "baut v13" und "Typprüfung v13 gegen die gepinnten Foundry-Types". Diese Kommentare beschreiben ausdrücklich beide Versionen; sie gehören zum selben Sachverhalt wie die "v14-Erwähnung" im Scope und werden mitgeführt, damit die Anleitung nicht falsch bleibt |
 
-**Option A — Neues eigenes Milestone einfügen** (z. B. zwischen M2 und M3, da
-inhaltlich näher an Eagle Eye selbst als an den Satelliten-Modulen)
-- Vorteil: Konsistent mit dem Projektziel ("Plan verstehen, Umsetzbarkeit sehr
-  detailreich prüfen") — beides sind explizite Vision-Anforderungen, kein
-  Nice-to-have
-- Nachteil: Erweitert den bereits genehmigten Plan (Cross-Milestone-
-  Scope-Change) — braucht explizite Freigabe, kein automatischer Schritt
+Nicht angefasst: `core/`, `v13/`, `test-fixtures/`, `tsconfig.base.json`, der Kommentar in `core/manifest-scanner.ts`, das externe `foundry-vtt-reference-v14/`, GitHub-Releases, Modul-ID und Manifest von v13.
 
-**Option B — In M9 (Synthese) als offene Fragen aufnehmen, ohne eigene
-Discover/Apply-Recherche**
-- Vorteil: Kein Eingriff in den bereits genehmigten Plan nötig
-- Nachteil: Zwei explizit in der Vision geforderte Eagle-Eye-Fähigkeiten
-  blieben in dieser "sehr detailreichen" Analysephase unerforscht
-
-**Option C — Bewusst außerhalb dieser Phase lassen**
-- Vorteil: Plan bleibt exakt wie genehmigt
-- Nachteil: Größte inhaltliche Lücke der drei Optionen
-
-## Empfehlung
-**Option A.** Beide Fragen sind in der Vision explizit als Eagle-Eye-
-Kernfunktionen benannt (nicht Teil eines Satelliten-Moduls), und das
-Projektziel fordert ausdrücklich Detailtiefe ohne Zeitdruck. Eine
-Investigation ist ohne Codeänderung möglich (reine API-/Architektur-
-Recherche, passend zum Non-Goal "keine Feature-Entwicklung"). Da dies aber
-eine Erweiterung des genehmigten Plans ist, entscheidet der Projektleiter.
+Löschmethode: Dateisystem-Löschung (`rm -r`), keine Git-Staging-Aktion und kein Commit. Der Stand bleibt über den Git-Verlauf abrufbar.
 
 ## Acceptance Criteria
-```
-AC-M1-01: Abgleichtabelle vollständig (siehe Discover-Output) — erfüllt.
-AC-M1-02: Liste offener Fragen für spätere Milestones vorhanden — erfüllt.
-AC-M1-03: Entscheidung zu R1/Q1 vom Projektleiter eingeholt — erfüllt:
-          Option A gewählt, Milestone Plan v2 mit neuem M3 (Eagle Eye
-          Kernfragen) erstellt und genehmigt (siehe
-          `05-milestone-plan-approval-v2.md`).
-```
-
-**Entscheidung umgesetzt:** Milestone Plan auf Version 2 aktualisiert, neues
-M3 "Eagle Eye: Cross-Modul-Settings-Impact & Modul-(De)Aktivierung"
-eingefügt, Folge-Milestones zu M4–M10 verschoben.
+- AC-M1-01: `v14/` existiert nicht mehr
+- AC-M1-02: `package.json` enthält keinen Verweis auf `v14`
+- AC-M1-03: `npm run typecheck`, `npm test`, `npm run build` laufen für v13 ohne Fehler durch
+- AC-M1-04: `README.md` enthält keine Aussage mehr, die v14 als gebaut oder getestet beschreibt
+- AC-M1-05: Liste der verbleibenden v14-Erwähnungen mit Zuständigkeit liegt im Deploy-Output vor
+- AC-M1-06: `core/`, `v13/`, `test-fixtures/` sind unverändert (Prüfung über `git status`/`git diff`)
 
 ## Risks and Assumptions
-Keine neuen — siehe Discover R1/R2.
+
+| # | Beschreibung | Severity | Blocking |
+|---|---|---|---|
+| R1 | Die drei Proofs laufen lokal ohne Foundry-Laufzeit; sie belegen Typen, Logik-Tests und Bündelung, aber kein Laden in Forge (Live-Test-Gate, nicht Teil dieses Milestones) | low | nein |
 
 ## Next Step
-Automatischer Ablauf gestoppt (siehe `06-working-mode.md`,
-Autonomie-Freigabe). Warten auf Projektleiter-Entscheidung zu Q1/Option
-A/B/C, bevor Deploy (Aufnahme in den Gesamtplan) und Monitor für M1
-abgeschlossen werden.
+Deploy führt die Änderung aus und führt die Proofs aus.

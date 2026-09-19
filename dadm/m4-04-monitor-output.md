@@ -8,25 +8,24 @@ date: 2026-09-19
 
 ## Input Summary
 - `dadm/m4-03-deploy-output.md`
+- `dadm/spezifikationsabgleich.md`
 
 ## Validation Result
-Klarstes Ergebnis bisher in dieser Phase — alle benötigten Bausteine sind
-offizielle, dokumentierte Foundry-APIs, keine Kompromisse oder Fremdmodul-
-Abhängigkeiten nötig. Der Plan hatte für dieses Milestone "mittel" als Risiko
-vermerkt (Performance); die Recherche relativiert das (Index-basierte Suche
-ist genau für diesen Zweck entworfen).
+Delta-Analyse und Klärungsliste sind vollständig (siehe Proofs im Deploy-Output). Die
+Empfehlungen sind als Vorschläge gekennzeichnet; bei Q8, Q9 (Ort) und Q12 gibt es bewusst
+keine Empfehlung, weil dort nur der Projektleiter die Absicht kennt.
 
 ## Evidence Summary
-- Gepinnte v13-Typdefinitionen (`CompendiumCollection`, `DirectoryCollectionMixin`)
+Vollständigkeitsprüfung in `dadm/m4-03-deploy-output.md`; Zuordnung im
+Apply-Output `dadm/m4-02-apply-output.md`.
 
 ## Residual Findings
 
-| # | Beschreibung | Severity | Blocking |
+| # | Fund | Severity | Behandlung |
 |---|---|---|---|
-| F1 | Ursprüngliche Plan-Annahme "Normalisierung unterschiedlicher Quellformate nötig" hat sich als weniger relevant herausgestellt als angenommen — für M10-Synthese vormerken, damit die Risikoeinschätzung dort nicht unreflektiert aus dem Plan übernommen wird | info | nein |
-
-Keine offenen `medium`-oder-höher-Findings.
+| F1 | AC-M4-04 offen: Die Antworten des Projektleiters fehlen | medium | geplanter Stopp; Antworten in `eagle-modules-aufbau.md` und `spezifikationsabgleich.md` eintragen, Entscheidung als Human-Decision-Record festhalten |
 
 ## Recommendation
-**Close M4.** Weiter mit **M5 — Eagle Egg: Geführter Charakter-Builder**, wie
-im Plan (Version 2) vorgesehen.
+**M4 nicht schließen.** Der automatische Ablauf endet hier (Stopp laut Working Mode). Nach den
+Antworten: Antworten festhalten, M4 mit einem Human-Decision-Record schließen und mit
+**M5 — Eagle Flight Control** fortfahren. M1 wartet zusätzlich auf das ausdrückliche "Go".

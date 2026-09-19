@@ -1,12 +1,14 @@
-# Automatisierung: Erkenntnisse für Eagle Wings (Grundlage)
+# Automatisierung: Erkenntnisse für Eagle Roll Out (Grundlage)
+
+> **Namen:** Dieses Dokument verwendet die echten Modulnamen: Eagle Flight Control (ehemals Eagle Eye), Eagle Roll Out (ehemals Eagle Wings).
 
 status: Referenzmaterial, Stand 2026-09-19 — Methode und Commit-Stände siehe
-[`README.md`](README.md). Eagle Wings ist laut Projektleiter bewusst
+[`README.md`](README.md). Eagle Roll Out ist laut Projektleiter bewusst
 zurückgestellt; dieses Dokument legt nur die Wissensgrundlage für später.
 
 Betrachtet: **Midi-QOL**, **Automated Conditions 5e (AC5E)**, **Active Auras**,
 **Active Token Lighting/Effects (ATL)**, **Ready Set Roll (RSR)**. Sie decken
-zusammen einen großen Teil dessen ab, was Eagle Wings bündeln soll (in der
+zusammen einen großen Teil dessen ab, was Eagle Roll Out bündeln soll (in der
 Vision genannt: Midi-QOL, Active Auras, Active Token Effects, Automated
 Conditions).
 
@@ -161,17 +163,17 @@ Es enthält eine Integrationsschicht (`integration.js`, u. a. Erkennung von Midi
 Als Vorbild taugt vor allem der Nachweis, dass sich ein umfassender
 Umbau des Würfel-/Chat-Ablaufs **allein über die offiziellen Hooks** lösen lässt.
 
-## 6. Querschnitt: Was das für Eagle Wings bedeutet
+## 6. Querschnitt: Was das für Eagle Roll Out bedeutet
 
 Aus den Quellen ableitbar (Schlüsse, keine Festlegungen):
 
-1. **Wings bündelt in Wahrheit Flag-Sprachen und Pipelines.** Der
+1. **Eagle Roll Out bündelt in Wahrheit Flag-Sprachen und Pipelines.** Der
    gemeinsame Nenner sind Active Effects mit eigenen Schlüsselräumen
    (`ATL.*`, `flags.midi-qol.*`, `flags.ac5e.*`, `flags.ActiveAuras.*`, `macro.*`)
    und Hook-Pipelines an `activity.use()`/den dnd5e-Wurf-Hooks.
 2. **Das Kompatibilitätsproblem ist strukturell:** Midi-QOL, AC5E, RSR und
    CPR überlappen; Koexistenz gelingt nur mit klarer Besitzerzuordnung je
-   Bereich (K8). Ein Wings-Modul müsste genau diese Zuordnung lösen oder
+   Bereich (K8). Ein Eagle-Roll-Out-Modul müsste genau diese Zuordnung lösen oder
    eine der Pipelines vollständig ersetzen — und die anderen dann ausschließen.
 3. **Zwei bewährte Bauweisen:** breiter Umbau mit vielen Wrappern (Midi-QOL,
    Vorteil: volle Kontrolle; Nachteil: enge Bindung an dnd5e-Interna und
@@ -179,7 +181,7 @@ Aus den Quellen ableitbar (Schlüsse, keine Festlegungen):
    stabiler gegenüber Systemupdates). Beide gibt es aktiv gepflegt.
 4. **Versions-Realität:** Die reifsten Module (Midi-QOL, RSR, Active Auras)
    sind an Foundry 13 bzw. dnd5e ≤ 5.3 gebunden, die aktuellsten (AC5E,
-   Custom D&D 5e) an Foundry 14 + dnd5e 6. Für ein Wings-Modul, das beide
+   Custom D&D 5e) an Foundry 14 + dnd5e 6. Für ein Eagle-Roll-Out-Modul, das beide
    Foundry-Versionen bedienen soll, gibt es damit keine gemeinsame
    Referenzimplementierung (Q1 in [`README.md`](README.md)).
 5. **Nutzbare Integrationspunkte statt Code-Übernahme:** `globalThis.MidiQOL`,
@@ -194,6 +196,6 @@ Aus den Quellen ableitbar (Schlüsse, keine Festlegungen):
   Dokumentation entnommen, nicht getestet.
 - Ob und wann Midi-QOL, Active Auras und ATL für Foundry v14 erscheinen, ist
   aus den Quellen nicht ableitbar.
-- Ob eine Wings-Bündelung sinnvoller als "Koordinator über bestehende Module"
-  (Eagle Eye als Konflikt-/Besitzerwissen) oder als Ersatz zu bauen wäre, ist
+- Ob eine Bündelung in Eagle Roll Out sinnvoller als "Koordinator über bestehende Module"
+  (Eagle Flight Control als Konflikt-/Besitzerwissen) oder als Ersatz zu bauen wäre, ist
   eine Grundsatzfrage für den Projektleiter, keine Annahme dieser Analyse.
