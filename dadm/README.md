@@ -3,16 +3,17 @@
 ## Aktueller Stand
 **Umsetzungsphase 4 "Eagle Flight Control" läuft.** Bootstrap abgeschlossen, Milestone Plan Version 1 (M1–M8) am 2026-09-19 freigegeben. Discover und Apply laufen
 eigenständig, vor jedem Deploy wartet der Ablauf auf das "Go" (`06-working-mode.md`). Die drei früheren Phasen liegen unter `archive/`.
-**Der Stand bis einschließlich Discover und Apply von M5 ist lokal committet, aber nicht gepusht** (letzter Commit `9509921`; Push nur auf Anweisung des Projektleiters); Deploy und Monitor von M5 samt Hub-Nacharbeit liegen im Arbeitsbaum.
+**Der Stand bis einschließlich Deploy und Monitor von M5 ist lokal committet, aber nicht gepusht** (letzter Commit `929a2c5`; Push nur auf Anweisung des Projektleiters); der Live-Check-Nachtrag (`m5-05`), `m6-01` und die Nachführung der Dokumente liegen im Arbeitsbaum.
 
 | Milestone | Stand | Artefakte | Live-Prüfung |
 |---|---|---|---|
 | M1 Phase-1-Code schneiden | abgeschlossen | `m1-01` bis `m1-04` | Startlog und Menü bestätigt (`m2-05`, `m4-05`) |
 | M2 Modul-Anmeldung und Erkennung | abgeschlossen | `m2-01` bis `m2-05` | bestanden (`m2-05-live-check-output.md`, R1 geschlossen) |
-| M3 Hub-Oberfläche mit UI-Leitfaden | abgeschlossen, Nacharbeit 1 im M5-Deploy | `m3-01` bis `m3-04`, `m3-rework-1-output.md` | bestanden mit Befund F1 (Feld-Anordnung weicht vom nativen Look ab, `medium`): `m4-05-live-check-output.md`; Nacharbeit (Option A) umgesetzt, Live-Prüfung offen |
+| M3 Hub-Oberfläche mit UI-Leitfaden | abgeschlossen, Nacharbeit 1 im M5-Deploy | `m3-01` bis `m3-04`, `m3-rework-1-output.md` | bestanden mit Befund F1 (Feld-Anordnung weicht vom nativen Look ab, `medium`): `m4-05-live-check-output.md`; Nacharbeit 1 (Option A) live bestätigt (`m5-05`); neuer kleiner Befund zur Modulüberschrift (`low`, Entscheidung offen) |
 | M4 Anfragekanal-Kern | abgeschlossen | `m4-01` bis `m4-04` | bestanden (`m4-05-live-check-output.md`) |
-| M5 GM-Weiterleitung | abgeschlossen | `m5-01` bis `m5-04` | offen (GM und Spieler gleichzeitig); Anleitung und Pakete: `m5-04-monitor-output.md`, `v13/dist/live-check/` |
-| M6 bis M8 | offen | — | — |
+| M5 GM-Weiterleitung | abgeschlossen | `m5-01` bis `m5-05` | bestanden (`m5-05-live-check-output.md`: `no-gm`, Spieler → GM → Ergebnis, U1 beantwortet); offen nur Test E (Spieleransicht) und die nicht ausgelösten Fehlerwege |
+| M6 Nutzungsrechte je Modul und Nutzer | Discover abgeschlossen (`m6-01`), **geplanter Stopp: Fragen an den Projektleiter vor dem Apply** | `m6-01` | — |
+| M7, M8 | offen | — | — |
 
 ## Aktive Phase (Bootstrap-Artefakte)
 | Datei | Inhalt |
