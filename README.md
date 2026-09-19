@@ -1,17 +1,15 @@
 # EagleEye
 
-Foundry-VTT-Modul als Grundgerüst für Eagle Flight Control, die Schnittstelle zwischen
-den Eagle Modules, dem DnD-5e-System und Foundry VTT selbst — Forschungs-/Testprojekt.
-Der Code stammt aus der ersten Phase und enthält noch Funktionen für Fremdmodule
-(Paket-Scan, Konflikt-Überwachung), die nach den aktuellen Planungsentscheidungen
-entfallen; über ihre Entfernung entscheidet eine spätere Umsetzungsphase.
+Foundry-VTT-Modul Eagle Flight Control (Arbeitsname EagleEye): die Schnittstelle zwischen
+den Eagle Modules, dem DnD-5e-System und Foundry VTT. In Entwicklung (Umsetzungsphase 4,
+siehe `dadm/`).
 
 Entwickelt gegen Foundry v13 (siehe `v13/`), mit gemeinsamer Logik unter
 `core/`. Foundry v14 wird vorerst nicht weiterverfolgt und ist aus der
 Codebasis entfernt; der Stand liegt im Git-Verlauf.
 
 Projekt-Prozess (DAD-M) und alle Entscheidungs-/Planungsartefakte: siehe `dadm/`
-(Stand: keine Phase aktiv; drei abgeschlossene Phasen liegen unter `dadm/archive/`, die
+(Stand: Umsetzungsphase 4 läuft; drei abgeschlossene Phasen liegen unter `dadm/archive/`, die
 bestätigten Projektpläne unter `dadm/eagle-modules-projektplan.md` und
 [`EAGLE-MODULES-PLAN.md`](./EAGLE-MODULES-PLAN.md)).
 

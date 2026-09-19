@@ -1,0 +1,24 @@
+{
+  "EAGLEEYE": {
+    "menu": {
+      "name": "Eagle Flight Control",
+      "label": "Open Eagle Flight Control",
+      "hint": "Bundles the settings of your Eagle modules and starts them."
+    },
+    "hub": {
+      "title": "Eagle Flight Control",
+      "empty": "No Eagle modules are registered yet.",
+      "open": "Open",
+      "version": "Version {version} (API {apiVersion})",
+      "noSettings": "This module has no settings in the hub.",
+      "notEditable": "Cannot be edited here. Use Foundry's Configure Settings.",
+      "requiresReload": "Takes effect after a reload.",
+      "notify": {
+        "notPermitted": "Only a Gamemaster can change these settings.",
+        "invalidValue": "The value for {name} is not valid: {detail}",
+        "writeFailed": "Could not save {name}.",
+        "openFailed": "Could not open {module}: {detail}"
+      }
+    }
+  }
+}

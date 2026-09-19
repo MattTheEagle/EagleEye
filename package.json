@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "private": true,
   "type": "module",
-  "description": "EagleEye - Kommunikationsschnittstelle zwischen eigenen Modulen, Fremdmodulen, Systemen und Foundry VTT (Forschungsprojekt).",
+  "description": "EagleEye - Eagle Flight Control: Schnittstelle zwischen den Eagle Modulen, dem DnD-5e-System und Foundry VTT (in Entwicklung).",
   "scripts": {
     "build:v13": "esbuild v13/module.ts --bundle --format=esm --outfile=v13/dist/module.js",
     "build": "npm run build:v13",

@@ -1,11 +1,12 @@
 {
   "id": "eagleeye",
   "title": "EagleEye",
-  "description": "Kommunikationsschnittstelle zwischen eigenen Modulen, Fremdmodulen, Systemen und Foundry VTT (Forschungsprojekt). Minimaler M1-Testbuild.",
+  "description": "Eagle Flight Control (Arbeitsname EagleEye): Schnittstelle zwischen den Eagle Modulen, dem DnD-5e-System und Foundry VTT. In Entwicklung.",
   "version": "0.0.1",
   "authors": [{ "name": "Projektleiter" }],
   "compatibility": { "minimum": "13", "verified": "13" },
   "esmodules": ["dist/module.js"],
+  "languages": [{ "lang": "en", "name": "English", "path": "lang/en.json" }],
   "manifest": "https://github.com/MattTheEagle/EagleEye/releases/latest/download/module.json",
   "download": "https://github.com/MattTheEagle/EagleEye/releases/download/v13-v0.0.1/eagleeye-v13.zip"
 }

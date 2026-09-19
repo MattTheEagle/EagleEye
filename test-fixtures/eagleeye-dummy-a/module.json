@@ -1,9 +1,12 @@
 {
   "id": "eagleeye-dummy-a",
   "title": "EagleEye Dummy Test Module A",
-  "description": "Statisches Test-Fixture fuer M4 (Settings-Hub-Proof). Keine echte Funktionalitaet.",
+  "description": "Statisches Test-Fixture (M4): meldet sich mit API 0.3.0 an, hat vier Einstellungen und eine Open-Aktion und stellt eine ping-Anfrage. Keine echte Funktionalitaet.",
   "version": "0.0.1",
   "authors": [{ "name": "Projektleiter" }],
   "compatibility": { "minimum": "11" },
+  "relationships": {
+    "requires": [{ "id": "eagleeye", "type": "module", "compatibility": { "minimum": "0.0.1" } }]
+  },
   "scripts": ["module.js"]
 }

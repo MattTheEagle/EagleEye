@@ -1,9 +1,8 @@
 export type PackageKind = "module" | "system";
 
 export interface PackageBadge {
-  // v13 uses "safe"/"unsafe"; v14 renamed "safe" to "success" and dropped "unsafe"
-  // (undocumented breaking change, see breaking-changes-v13-to-v14.md).
-  type: "safe" | "success" | "unsafe" | "warning" | "neutral" | "error";
+  // Mirrors Foundry v13's PackageCompatibilityBadge["type"].
+  type: "safe" | "unsafe" | "warning" | "neutral" | "error";
   tooltip: string;
   label?: string;
   icon?: string;
