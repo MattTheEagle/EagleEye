@@ -184,3 +184,16 @@ wäre erste Aufgabe einer künftigen Umsetzungsphase.
 Vollständige Belege: `dadm/m8-01-discover-output.md`, `dadm/m8-02-apply-output.md`.
 
 ---
+
+## M9 — Eagle Wings: Kurz-Scoping (bewusst zurückgestellt)
+
+Keine Tiefenrecherche in dieser Phase (Projektleiter-Vorgabe). Empfehlung für
+eine spätere Bewertung: zuerst prüfen, ob Midi-QoL, Active Auras, Active
+Token Effects und Automated Conditions bereits öffentliche APIs für die
+gewünschte Funktionalität bieten (dasselbe Muster, das sich bei M2, M5 und M8
+bewährt hat), statt Eigenentwicklung anzunehmen. Berührt außerdem M3
+(Modul-Ersatz/-Migration, fehlende programmatische Modul-Aktivierung).
+
+Vollständige Belege: `dadm/m9-01-discover-output.md`, `dadm/m9-02-apply-output.md`.
+
+---
