@@ -120,3 +120,22 @@ M2-Prinzips, nutzt hier aber eine bereits vorhandene Übersetzungsschicht
 Vollständige Belege: `dadm/m5-01-discover-output.md`, `dadm/m5-02-apply-output.md`.
 
 ---
+
+## M6 — Eagle Beak: Freitext-Homebrew-Import (Parsing-Machbarkeit)
+
+**Ergebnis: Zuverlässig nur für templatierte Eingaben (Stat-Blocks, JSON,
+CSV), nicht für echte freie Prosa — bestätigtes, erwartetes Ergebnis.** Das
+reale Precedent-Modul "Foundry VTT Content Parser" arbeitet regex-/
+template-basiert (kein LLM), explizit als "best effort" beworben. Die
+Struktur der Eingabe (nicht die Parser-Qualität) entscheidet über die
+Zuverlässigkeit — Stat-Blocks folgen einer festen Konvention, freie Prosa
+nicht.
+
+**Empfehlung:** Templatierte Eingabe explizit unterstützen/bewerben, bei
+Freitext transparent "Best Effort" kommunizieren. Der in der Vision ohnehin
+vorgesehene Korrektur-Editor-Schritt ist der eigentlich tragende Teil dieser
+Funktion, nicht das Parsen selbst.
+
+Vollständige Belege: `dadm/m6-01-discover-output.md`, `dadm/m6-02-apply-output.md`.
+
+---
