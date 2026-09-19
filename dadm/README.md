@@ -3,16 +3,16 @@
 ## Aktueller Stand
 **Umsetzungsphase 4 "Eagle Flight Control" läuft.** Bootstrap abgeschlossen, Milestone Plan Version 1 (M1–M8) am 2026-09-19 freigegeben. Discover und Apply laufen
 eigenständig, vor jedem Deploy wartet der Ablauf auf das "Go" (`06-working-mode.md`). Die drei früheren Phasen liegen unter `archive/`.
-**Der Stand bis einschließlich Deploy und Monitor von M5 ist lokal committet, aber nicht gepusht** (letzter Commit `929a2c5`; Push nur auf Anweisung des Projektleiters); der Live-Check-Nachtrag (`m5-05`), `m6-01` und die Nachführung der Dokumente liegen im Arbeitsbaum.
+**Der Stand bis einschließlich Deploy und Monitor von M5 ist lokal committet, aber nicht gepusht** (Push nur auf Anweisung des Projektleiters); letzter Commit `3fab54c`; `m6-hd-1`, `m6-spike-1`, `m3-rework-2`, der Spike-Fixture und die Änderung am Hub liegen im Arbeitsbaum.
 
 | Milestone | Stand | Artefakte | Live-Prüfung |
 |---|---|---|---|
 | M1 Phase-1-Code schneiden | abgeschlossen | `m1-01` bis `m1-04` | Startlog und Menü bestätigt (`m2-05`, `m4-05`) |
 | M2 Modul-Anmeldung und Erkennung | abgeschlossen | `m2-01` bis `m2-05` | bestanden (`m2-05-live-check-output.md`, R1 geschlossen) |
-| M3 Hub-Oberfläche mit UI-Leitfaden | abgeschlossen, Nacharbeit 1 im M5-Deploy | `m3-01` bis `m3-04`, `m3-rework-1-output.md` | bestanden mit Befund F1 (Feld-Anordnung weicht vom nativen Look ab, `medium`): `m4-05-live-check-output.md`; Nacharbeit 1 (Option A) live bestätigt (`m5-05`); neuer kleiner Befund zur Modulüberschrift (`low`, Entscheidung offen) |
+| M3 Hub-Oberfläche mit UI-Leitfaden | abgeschlossen, Nacharbeit 1 live bestätigt, Nacharbeit 2 (Rahmen um den Modul-Block) umgesetzt | `m3-01` bis `m3-04`, `m3-rework-1-output.md`, `m3-rework-2-output.md` | bestanden mit Befund F1 (Feld-Anordnung weicht vom nativen Look ab, `medium`): `m4-05-live-check-output.md`; Nacharbeit 1 (Option A) live bestätigt (`m5-05`); neuer kleiner Befund zur Modulüberschrift (`low`, Entscheidung offen) |
 | M4 Anfragekanal-Kern | abgeschlossen | `m4-01` bis `m4-04` | bestanden (`m4-05-live-check-output.md`) |
 | M5 GM-Weiterleitung | abgeschlossen | `m5-01` bis `m5-05` | bestanden (`m5-05-live-check-output.md`: `no-gm`, Spieler → GM → Ergebnis, U1 beantwortet); offen nur Test E (Spieleransicht) und die nicht ausgelösten Fehlerwege |
-| M6 Nutzungsrechte je Modul und Nutzer | Discover abgeschlossen (`m6-01`), **geplanter Stopp: Fragen an den Projektleiter vor dem Apply** | `m6-01` | — |
+| M6 Nutzungsrechte je Modul und Nutzer | Discover abgeschlossen; Antworten des Projektleiters und **Human Decision 1** (Identität per Rückfrage des GM) liegen vor; Spike zu `User#query` GM → Spieler steht aus | `m6-01`, `m6-hd-1-output.md`, `m6-spike-1-output.md` | Spike: Anleitung `m6-spike-1-output.md`, Pakete `v13/dist/live-check/` |
 | M7, M8 | offen | — | — |
 
 ## Aktive Phase (Bootstrap-Artefakte)
