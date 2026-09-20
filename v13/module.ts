@@ -73,7 +73,7 @@ Hooks.once("init", () => {
     let requests: RequestKernel = kernel;
     try {
       const relay = createRequestRelay({ kernel, handlers, registry, environment: foundryRelayEnvironment(), log: consoleLog });
-      registerRelayQueries(relay, consoleLog);
+      registerRelayQueries(relay);
       requests = relay;
     } catch (error) {
       console.error("eagleeye | failed to set up the Gamemaster relay; requests run in the caller's client only", error);

@@ -1,4 +1,3 @@
-import type { ApiLogger } from "../core/eagle-api";
 import type { ConfirmationAnswer, RelayMessage } from "../core/request-identity";
 import type { RequestResult, RequestUser } from "../core/request-kernel";
 import type { Executor } from "../core/request-handlers";
@@ -60,28 +59,11 @@ export function foundryRelayEnvironment(): RelayEnvironment {
   };
 }
 
-// Foundry's own query handlers get the query data, and the query options as a second argument. Nothing more: the
-// first query that arrives tells the Gamemaster's console what the handler receives (the live check of 2026-09-20
-// showed only { timeout }). Nothing is decided from it.
-function describeExtraArguments(extra: unknown[]): string {
-  if (extra.length === 0) return "none";
-  try {
-    return `${extra.length}: ${JSON.stringify(extra).slice(0, 300)}`;
-  } catch {
-    return `${extra.length}: not printable`;
-  }
-}
-
+// Foundry hands a query handler only the query data and the query options ({ timeout }; live check of 2026-09-20), so a
+// handler cannot tell which user asked. That is why the Gamemaster's client asks the named user's client to confirm.
 // Every client answers both queries. The relay refuses the first unless this client's user has a Gamemaster role and
 // answers the second only for a request this client has sent itself.
-export function registerRelayQueries(relay: RequestRelay, log: ApiLogger): void {
-  let diagnosed = false;
-  CONFIG.queries[RELAY_QUERY] = (data: unknown, ...extra: unknown[]) => {
-    if (!diagnosed) {
-      diagnosed = true;
-      log.info(`eagleeye | relay: first query received, extra handler arguments: ${describeExtraArguments(extra)}`);
-    }
-    return relay.receive(data);
-  };
+export function registerRelayQueries(relay: RequestRelay): void {
+  CONFIG.queries[RELAY_QUERY] = (data: unknown) => relay.receive(data);
   CONFIG.queries[CONFIRM_QUERY] = async (data: unknown) => relay.answerConfirmation(data);
 }

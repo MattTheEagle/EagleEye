@@ -1,15 +1,16 @@
 {
   "name": "eagleeye",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "EagleEye - Eagle Flight Control: Schnittstelle zwischen den Eagle Modulen, dem DnD-5e-System und Foundry VTT (in Entwicklung).",
+  "description": "EagleEye - Eagle Flight Control: the interface between the Eagle modules, the D&D 5e system and Foundry VTT. Early release for testing.",
   "scripts": {
     "build:v13": "esbuild v13/module.ts --bundle --format=esm --outfile=v13/dist/module.js",
     "build": "npm run build:v13",
     "typecheck:v13": "tsc -p v13/tsconfig.json",
     "typecheck": "npm run typecheck:v13",
-    "test": "vitest run"
+    "test": "vitest run",
+    "package": "node v13/package.mjs"
   },
   "devDependencies": {
     "esbuild": "^0.24.0",

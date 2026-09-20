@@ -1,6 +1,6 @@
 # Eagle modules — UI guide
 
-**Status:** development, written together with the Flight Control hub (API contract `0.2.0`).
+**Status:** development, written together with the Flight Control hub; last checked against the hub of API contract `0.7.0`.
 **Audience:** authors of Eagle modules.
 **Goal:** every Eagle module looks and behaves like Foundry itself: the same buttons, the same fonts, the same forms.
 The decision behind it is to use Foundry's own building blocks and to write this guide, instead of building a shared

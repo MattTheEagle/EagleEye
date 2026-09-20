@@ -1,17 +1,39 @@
-# Eagle Flight Control — API contract, parts 1 to 7: registration, the hub, requests, the Gamemaster relay, who asked, rights per module and user and the game system
+# Eagle Flight Control — API contract
 
 **API version:** `0.7.0`
 **Status:** development. Before `1.0.0` a minor version may break the API (see section 5).
-**Scope of this version:** how an Eagle module gets the API and registers itself (part 1), how it appears in the
-Flight Control hub: tab, settings and open action (part 2), and how it asks Flight Control to do things: the request
-channel (part 3), and where a request runs: requests that need the Gamemaster's rights run on the Gamemaster's
-client (part 4), and who asked: the Gamemaster's client confirms the asking user before it runs a forwarded request
-(part 5), and who may use which module: the Gamemaster sets rights per module and user in the hub, and Flight Control
-checks them before it runs a request (part 6), and which game system runs and whether Flight Control was tested with
-its version (part 7). Later parts will extend the API and raise its version.
 **Audience:** authors of Eagle modules. Flight Control does not integrate third-party modules. Registration by a
 third-party module is not a supported use; it cannot be prevented technically, and such a module would simply
 count as registered.
+
+## What the API offers
+
+Flight Control is the interface between the Eagle modules, the D&D 5e system and Foundry. A module reaches it through
+its API object (section 1), which has five members:
+
+| Member | What it does | Since API |
+|---|---|---|
+| `version` | The API version of Flight Control (section 5). | `0.1.0` |
+| `registerModule` | Registers your module, so that it gets a tab in the hub, optionally with an Open button (sections 2 and 3). | `0.1.0`; `open` since `0.2.0` |
+| `request` | Asks Flight Control to do something. A request that needs the Gamemaster's rights runs on the Gamemaster's client, after the asking user has been confirmed, and the rights per module and user are checked before any request runs (section 4). | `0.3.0`; forwarding `0.4.0`; confirmation `0.5.0`; rights `0.6.0` |
+| `getRights` | Tells your module what the user of this client may do with it (section 4). | `0.6.0` |
+| `getSystemInfo` | Tells your module which game system runs and whether Flight Control was tested with its version (section 4). | `0.7.0` |
+
+The hub (section 3) is a window in Foundry and not a member of the API: one tab per registered module with its
+settings and, for the Gamemaster, the rights per module and user.
+
+## Contents
+
+1. [Getting the API](#1-getting-the-api)
+2. [Registering a module](#2-registering-a-module)
+3. [The hub](#3-the-hub)
+4. [Requests](#4-requests): the request and its results, failure reasons, where a request runs, forwarded requests, who asked, rights per module and user, request types, the game system
+5. [API version and compatibility](#5-api-version-and-compatibility)
+6. [Manifest requirements for Eagle modules](#6-manifest-requirements-for-eagle-modules)
+7. [Behaviour when Flight Control is missing or deactivated](#7-behaviour-when-flight-control-is-missing-or-deactivated)
+8. [What is verified](#8-what-is-verified)
+9. [Not part of this version](#9-not-part-of-this-version)
+10. [Change history](#10-change-history)
 
 ## 1. Getting the API
 
@@ -147,7 +169,7 @@ Hooks.once("setup", () => {
 | `apiVersion` | string `x.y.z` | The API version your module was written against. |
 | `open` | function, optional | Opens the UI of your module. The hub calls it without arguments and without `this` (pass an arrow or a bound function); it may return a promise. |
 
-Additional fields are ignored; they are reserved for later parts of the contract. Title and version of your
+Additional fields are ignored; they are reserved for later versions of the contract. Title and version of your
 module are read from Foundry's manifest, not from the descriptor.
 
 **Result:** `{ ok: true, module: { id, title, version, apiVersion } }` or `{ ok: false, reason, detail }`.
@@ -258,7 +280,7 @@ is what lets Flight Control send a request to the Gamemaster's client (see "Wher
 | `relay-failed` | The request could not be delivered or answered (Foundry refused the transfer, or the answer was not a result); `detail` says what happened. | Show the message; retry only if that makes sense. |
 | `not-permitted` | The request was refused: the receiving side is not a Gamemaster's client, the request type is not run for other clients, the asking user could not be confirmed (see "Who asked"), or the rights per module and user do not allow it (see "Rights per module and user"). `detail` says which. | Do not retry. Ask `getRights` before you offer the action. |
 
-Treat every reason you do not know as a failure: later parts of this contract may add reasons.
+Treat every reason you do not know as a failure: later versions of this contract may add reasons.
 
 **Versions:** a request without `version` always means version `1`. A version of a request type stays supported as
 long as its contract lists it, so a module keeps working when Flight Control adds a newer version. New request types
@@ -270,7 +292,7 @@ Gamemaster's client: a user without a Gamemaster role (a player, a trusted playe
 permission for it, because Flight Control sends the request to the connected Gamemaster and returns the answer. A user
 with a Gamemaster role (Gamemaster or Assistant) runs every type in their own client.
 
-**Forwarded requests**
+**Forwarded requests** (since API `0.4.0`)
 
 - Flight Control sends only the four fields of the request (`module`, `type`, `version`, `payload`), together with the
   id of the asking user and an identifier (see "Who asked"). The Gamemaster's client checks everything again and does
@@ -285,8 +307,12 @@ with a Gamemaster role (Gamemaster or Assistant) runs every type in their own cl
 - Request types that run on the Gamemaster's client are added by Flight Control itself. The rights per module and user
   decide whether a module may use them for a user (see "Rights per module and user"), and a type that acts on documents
   names them.
+- **There is no limit** on how many requests a client may send or have waiting at once. An altered client can burden the
+  Gamemaster's client, and the client of a user it names, with requests and questions. That discloses nothing and lets
+  nothing run that the checks refuse, but it can slow those clients down. Send requests only as often as your module
+  needs.
 
-**Who asked (forwarded requests)**
+**Who asked** (since API `0.5.0`)
 
 Foundry does not tell the Gamemaster's client which user sent a query. Flight Control therefore asks the user itself:
 
@@ -302,7 +328,7 @@ Foundry does not tell the Gamemaster's client which user sent a query. Flight Co
 
 This stops a client from posing as another user. It does not stop a user from posing as themselves.
 
-**Rights per module and user**
+**Rights per module and user** (since API `0.6.0`)
 
 The Gamemaster decides in the hub which module a player may use. For every module and every user there is one of
 three levels:
@@ -330,7 +356,9 @@ three levels:
 - **Refusals** come as `not-permitted`; `detail` says which rule: `module "<id>" may not be used by this user`,
   `module "<id>" may act only on targets this user owns`, `the user of this request is not known`, `the rights could
   not be read, so nothing is allowed until they can` (the stored rights are damaged: nobody but a Gamemaster or
-  Assistant may do anything until the Gamemaster sets a level in the hub), or `the rights could not be checked`.
+  Assistant may do anything until the Gamemaster sets a level in the hub), `the rights could not be set up, so nothing
+  is allowed` (Flight Control could not set up its rights when Foundry started: every request is refused, even for a
+  Gamemaster, and `getRights` answers `denied`), or `the rights could not be checked`.
   A failed check never lets a request run.
 - **`getRights(moduleId)`** tells your module what the user of this client may do with a module, so it can show or hide
   its own controls:
@@ -344,7 +372,7 @@ if (result.ok) console.log(result.value.level); // "denied", "own" or "all"
   (`denied` when nothing is set). It reads the rights this client knows and never throws. The check at the request is
   what counts, not this answer. Call it from `ready` or later. Failures: `invalid-request` (not a non-empty string),
   `not-registered` (the module is not registered or not active), `internal-error`.
-- **Rules for request types** (for the parts of this contract that add them): a type that acts on documents names them,
+- **Rules for request types** (for the versions of this contract that add them): a type that acts on documents names them,
   otherwise `own` cannot restrict it. A type that belongs to one module has to state which modules may use it, because
   the rights are per module and `module` is only what the caller states. A type that runs on the Gamemaster's client
   and changes data or hands out knowledge only the Gamemaster has says how in the design of its milestone. The three
@@ -369,7 +397,7 @@ the Gamemaster's client: for a player it answers with the Gamemaster's `userId` 
 foreign targets: with the level `own` it answers for a document the user owns and refuses every other with
 `not-permitted`; with `all` it answers for both.
 
-**The game system (part 7)**
+**The game system** (since API `0.7.0`)
 
 Flight Control is made for the D&D 5e system (`dnd5e`) and knows the versions of it that it was tested with. It tells the
 Gamemaster when the system is not one of those, and it tells your module, so the module can adapt. It only reports:
@@ -403,7 +431,7 @@ if (result.ok) console.log(result.value.status, result.value.id, result.value.ve
   (`version` is also `null` for another system); `testedVersions` is a frozen copy of the list. The answer is worked out
   anew at every call, for the system of this client. It needs no rights and never throws; the only failure is
   `internal-error`. Call it from `ready` or later.
-- **Rules for request types** (for the parts of this contract that add them): a request type that depends on the D&D
+- **Rules for request types** (for the versions of this contract that add them): a request type that depends on the D&D
   data model states in the design of its milestone which statuses it accepts and what it does for the others.
 
 ## 5. API version and compatibility
@@ -425,7 +453,12 @@ if all of these hold:
 | `1.2.0` | `1.1.9` | rejected (Flight Control is older) |
 | `1.0.0` | `2.0.0` | rejected (different major) |
 
-The API version is independent of the module version in `module.json`.
+The API version is independent of the module version in `module.json`: the module version says which release of
+Flight Control you have, the API version says which contract it offers.
+
+**Before and after `1.0.0`:** the API stays below `1.0.0` until the first module outside Flight Control (the planned
+Eagle Library) has used it without a break. Until then a change of the minor version may break the API (rule 2 above).
+From `1.0.0` on, a minor version only adds to the API and only a new major version may break it.
 
 ## 6. Manifest requirements for Eagle modules
 
@@ -443,16 +476,25 @@ Declare Flight Control as a required module:
   enabled (not re-checked for this version).
 - Whether Foundry enforces the `compatibility` range when a module is enabled is **not verified**. The API
   version check at registration (section 5) is the check you can rely on.
-- **Module version and API version:** no released Flight Control contains this API yet; the current release
-  `v13-v0.0.1` predates it. A table of module versions and the API version each provides will be published with
-  the first release that contains the API. Until then use the development version `0.0.1` as `minimum`.
+- **Module version and API version:** the two numbers are independent (section 5). The module version `0.1.0` is the
+  first that contains this API; the earlier module version `0.0.1` predates it. Use the module version that first
+  provides the API version you need as `minimum`:
+
+  | Module version | API version |
+  |---|---|
+  | `0.1.0` | `0.7.0` |
+
+  The table gets a row for every module version that changes the API version.
 - **Texts and files:** Flight Control ships `lang/en.json` and lists it under `languages` in its manifest. A package
   that leaves `lang/` out shows raw text keys in the hub.
 
 ## 7. Behaviour when Flight Control is missing or deactivated
 
 - **Not installed:** according to Foundry's documentation your module cannot be enabled (see section 6).
-- **Installed but deactivated:** what Foundry does is **not verified**. Your code has to handle
+- **Installed but deactivated:** Foundry's module management window does not let a user deactivate a module while an
+  active module requires it: it shows the notification "This module can not be disabled as it is required by the
+  following: …" (seen with three test modules that require Flight Control). Other ways to end up with Flight Control
+  deactivated, for example a module that does not declare it as required, are **not verified**. Your code has to handle
   `api === undefined` in any case.
 
 ## 8. What is verified
@@ -464,7 +506,8 @@ what the hub's rights block shows and writes, `getRights`) and the game system g
 `getSystemInfo`) are covered by unit tests of the pure logic.
 
 **Verified in a running Foundry** (Foundry v13, build 351, on Forge, a dnd5e world; four test modules; live checks on
-2026-09-19 with API `0.3.0` and on 2026-09-20 with API `0.4.0`, `0.5.0` and `0.6.0`):
+2026-09-19 with API `0.3.0` and on 2026-09-20 with API `0.4.0`, `0.5.0`, `0.6.0` and `0.7.0`, the last one with the
+release build, module version `0.1.0`):
 
 - Flight Control attaches the API to its module object during `init`, and other modules can read it from their
   `setup` hook. Registration runs inside Foundry's `setup` phase.
@@ -480,12 +523,12 @@ what the hub's rights block shows and writes, `getRights`) and the game system g
   `echo: 5` returns `invalid-payload` (detail "payload.echo must be a string"). Flight Control logs a warning for each
   failure and nothing for a success. The value of a successful `flightcontrol.ping` has `apiVersion`, `module` and
   `echo` (seen as `ok, api 0.4.0, module eagleeye-dummy-a, echo hello`).
-- Part 4, the relay: a request for a type that runs on the Gamemaster's client (`flightcontrol.gmping`) from a player
+- The relay (API `0.4.0`): a request for a type that runs on the Gamemaster's client (`flightcontrol.gmping`) from a player
   is forwarded to the connected Gamemaster, and the result comes back with `ranBy` naming the Gamemaster's user, not the
   player's. Without a connected Gamemaster the request returns `no-gm`. A Gamemaster who asks runs it in their own
   client. The results (with a nested object) arrive unchanged, and the wait time of 15 seconds plus 2 seconds reaches
   the Gamemaster's client as the query option `timeout`.
-- Part 5, the confirmation (API `0.5.0`, a Gamemaster and a player in two sessions): the request of a player for
+- The confirmation of the asking user (API `0.5.0`, a Gamemaster and a player in two sessions): the request of a player for
   `flightcontrol.gmping` runs on the Gamemaster's client only after that client has asked the player's client to
   confirm it; the result names the Gamemaster in `ranBy` and the player in `askedBy`. The player's client answers the
   question while its own request is still waiting. A Gamemaster who asks runs the request in their own client and is
@@ -494,7 +537,7 @@ what the hub's rights block shows and writes, `getRights`) and the game system g
   does not exist, and one that names the player with an identifier that was never issued. The Gamemaster's console
   logs the reason of each refusal (`the answer is not a confirmation from that user`, `the question failed: no user
   with the id …`); the caller gets only the general sentence.
-- Part 6, the rights (API `0.6.0`, a Gamemaster and a player in two sessions, 2026-09-20): a player for whom the
+- The rights (API `0.6.0`, a Gamemaster and a player in two sessions, 2026-09-20): a player for whom the
   Gamemaster has set no level gets `not-permitted` (`module "<id>" may not be used by this user`) for a request that
   runs in their own client (`flightcontrol.ping`) and for one that runs on the Gamemaster's client
   (`flightcontrol.gmping`; the Gamemaster's client refuses it and logs the reason). `getRights` answers `denied` for
@@ -506,6 +549,24 @@ what the hub's rights block shows and writes, `getRights`) and the game system g
   for a document they do not own, for a UUID of no document and for text that is not a UUID. With the level `all` the
   same request is answered for both documents. When the Gamemaster changes the level, the player's client answers with
   the new level at once, without a reload.
+- The game system (API `0.7.0`, a Gamemaster, 2026-09-20): in the test world `game.system.id` is `dnd5e`
+  and `game.system.version` is `5.3.3`, a strict `x.y.z` text, and both are filled in by the time of `ready`. When the
+  world is ready Flight Control writes `eagleeye | game system: dnd5e 5.3.3 (tested)` to the console as an information
+  line, and `getSystemInfo()` answers
+  `{"ok":true,"value":{"id":"dnd5e","version":"5.3.3","status":"tested","testedVersions":["5.3.3"]}}`.
+- The release build (module version `0.1.0`, API `0.7.0`, a Gamemaster and a player in two sessions, 2026-09-20): the
+  module management window shows the version `0.1.0`, and registration, requests, rights and the game system line
+  behave as in the checks above. A player for whom the Gamemaster has set the level `own` gets `ok` for
+  `flightcontrol.gmping`, run by the Gamemaster's client and asked by the player. A request with version `99` is
+  answered with `unsupported-version` (`request type "flightcontrol.ping" supports version 1, not 99`) and one without
+  `module` with `invalid-request` (`request.module must be a non-empty string`); each is logged as a warning.
+- A forwarded request that names a user who is not connected is refused with `not-permitted` ("the asking user could
+  not be confirmed"); the Gamemaster's console logs the reason (`the question failed: User [<id>] is not active`).
+- For a number setting with a range that has a minimum and a maximum, a value typed above the maximum is limited to the
+  maximum by the number field of the slider before the hub sees it: the field jumps to the maximum, the `onChange` of
+  the setting gets the maximum, and no notification appears.
+- For a player, Foundry's settings window has no entry for Flight Control, so there is no "Open Eagle Flight Control"
+  button: the hub is opened by the Gamemaster only.
 - Observed with a test module (not Flight Control) on 2026-09-20: a query from the Gamemaster to a connected player is
   delivered and answered by that player's client (about 100 ms); a query to a user who is not connected fails at once
   (`User [<id>] is not active`); a query nobody handles fails at once (`User query '<name>' is not registered`); an
@@ -514,39 +575,42 @@ what the hub's rights block shows and writes, `getRights`) and the game system g
   world setting that the Gamemaster has just written.
 - What Foundry hands to a query handler: the query data and one extra argument, the query options (`{ timeout }`).
   It gives no information about the user who asked, so Flight Control cannot tell on the Gamemaster's side which user
-  asked; part 5 works around this by asking the named user's client to confirm the request.
+  asked; the confirmation of the asking user (section 4) works around this by asking the named user's client to confirm the request.
 - The language file loads from the manifest entry `languages`; the hub shows no raw text keys.
 
 **Not verified in a running Foundry** (`unverified`):
 
-- part 4, the failure paths of the relay in Flight Control itself: `relay-timeout` and `relay-failed` (Foundry's own
+- the relay (API `0.4.0`): the failure paths of the relay in Flight Control itself: `relay-timeout` and `relay-failed` (Foundry's own
   behaviour in these cases was observed with the test module, see above), and the behaviour with more than one
   Gamemaster connected (unit tests and a simulation only);
-- part 5, the failure paths of the confirmation in Flight Control itself: a named user who is not connected, and the
-  wait of 5 seconds without an answer (Foundry's own behaviour in these cases was observed with the test module, see
-  above; unit tests and a simulation only);
-- part 6, the rights per module and user: what Foundry's ownership test answers for a Gamemaster, for a document in a
+- the confirmation (API `0.5.0`): the wait of 5 seconds without an answer in Flight Control itself (Foundry's own
+  behaviour was observed with the test module, see above; unit tests and a simulation only);
+- the rights per module and user (API `0.6.0`): what Foundry's ownership test answers for a Gamemaster, for a document in a
   compendium and for the level Inherit; whether Foundry lets an Assistant write a world setting; the rights block for an
   Assistant, with more than one player and with more than one Gamemaster connected (unit tests and a simulation
   only);
-- part 7, the game system guard, everything until the live check (unit tests and a simulation only): what Foundry gives
-  for `game.system.id` and `game.system.version`, the console line, the notification for a Gamemaster and the answer of
-  `getSystemInfo`;
-- what the hub does with a refused value: it resets the field and shows a notification (unit tests only); for a number
-  with a range the slider element may limit a value typed above the maximum itself (not confirmed); how the hub looks
-  for a player (the menu is restricted to the Gamemaster);
-- the request failure reasons `invalid-request`, `unsupported-version`, `handler-failed` and `internal-error` (unit tests only);
+- the game system (API `0.7.0`): the notification for a Gamemaster when the world is ready, the states `same-line`,
+  `untested`, `other-system` and `unknown` in Foundry (the test world runs a tested version), and what a player sees
+  (unit tests and a simulation only; check packages that make Flight Control read another value exist);
+- what the hub does with a refused value: it resets the field and shows a notification (unit tests only; the number
+  field of a slider limits a value typed above the maximum before the hub sees it, so this path cannot be triggered
+  with such a field);
+- the request failure reasons `handler-failed` and `internal-error` (unit tests only; `invalid-request` and `unsupported-version` were seen in Foundry);
 - the order in which Foundry runs the `init` callbacks of Flight Control and of your module (this contract does
   not depend on it: you register in `setup`);
-- what happens when a required module is installed but deactivated;
+- what happens when Flight Control is deactivated in a way other than through the module management window (the window itself refuses it while an active module requires Flight Control);
 - whether Foundry enforces `compatibility` ranges in `relationships.requires`.
 
 ## 9. Not part of this version
 
-Request types that read or change Foundry data (only the three proofs exist). They will be added in later parts of this
-contract.
+- Request types that read or change Foundry data (only the three proofs exist). They will be added in later versions of
+  this contract.
+- A limit on how many requests a client may send or have waiting (see "Forwarded requests" in section 4).
 
 ## 10. Change history
+
+The text of this contract was consolidated on 2026-09-20 without any change to the API. "Part n" names the step of the
+project in which a change was made; the earlier project documents use these names.
 
 | API version | Change |
 |---|---|
