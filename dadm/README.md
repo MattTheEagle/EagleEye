@@ -14,7 +14,8 @@ eigenständig, vor jedem Deploy wartet der Ablauf auf das "Go" (`06-working-mode
 | M5 GM-Weiterleitung | abgeschlossen | `m5-01` bis `m5-05` | bestanden (`m5-05-live-check-output.md`: `no-gm`, Spieler → GM → Ergebnis, U1 beantwortet); offen nur Test E (Spieleransicht) und die nicht ausgelösten Fehlerwege |
 | M6a Verifizierte Nutzeridentität (Planversion 2) | abgeschlossen: Discover, Human Decision 1, Spike, Apply, Deploy, Monitor und Live-Check (Go am 2026-09-20); API `0.5.0`, 87 Tests in 12 Dateien | `m6-01`, `m6-hd-1-output.md`, `m6-spike-1-output.md`, `m6-spike-1-result-output.md`, `m6a-02` bis `m6a-05` | bestanden (`m6a-05-live-check-output.md`): Spieler `ran by <GM>`, `asked by <Spieler>`; GM lokal; drei gefälschte Angaben `not-permitted`. Angenommenes Restrisiko: Schutz nur gegen die Fälschung einer fremden Identität |
 | M6b Nutzungsrechte je Modul und Nutzer (Planversion 2) | abgeschlossen: Discover, Apply, Deploy, Monitor und Live-Check (Go am 2026-09-20: R1 bis R3 `medium` angenommen, T1 bis T9 wie vorgeschlagen, Nacharbeit 3 Variante B); API `0.6.0`, 126 Tests in 15 Dateien | `m6b-01` bis `m6b-05` | bestanden (`m6b-05-live-check-output.md`): Standard "verboten" in beiden Wegen, Freigabe im Hub gespeichert, eigenes Ziel `ok` und fremdes `not-permitted` bei "Own targets only", beide `ok` bei "Own and foreign targets", Änderung kommt ohne Neuladen an, Hub gefällt. Offen (nicht blockierend): Assistent, mehrere Spieler, Besitzprüfung für GM, Compendium und "Inherit" |
-| M7, M8 | offen | — | — |
+| M7 DnD-Versionswächter | Discover und Apply abgeschlossen; **wartet auf das Go** (alle Risiken `low`, Punkte T1 bis T8) | `m7-01-discover-output.md`, `m7-02-apply-output.md` | — |
+| M8 | offen | — | — |
 
 ## Aktive Phase (Bootstrap-Artefakte)
 | Datei | Inhalt |
