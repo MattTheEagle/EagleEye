@@ -3,17 +3,17 @@
 ## Aktueller Stand
 **Umsetzungsphase 4 "Eagle Flight Control" läuft.** Bootstrap abgeschlossen, Milestone Plan Version 1 (M1–M8) am 2026-09-19 freigegeben. Discover und Apply laufen
 eigenständig, vor jedem Deploy wartet der Ablauf auf das "Go" (`06-working-mode.md`). Die drei früheren Phasen liegen unter `archive/`.
-**Der Stand bis einschließlich Monitor von M6a ist lokal committet, aber nicht gepusht** (Push nur auf Anweisung des Projektleiters); den letzten Commit zeigt `git log`.
+**Committet wird nur lokal und nur auf Anweisung des Projektleiters; gepusht ist bisher nichts** (Push nur auf seine Anweisung). Den Stand zeigen `git log origin/master..HEAD` und `git status`.
 
 | Milestone | Stand | Artefakte | Live-Prüfung |
 |---|---|---|---|
 | M1 Phase-1-Code schneiden | abgeschlossen | `m1-01` bis `m1-04` | Startlog und Menü bestätigt (`m2-05`, `m4-05`) |
 | M2 Modul-Anmeldung und Erkennung | abgeschlossen | `m2-01` bis `m2-05` | bestanden (`m2-05-live-check-output.md`, R1 geschlossen) |
-| M3 Hub-Oberfläche mit UI-Leitfaden | abgeschlossen, Nacharbeit 1 live bestätigt, Nacharbeit 2 (Rahmen um den Modul-Block) umgesetzt | `m3-01` bis `m3-04`, `m3-rework-1-output.md`, `m3-rework-2-output.md` | bestanden mit Befund F1 (Feld-Anordnung weicht vom nativen Look ab, `medium`): `m4-05-live-check-output.md`; Nacharbeit 1 (Option A) live bestätigt (`m5-05`); Nacharbeit 2 (Rahmen mit Titel, Wahl des Projektleiters) im Paket von M6a, Ansicht noch nicht gesehen (Test H) |
+| M3 Hub-Oberfläche mit UI-Leitfaden | abgeschlossen, Nacharbeit 1 live bestätigt, Nacharbeit 2 (Rahmen um den Modul-Block) umgesetzt | `m3-01` bis `m3-04`, `m3-rework-1-output.md`, `m3-rework-2-output.md` | bestanden mit Befund F1 (Feld-Anordnung weicht vom nativen Look ab, `medium`): `m4-05-live-check-output.md`; Nacharbeit 1 (Option A) live bestätigt (`m5-05`); Nacharbeit 2 (Rahmen mit Titel, Wahl des Projektleiters) live gesehen (`m6a-05`): der Titel sitzt zu nah an der Tab-Leiste (`low`); Nacharbeit 3 (Titel entfällt, Versuch 2 von 2, `m3-rework-3-output.md`) kommt gebündelt mit dem M6b-Paket |
 | M4 Anfragekanal-Kern | abgeschlossen | `m4-01` bis `m4-04` | bestanden (`m4-05-live-check-output.md`) |
 | M5 GM-Weiterleitung | abgeschlossen | `m5-01` bis `m5-05` | bestanden (`m5-05-live-check-output.md`: `no-gm`, Spieler → GM → Ergebnis, U1 beantwortet); offen nur Test E (Spieleransicht) und die nicht ausgelösten Fehlerwege |
-| M6a Verifizierte Nutzeridentität (Planversion 2) | Discover, Human Decision 1, Spike (bestanden), Apply, Deploy und Monitor abgeschlossen (Planversion 2 freigegeben, Go am 2026-09-20); API `0.5.0`, 87 Tests in 12 Dateien; **wartet auf den Live-Check mit GM und Spieler** | `m6-01`, `m6-hd-1-output.md`, `m6-spike-1-output.md`, `m6-spike-1-result-output.md`, `m6a-02` bis `m6a-04` | Spike bestanden (`m6-spike-1-result-output.md`); Live-Check von M6a offen: Anleitung in `m6a-04-monitor-output.md`, Pakete `v13/dist/live-check/`, Ergebnis kommt als `m6a-05-live-check-output.md` |
-| M6b Nutzungsrechte je Modul und Nutzer (Planversion 2) | offen; Antworten des Projektleiters liegen vor (`m6a-02` Abschnitt 10) | — | — |
+| M6a Verifizierte Nutzeridentität (Planversion 2) | abgeschlossen: Discover, Human Decision 1, Spike, Apply, Deploy, Monitor und Live-Check (Go am 2026-09-20); API `0.5.0`, 87 Tests in 12 Dateien | `m6-01`, `m6-hd-1-output.md`, `m6-spike-1-output.md`, `m6-spike-1-result-output.md`, `m6a-02` bis `m6a-05` | bestanden (`m6a-05-live-check-output.md`): Spieler `ran by <GM>`, `asked by <Spieler>`; GM lokal; drei gefälschte Angaben `not-permitted`. Angenommenes Restrisiko: Schutz nur gegen die Fälschung einer fremden Identität |
+| M6b Nutzungsrechte je Modul und Nutzer (Planversion 2) | Discover und Apply abgeschlossen; **wartet auf das Go** (Risiken R1 bis R3 `medium`, Punkte T1 bis T9, Nacharbeit 3 mit Wahl A oder B) | `m6b-01-discover-output.md`, `m6b-02-apply-output.md` | — |
 | M7, M8 | offen | — | — |
 
 ## Aktive Phase (Bootstrap-Artefakte)

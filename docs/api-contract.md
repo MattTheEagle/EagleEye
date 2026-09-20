@@ -343,7 +343,7 @@ action), the request kernel (envelope checks, sender check, handlers, versions, 
 pure logic.
 
 **Verified in a running Foundry** (Foundry v13, build 351, on Forge, a dnd5e world; four test modules; live checks on
-2026-09-19 with API `0.3.0` and on 2026-09-20 with API `0.4.0`; part 5 has not been run live yet):
+2026-09-19 with API `0.3.0` and on 2026-09-20 with API `0.4.0` and `0.5.0`):
 
 - Flight Control attaches the API to its module object during `init`, and other modules can read it from their
   `setup` hook. Registration runs inside Foundry's `setup` phase.
@@ -364,6 +364,15 @@ pure logic.
   player's. Without a connected Gamemaster the request returns `no-gm`. A Gamemaster who asks runs it in their own
   client. The results (with a nested object) arrive unchanged, and the wait time of 15 seconds plus 2 seconds reaches
   the Gamemaster's client as the query option `timeout`.
+- Part 5, the confirmation (API `0.5.0`, a Gamemaster and a player in two sessions): the request of a player for
+  `flightcontrol.gmping` runs on the Gamemaster's client only after that client has asked the player's client to
+  confirm it; the result names the Gamemaster in `ranBy` and the player in `askedBy`. The player's client answers the
+  question while its own request is still waiting. A Gamemaster who asks runs the request in their own client and is
+  `askedBy` themselves. Three forged messages sent by hand to the Gamemaster's client are refused with
+  `not-permitted` ("the asking user could not be confirmed"): one that names the Gamemaster, one that names a user who
+  does not exist, and one that names the player with an identifier that was never issued. The Gamemaster's console
+  logs the reason of each refusal (`the answer is not a confirmation from that user`, `the question failed: no user
+  with the id …`); the caller gets only the general sentence.
 - Observed with a test module (not Flight Control) on 2026-09-20: a query from the Gamemaster to a connected player is
   delivered and answered by that player's client (about 100 ms); a query to a user who is not connected fails at once
   (`User [<id>] is not active`); a query nobody handles fails at once (`User query '<name>' is not registered`); an
@@ -372,7 +381,7 @@ pure logic.
   world setting that the Gamemaster has just written.
 - What Foundry hands to a query handler: the query data and one extra argument, the query options (`{ timeout }`).
   It gives no information about the user who asked, so Flight Control cannot tell on the Gamemaster's side which user
-  asked. This matters for the rights per module and user, a later part.
+  asked; part 5 works around this by asking the named user's client to confirm the request.
 - The language file loads from the manifest entry `languages`; the hub shows no raw text keys.
 
 **Not verified in a running Foundry** (`unverified`):
@@ -380,9 +389,9 @@ pure logic.
 - part 4, the failure paths of the relay in Flight Control itself: `relay-timeout` and `relay-failed` (Foundry's own
   behaviour in these cases was observed with the test module, see above), and the behaviour with more than one
   Gamemaster connected (unit tests and a simulation only);
-- part 5, the confirmation: that the Gamemaster's client confirms the asking user through the client of that user, and
-  refuses a request that names another user, a user who is not connected, or an unknown identifier (unit tests and a
-  simulation only until the live check);
+- part 5, the failure paths of the confirmation in Flight Control itself: a named user who is not connected, and the
+  wait of 5 seconds without an answer (Foundry's own behaviour in these cases was observed with the test module, see
+  above; unit tests and a simulation only);
 - what the hub does with a refused value: it resets the field and shows a notification (unit tests only); for a number
   with a range the slider element may limit a value typed above the maximum itself (not confirmed); how the hub looks
   for a player (the menu is restricted to the Gamemaster);

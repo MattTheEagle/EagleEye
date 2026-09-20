@@ -54,7 +54,8 @@ running Foundry (v13, build 351, on Forge, dark theme; 2026-09-19 and 2026-09-20
 
 - R-01 to R-03: the hub is an `ApplicationV2` window with title, icon, close button and resize handle; the Open button works through `actions`.
 - R-04: the convention works. The core navigation template renders the tab bar, and `changeTab` switches the tab bodies
-  that carry `data-group` and `data-tab`. Switching a tab does not render the window again.
+  that carry `data-group` and `data-tab`. Switching a tab does not render the window again. The active tab is
+  highlighted (seen by the project lead, 2026-09-20).
 - R-05: the field helpers produce working inputs (checkbox, select list, text field), and a change reaches the setting.
   A number with a range shown through `HTMLRangePickerElement.create` is a slider with a number field, as in Foundry's
   settings window.
@@ -67,14 +68,14 @@ running Foundry (v13, build 351, on Forge, dark theme; 2026-09-19 and 2026-09-20
 **Observed, no rule yet**
 
 - In a `standard-form` window a heading (`h3`) is shown large, close to the tab bar and with a wide gap below it
-  (the module heading in the hub, 2026-09-20). The hub now groups the module block in a `fieldset` with the module
-  title as its `legend` instead; how that looks is not yet checked in a running Foundry. The guide gives no rule for
-  headings or groups yet.
+  (the module heading in the hub, 2026-09-20). The hub then grouped the module block in a `fieldset` with the module
+  title as its `legend`. Seen live the same day: the title still sat too close to the tab bar. The project lead sees
+  the active tab highlighted and decided that the title can go; the change comes with the next package. The guide gives
+  no rule for headings or groups yet.
 
 **Not yet verified in a running Foundry** (`unverified`)
 
 - everything about CSS (R-13): the reference contains no CSS;
-- whether the active tab is marked clearly enough;
 - what the hub does with a value above the maximum typed into the range picker (a limit by the element is likely, not
   confirmed), and how the hub looks for a player.
 
