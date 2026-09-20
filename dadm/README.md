@@ -3,16 +3,17 @@
 ## Aktueller Stand
 **Umsetzungsphase 4 "Eagle Flight Control" läuft.** Bootstrap abgeschlossen, Milestone Plan Version 1 (M1–M8) am 2026-09-19 freigegeben. Discover und Apply laufen
 eigenständig, vor jedem Deploy wartet der Ablauf auf das "Go" (`06-working-mode.md`). Die drei früheren Phasen liegen unter `archive/`.
-**Der Stand bis einschließlich Deploy und Monitor von M5 ist lokal committet, aber nicht gepusht** (Push nur auf Anweisung des Projektleiters); letzter Commit `3fab54c`; `m6-hd-1`, `m6-spike-1`, `m3-rework-2`, der Spike-Fixture und die Änderung am Hub liegen im Arbeitsbaum.
+**Der Stand bis einschließlich Monitor von M6a ist lokal committet, aber nicht gepusht** (Push nur auf Anweisung des Projektleiters); den letzten Commit zeigt `git log`.
 
 | Milestone | Stand | Artefakte | Live-Prüfung |
 |---|---|---|---|
 | M1 Phase-1-Code schneiden | abgeschlossen | `m1-01` bis `m1-04` | Startlog und Menü bestätigt (`m2-05`, `m4-05`) |
 | M2 Modul-Anmeldung und Erkennung | abgeschlossen | `m2-01` bis `m2-05` | bestanden (`m2-05-live-check-output.md`, R1 geschlossen) |
-| M3 Hub-Oberfläche mit UI-Leitfaden | abgeschlossen, Nacharbeit 1 live bestätigt, Nacharbeit 2 (Rahmen um den Modul-Block) umgesetzt | `m3-01` bis `m3-04`, `m3-rework-1-output.md`, `m3-rework-2-output.md` | bestanden mit Befund F1 (Feld-Anordnung weicht vom nativen Look ab, `medium`): `m4-05-live-check-output.md`; Nacharbeit 1 (Option A) live bestätigt (`m5-05`); neuer kleiner Befund zur Modulüberschrift (`low`, Entscheidung offen) |
+| M3 Hub-Oberfläche mit UI-Leitfaden | abgeschlossen, Nacharbeit 1 live bestätigt, Nacharbeit 2 (Rahmen um den Modul-Block) umgesetzt | `m3-01` bis `m3-04`, `m3-rework-1-output.md`, `m3-rework-2-output.md` | bestanden mit Befund F1 (Feld-Anordnung weicht vom nativen Look ab, `medium`): `m4-05-live-check-output.md`; Nacharbeit 1 (Option A) live bestätigt (`m5-05`); Nacharbeit 2 (Rahmen mit Titel, Wahl des Projektleiters) im Paket von M6a, Ansicht noch nicht gesehen (Test H) |
 | M4 Anfragekanal-Kern | abgeschlossen | `m4-01` bis `m4-04` | bestanden (`m4-05-live-check-output.md`) |
 | M5 GM-Weiterleitung | abgeschlossen | `m5-01` bis `m5-05` | bestanden (`m5-05-live-check-output.md`: `no-gm`, Spieler → GM → Ergebnis, U1 beantwortet); offen nur Test E (Spieleransicht) und die nicht ausgelösten Fehlerwege |
-| M6 Nutzungsrechte je Modul und Nutzer | Discover abgeschlossen; Antworten des Projektleiters und **Human Decision 1** (Identität per Rückfrage des GM) liegen vor; Spike zu `User#query` GM → Spieler steht aus | `m6-01`, `m6-hd-1-output.md`, `m6-spike-1-output.md` | Spike: Anleitung `m6-spike-1-output.md`, Pakete `v13/dist/live-check/` |
+| M6a Verifizierte Nutzeridentität (Planversion 2) | Discover, Human Decision 1, Spike (bestanden), Apply, Deploy und Monitor abgeschlossen (Planversion 2 freigegeben, Go am 2026-09-20); API `0.5.0`, 87 Tests in 12 Dateien; **wartet auf den Live-Check mit GM und Spieler** | `m6-01`, `m6-hd-1-output.md`, `m6-spike-1-output.md`, `m6-spike-1-result-output.md`, `m6a-02` bis `m6a-04` | Spike bestanden (`m6-spike-1-result-output.md`); Live-Check von M6a offen: Anleitung in `m6a-04-monitor-output.md`, Pakete `v13/dist/live-check/`, Ergebnis kommt als `m6a-05-live-check-output.md` |
+| M6b Nutzungsrechte je Modul und Nutzer (Planversion 2) | offen; Antworten des Projektleiters liegen vor (`m6a-02` Abschnitt 10) | — | — |
 | M7, M8 | offen | — | — |
 
 ## Aktive Phase (Bootstrap-Artefakte)
@@ -25,6 +26,7 @@ eigenständig, vor jedem Deploy wartet der Ablauf auf das "Go" (`06-working-mode
 | `05-milestone-plan-approval.md` | Freigabe (immutable) |
 | `06-working-mode.md` | `one_chat`, Autonomie-Regelung, Live-Tests, Commit/Push nur auf Anweisung |
 | `m<N>-0<P>-<phase>-output.md` | Milestone-Outputs (`01` Discover, `02` Apply, `03` Deploy, `04` Monitor) |
+| `04-milestone-plan-v2.md`, `05-milestone-plan-approval-v2.md` | Planversion 2 (M6 geteilt in M6a und M6b), freigegeben am 2026-09-20; Version 1 bleibt unverändert |
 
 ## Lebende Dokumente
 | Datei | Inhalt |
