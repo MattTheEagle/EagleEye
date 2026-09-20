@@ -100,11 +100,11 @@ Kompatibilitäts-Erkennung mit Begründung, Erkennung von Auswirkungen einer Ein
 Aktivieren oder Deaktivieren von Abhängigkeiten. Sie entfallen auch für die Eagle Module untereinander.
 
 **Stand der Prüfung:**
-- **Hub mit Registerkarten und Start der Module: machbar (Risiko niedrig).** Foundry bringt die Bausteine
-  für Fenster mit Registerkarten mit; das Grundgerüst aus der ersten Phase hat bereits ein solches
-  Fenster (bisher eine Tabelle ohne Registerkarten). Ein Eagle Modul meldet sich mit seinem Inhalt und einer Startfunktion an; so lassen sich
+- **Hub mit Registerkarten und Start der Module: umgesetzt, in Forge geprüft (Umsetzungsphase 4).** Foundry bringt die Bausteine
+  für Fenster mit Registerkarten mit; der Hub wurde in der Umsetzungsphase 4 als Fenster mit einer
+  Registerkarte je angemeldetem, aktivem Eagle Modul gebaut. Ein Eagle Modul meldet sich mit seinem Inhalt und einer Startfunktion an; so lassen sich
   später weitere Module ohne Änderung an Eagle Flight Control ergänzen.
-- **Anfragen der Module an Eagle Flight Control: machbar (Risiko mittel).** Dafür gibt es ein in Foundry-Modulen
+- **Anfragen der Module an Eagle Flight Control: umgesetzt, in Forge geprüft (Umsetzungsphase 4, API 0.7.0: Weiterleitung an den Spielleiter mit Bestätigung des anfragenden Spielers, Rechte je Modul und Nutzer, Wächter für die Version des Systems).** Dafür gibt es ein in Foundry-Modulen
   übliches Muster (auch Midi-QOL nutzt es). Der Zugriff ist sicher erst möglich, nachdem alle Module
   gestartet sind. Sollen Spieler Änderungen anstoßen, für die ihnen Foundry die Rechte nicht gibt, kann
   Eagle Flight Control die Anfrage an den Spielleiter weiterreichen; Foundry hat dafür einen eigenen, eingebauten

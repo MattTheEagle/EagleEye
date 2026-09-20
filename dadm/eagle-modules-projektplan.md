@@ -64,7 +64,7 @@ Spezifikation: P-FC1 bis P-FC8. Belege: `dadm/archive/planning-phase-3/m5-0*-out
   kein socketlib. Versionsspanne in `relationships.requires` plus API-Versionsprüfung. **Nicht verifiziert:** Ladereihenfolge, deaktivierte Abhängigkeit, Erzwingen der Spanne (Live-Test).
 - **DnD-Logik:** Versionswächter über `game.system.version`; Liste getesteter dnd5e-Versionen.
 - **Klartext ↔ Code:** siehe Abschnitt 4.
-- **Phase-1-Code:** Registry-Lesen/-Schreiben und Paketdaten-Lesen als Bausteine (mit Filter auf Eagle Module); Konflikt-Überwachung und Fremdmodul-Sprach-Erkennung ohne Bezug; Entscheidung über Entfernen in der Umsetzungsphase (E6).
+- **Phase-1-Code:** Registry-Lesen/-Schreiben und Paketdaten-Lesen als Bausteine (mit Filter auf Eagle Module); Konflikt-Überwachung und Fremdmodul-Sprach-Erkennung ohne Bezug; in M1 entschieden und umgesetzt (E6): Hub-Fenster, Konflikt-Überwachung und Fremdmodul-Sprach-Erkennung sind entfernt; `settings-hub` (vom neuen Hub benutzt) und `manifest-scanner` (getestet, nicht angeschlossen) bleiben.
 - Architekturrisiko: Q3 a und "kein Mega-Modul" sind vereinbar, solange Flight Control schmal und generisch bleibt (N4).
 
 ### 3.2 Eagle Library (M7, M8, M8a)
