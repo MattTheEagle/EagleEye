@@ -141,7 +141,10 @@ describe("createEagleApi", () => {
     const player = (over: Partial<RelayEnvironment>): RelayEnvironment => ({
       isGm: () => false,
       hasGm: () => true,
+      currentUserId: () => "p-1",
+      newId: () => "request-id-0123456789",
       send: async () => ({ ok: true, value: { relayed: true } }),
+      confirm: async (userId) => ({ confirmed: true, userId }),
       ...over,
     });
     const request = { module: "mod-a", type: "test.gm" };

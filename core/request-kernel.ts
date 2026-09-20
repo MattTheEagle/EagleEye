@@ -34,8 +34,16 @@ export type Checked<T> = { readonly ok: true; readonly value: T } | { readonly o
 
 export type PayloadCheck<P> = { readonly ok: true; readonly value: P } | { readonly ok: false; readonly detail: string };
 
+// The user a request runs for. Where the request runs in the caller's client this is the user of that client; on the
+// Gamemaster's client it is the user who confirmed the request (see request-identity.ts).
+export interface RequestUser {
+  readonly id: string;
+}
+
 export interface RequestContext {
   readonly module: RegisteredModule;
+  // Unknown when the kernel was given no way to tell (tests, code without Foundry).
+  readonly user?: RequestUser;
 }
 
 // Where a request type runs: in the client of the caller, or on the Gamemaster's client.
@@ -53,9 +61,19 @@ export interface RequestHandler<P = unknown> {
   run(payload: P, context: RequestContext): Promise<JsonValue>;
 }
 
+export interface ExecuteOptions {
+  // The user to run the request for; wins over the kernel's own idea of the current user.
+  readonly user?: RequestUser;
+}
+
 export interface RequestKernel {
   // Never rejects; every outcome comes back as a result.
-  execute(request: unknown): Promise<RequestResult>;
+  execute(request: unknown, options?: ExecuteOptions): Promise<RequestResult>;
+}
+
+export interface KernelOptions {
+  // The user of this client, for requests that run here.
+  readonly currentUser?: () => RequestUser | undefined;
 }
 
 export const REQUEST_TYPE_PATTERN = /^[a-z][a-z0-9]*(\.[a-z][a-z0-9]*)+$/;
@@ -110,6 +128,7 @@ export function findSender(registry: Pick<ModuleRegistry, "list">, moduleId: str
 export function createRequestKernel(
   registry: Pick<ModuleRegistry, "list">,
   handlers: readonly RequestHandler[],
+  options: KernelOptions = {},
 ): RequestKernel {
   const byType = new Map<string, RequestHandler>();
   for (const handler of handlers) {
@@ -128,7 +147,7 @@ export function createRequestKernel(
     byType.set(handler.type, handler);
   }
 
-  async function execute(request: unknown): Promise<RequestResult> {
+  async function execute(request: unknown, executeOptions?: ExecuteOptions): Promise<RequestResult> {
     try {
       // 1. envelope
       const parsed = parseEnvelope(request);
@@ -158,7 +177,8 @@ export function createRequestKernel(
       try {
         const check = handler.validate(payload);
         if (!check.ok) return fail("invalid-payload", check.detail);
-        value = await handler.run(check.value, { module: caller });
+        const user = executeOptions?.user ?? options.currentUser?.();
+        value = await handler.run(check.value, user ? { module: caller, user } : { module: caller });
       } catch (error) {
         return fail("handler-failed", describeError(error));
       }

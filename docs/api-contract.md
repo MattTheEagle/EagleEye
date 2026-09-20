@@ -1,12 +1,13 @@
-# Eagle Flight Control — API contract, parts 1 to 4: registration, the hub, requests and the Gamemaster relay
+# Eagle Flight Control — API contract, parts 1 to 5: registration, the hub, requests, the Gamemaster relay and who asked
 
-**API version:** `0.4.0`
+**API version:** `0.5.0`
 **Status:** development. Before `1.0.0` a minor version may break the API (see section 5).
 **Scope of this version:** how an Eagle module gets the API and registers itself (part 1), how it appears in the
 Flight Control hub: tab, settings and open action (part 2), and how it asks Flight Control to do things: the request
 channel (part 3), and where a request runs: requests that need the Gamemaster's rights run on the Gamemaster's
-client (part 4). Later parts (permissions per module and user, system version guard) will extend the API and raise
-its version.
+client (part 4), and who asked: the Gamemaster's client confirms the asking user before it runs a forwarded request
+(part 5). Later parts (permissions per module and user, system version guard) will extend the API and raise its
+version.
 **Audience:** authors of Eagle modules. Flight Control does not integrate third-party modules. Registration by a
 third-party module is not a supported use; it cannot be prevented technically, and such a module would simply
 count as registered.
@@ -101,7 +102,7 @@ Hooks.once("setup", () => {
 
   const result = api.registerModule({
     id: "my-eagle-module",
-    apiVersion: "0.4.0",
+    apiVersion: "0.5.0",
     open: () => new MyModuleApp().render({ force: true }), // optional
   });
   if (!result.ok) {
@@ -185,7 +186,7 @@ const result = await api.request({
   payload: { echo: "hello" },
 });
 if (result.ok) {
-  console.log(result.value); // { apiVersion: "0.4.0", module: "my-eagle-module", echo: "hello" }
+  console.log(result.value); // { apiVersion: "0.5.0", module: "my-eagle-module", echo: "hello" }
 } else {
   console.warn(result.reason, result.detail);
 }
@@ -223,7 +224,7 @@ is what lets Flight Control send a request to the Gamemaster's client (see "Wher
 | `no-gm` | The request has to run on the Gamemaster's client and no Gamemaster is connected. Nothing was sent. | Tell the user that a Gamemaster has to be online; try again later. |
 | `relay-timeout` | The Gamemaster's client did not answer within 15 seconds. **The outcome is unknown: the request may still run.** | Do not assume it failed; ask again only if the request type tolerates being run twice. |
 | `relay-failed` | The request could not be delivered or answered (Foundry refused the transfer, or the answer was not a result); `detail` says what happened. | Show the message; retry only if that makes sense. |
-| `not-permitted` | The receiving side refused to run the request: it is not a Gamemaster's client, or the request type is not run for other clients. | Do not retry. Rights per module and user (a later part) will use this reason as well. |
+| `not-permitted` | The receiving side refused to run the request: it is not a Gamemaster's client, the request type is not run for other clients, or the asking user could not be confirmed (see "Who asked"). | Do not retry. Rights per module and user (a later part) will use this reason as well. |
 
 Treat every reason you do not know as a failure: later parts of this contract may add reasons, for example for
 missing permissions per module and user.
@@ -240,9 +241,10 @@ with a Gamemaster role (Gamemaster or Assistant) runs every type in their own cl
 
 **Forwarded requests**
 
-- Flight Control sends only the four fields of the request (`module`, `type`, `version`, `payload`). The Gamemaster's
-  client checks everything again and does not trust what the sender says about itself, so the failure reasons above
-  are the same as for a request that runs locally.
+- Flight Control sends only the four fields of the request (`module`, `type`, `version`, `payload`), together with the
+  id of the asking user and an identifier (see "Who asked"). The Gamemaster's client checks everything again and does
+  not trust what the sender says about itself, so the failure reasons above are the same as for a request that runs
+  locally.
 - A forwarded request may be at most 65,536 characters of JSON text; larger requests fail with `invalid-request`.
   The caller waits at most 15 seconds (`relay-timeout`). Keep requests and results small.
 - Whoever the sender is, only request types that are marked as running on the Gamemaster's client are ever run there.
@@ -252,19 +254,37 @@ with a Gamemaster role (Gamemaster or Assistant) runs every type in their own cl
 - Request types that run on the Gamemaster's client are added by Flight Control itself. None of them changes data
   before the rights per module and user exist (a later part of this contract).
 
+**Who asked (forwarded requests)**
+
+Foundry does not tell the Gamemaster's client which user sent a query. Flight Control therefore asks the user itself:
+
+1. The client of the asking user remembers each forwarded request under a random identifier that only it knows, and
+   sends that identifier and the id of the user along with the request.
+2. Before the Gamemaster's client runs anything, it asks the client of the named user whether that client sent the
+   request with this identifier. It waits at most 5 seconds.
+3. Only the answer "yes" from the named user's client lets the request run. A "no", a wrong or missing answer, a user
+   who is not connected, and no answer in time all refuse the request with `not-permitted` ("the asking user could
+   not be confirmed"). A request never runs without the confirmation.
+4. A request type that runs on the Gamemaster's client gets the confirmed user (`flightcontrol.gmping` reports it as
+   `askedBy`). A request that runs in your own client runs for the current user of that client.
+
+This stops a client from posing as another user. It does not stop a user from posing as themselves.
+
 **The sender is trusted:** `module` is the id your module states; Foundry cannot prove which code made the call.
-Treat it as an honest label, not as security. Forwarding does not change that: Flight Control does not decide by
-user, and who may use which request type per module and user is a later part of this contract.
+Treat it as an honest label, not as security. The user is a different matter for a forwarded request (see "Who
+asked"). Flight Control does not decide by user yet: who may use which request type per module and user is a later
+part of this contract.
 
 **Request types in this version**
 
 | Type | Version | Runs on | Payload | Result |
 |---|---|---|---|---|
 | `flightcontrol.ping` | `1` | your own client | none, `null`, or `{ echo?: string }` (`echo` up to 200 characters) | `{ apiVersion, module, echo }`; `echo` is `null` when not given |
-| `flightcontrol.gmping` | `1` | the Gamemaster's client | the same as `flightcontrol.ping` | `{ apiVersion, module, echo, ranBy: { userId, isGm } }`; `ranBy` names the user whose client ran the request |
+| `flightcontrol.gmping` | `1` | the Gamemaster's client | the same as `flightcontrol.ping` | `{ apiVersion, module, echo, ranBy: { userId, isGm }, askedBy }`; `ranBy` names the user whose client ran the request, `askedBy` the user who confirmed it (`null` when not known) |
 
 Use `flightcontrol.ping` to check that the channel works, and `flightcontrol.gmping` to check that a request reaches
-the Gamemaster's client: for a player it answers with the Gamemaster's `userId`, or with `no-gm` if none is connected.
+the Gamemaster's client: for a player it answers with the Gamemaster's `userId` in `ranBy` and the player's own id in
+`askedBy`, or with `no-gm` if no Gamemaster is connected.
 
 ## 5. API version and compatibility
 
@@ -323,7 +343,7 @@ action), the request kernel (envelope checks, sender check, handlers, versions, 
 pure logic.
 
 **Verified in a running Foundry** (Foundry v13, build 351, on Forge, a dnd5e world; four test modules; live checks on
-2026-09-19 with API `0.3.0` and on 2026-09-20 with API `0.4.0`):
+2026-09-19 with API `0.3.0` and on 2026-09-20 with API `0.4.0`; part 5 has not been run live yet):
 
 - Flight Control attaches the API to its module object during `init`, and other modules can read it from their
   `setup` hook. Registration runs inside Foundry's `setup` phase.
@@ -344,6 +364,12 @@ pure logic.
   player's. Without a connected Gamemaster the request returns `no-gm`. A Gamemaster who asks runs it in their own
   client. The results (with a nested object) arrive unchanged, and the wait time of 15 seconds plus 2 seconds reaches
   the Gamemaster's client as the query option `timeout`.
+- Observed with a test module (not Flight Control) on 2026-09-20: a query from the Gamemaster to a connected player is
+  delivered and answered by that player's client (about 100 ms); a query to a user who is not connected fails at once
+  (`User [<id>] is not active`); a query nobody handles fails at once (`User query '<name>' is not registered`); an
+  error thrown by the handler comes back as a rejection with the same message; the query option `timeout` works
+  (rejection `operation has timed out` after about the given time); a query to oneself works; a player can read a
+  world setting that the Gamemaster has just written.
 - What Foundry hands to a query handler: the query data and one extra argument, the query options (`{ timeout }`).
   It gives no information about the user who asked, so Flight Control cannot tell on the Gamemaster's side which user
   asked. This matters for the rights per module and user, a later part.
@@ -351,9 +377,12 @@ pure logic.
 
 **Not verified in a running Foundry** (`unverified`):
 
-- part 4, the failure paths of the relay: `relay-timeout`, and `relay-failed` (the Gamemaster's client cannot be
-  reached, has no handler, or fails), and the behaviour with more than one Gamemaster connected (unit tests and a
-  simulation only);
+- part 4, the failure paths of the relay in Flight Control itself: `relay-timeout` and `relay-failed` (Foundry's own
+  behaviour in these cases was observed with the test module, see above), and the behaviour with more than one
+  Gamemaster connected (unit tests and a simulation only);
+- part 5, the confirmation: that the Gamemaster's client confirms the asking user through the client of that user, and
+  refuses a request that names another user, a user who is not connected, or an unknown identifier (unit tests and a
+  simulation only until the live check);
 - what the hub does with a refused value: it resets the field and shows a notification (unit tests only); for a number
   with a range the slider element may limit a value typed above the maximum itself (not confirmed); how the hub looks
   for a player (the menu is restricted to the Gamemaster);
@@ -377,3 +406,4 @@ contract.
 | `0.2.0` | Part 2: optional `open` in the descriptor; the hub shows a tab per registered module with its settings and an Open button. |
 | `0.3.0` | Part 3: `request` and the request kernel with one request type, `flightcontrol.ping`. |
 | `0.4.0` | Part 4: every request type says where it runs; requests for types that run on the Gamemaster's client are forwarded to it; new failure reasons `no-gm`, `relay-timeout`, `relay-failed`, `not-permitted`; request type `flightcontrol.gmping`. |
+| `0.5.0` | Part 5: a forwarded request carries the asking user and an identifier, and the Gamemaster's client runs it only after the client of that user has confirmed it; `not-permitted` also covers an unconfirmed user; `flightcontrol.gmping` reports `askedBy`. |

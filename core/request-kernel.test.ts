@@ -230,4 +230,22 @@ describe("RequestKernel.execute", () => {
 
     expect(await kernel.execute(envelope())).toEqual({ ok: false, reason: "internal-error", detail: "registry down" });
   });
+
+  it("gives the handler the user it runs for: the option wins over currentUser, and without either the user is unknown", async () => {
+    const seen: unknown[] = [];
+    const spy = handler({
+      run: async (payload, context) => {
+        seen.push(context.user);
+        return { got: payload };
+      },
+    });
+    const currentUser = () => ({ id: "local" });
+
+    await createRequestKernel(makeRegistry(), [spy]).execute(envelope());
+    await createRequestKernel(makeRegistry(), [spy], { currentUser }).execute(envelope());
+    await createRequestKernel(makeRegistry(), [spy], { currentUser }).execute(envelope(), { user: { id: "asked" } });
+    await createRequestKernel(makeRegistry(), [spy], { currentUser: () => undefined }).execute(envelope());
+
+    expect(seen).toEqual([undefined, { id: "local" }, { id: "asked" }, undefined]);
+  });
 });

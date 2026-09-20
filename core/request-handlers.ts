@@ -42,7 +42,8 @@ function createPingHandler(apiVersion: string): RequestHandler<EchoPayload> {
 }
 
 // flightcontrol.gmping (version 1): the proof that a request reaches the Gamemaster's client. It runs there and says
-// who ran it. It only reads; the Gamemaster's user id is visible to every player anyway.
+// who ran it (`ranBy`) and for whom (`askedBy`: the user who confirmed the request, null when that is not known).
+// It only reads; the user ids of the Gamemaster and of the players are visible to everyone in the world anyway.
 function createGmPingHandler(apiVersion: string, executor: () => Executor): RequestHandler<EchoPayload> {
   return {
     type: "flightcontrol.gmping",
@@ -51,7 +52,13 @@ function createGmPingHandler(apiVersion: string, executor: () => Executor): Requ
     validate: validateEcho,
     async run(payload, context): Promise<JsonValue> {
       const { userId, isGm } = executor();
-      return { apiVersion, module: context.module.id, echo: payload.echo, ranBy: { userId, isGm } };
+      return {
+        apiVersion,
+        module: context.module.id,
+        echo: payload.echo,
+        ranBy: { userId, isGm },
+        askedBy: context.user?.id ?? null,
+      };
     },
   };
 }

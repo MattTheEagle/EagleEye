@@ -23,8 +23,8 @@ describe("parseVersion", () => {
 });
 
 describe("EAGLE_API_VERSION", () => {
-  it("is 0.4.0, the version of part 4 of the API contract", () => {
-    expect(EAGLE_API_VERSION).toBe("0.4.0");
+  it("is 0.5.0, the version of part 5 of the API contract", () => {
+    expect(EAGLE_API_VERSION).toBe("0.5.0");
   });
 });
 

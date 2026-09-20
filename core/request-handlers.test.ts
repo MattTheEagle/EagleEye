@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import type { RegisteredModule } from "./module-registry";
 import { defaultRequestHandlers, type Executor } from "./request-handlers";
 
-const API = "0.4.0";
+const API = "0.5.0";
 const MODULE: RegisteredModule = { id: "mod-a", title: "Module A", version: "1.0.0", apiVersion: API };
 const GM: Executor = { userId: "gm-1", isGm: true };
 
@@ -61,8 +61,19 @@ describe("flightcontrol.gmping", () => {
       module: "mod-a",
       echo: "hello",
       ranBy: { userId: "gm-1", isGm: true },
+      askedBy: null,
     });
     expect(executor).toHaveBeenCalledTimes(1);
+  });
+
+  it("names in askedBy the user the request runs for, and null when that user is not known", async () => {
+    const handler = find("flightcontrol.gmping");
+
+    const known = await handler.run({ echo: null }, { module: MODULE, user: { id: "p-7" } });
+    const unknown = await handler.run({ echo: null }, { module: MODULE });
+
+    expect(known).toMatchObject({ askedBy: "p-7", ranBy: { userId: "gm-1", isGm: true } });
+    expect(unknown).toMatchObject({ askedBy: null });
   });
 });
 

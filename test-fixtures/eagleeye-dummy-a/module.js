@@ -48,7 +48,7 @@ Hooks.once("init", () => {
   });
 });
 
-// Registers with Flight Control (API 0.4.0) and provides an open action (expected result: ok).
+// Registers with Flight Control (API 0.5.0) and provides an open action (expected result: ok).
 Hooks.once("setup", () => {
   const api = game.modules.get("eagleeye")?.api;
   if (!api) {
@@ -57,7 +57,7 @@ Hooks.once("setup", () => {
   }
   const result = api.registerModule({
     id: "eagleeye-dummy-a",
-    apiVersion: "0.4.0",
+    apiVersion: "0.5.0",
     open: () => {
       ui.notifications.info("eagleeye-dummy-a: open action called");
     },
@@ -68,14 +68,15 @@ Hooks.once("setup", () => {
 // One line of text per request, so that nothing has to be expanded in the console.
 function dummyADescribe(result) {
   if (!result.ok) return `${result.reason} - ${result.detail}`;
-  const { apiVersion, module, echo, ranBy } = result.value;
-  const by = ranBy ? `, ran by ${ranBy.userId} (GM: ${ranBy.isGm})` : "";
+  const { apiVersion, module, echo, ranBy, askedBy } = result.value;
+  const by = ranBy ? `, ran by ${ranBy.userId} (GM: ${ranBy.isGm}), asked by ${askedBy}` : "";
   return `ok, api ${apiVersion}, module ${module}, echo ${echo}${by}`;
 }
 
 // After every module has registered: a ping (runs here) and a gmping (runs on the Gamemaster's client).
-// Expected for a player with a Gamemaster connected: gmping ok, ran by the Gamemaster (not this user);
-// for the Gamemaster: gmping ok, ran by this user; for a player without a Gamemaster: gmping no-gm.
+// Expected for a player with a Gamemaster connected: gmping ok, ran by the Gamemaster (not this user), asked by this
+// player (the Gamemaster's client has asked this client to confirm the request); for the Gamemaster: gmping ok, ran
+// by this user, asked by this user; for a player without a Gamemaster: gmping no-gm.
 Hooks.once("ready", async () => {
   const api = game.modules.get("eagleeye")?.api;
   if (!api) return;

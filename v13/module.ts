@@ -7,7 +7,7 @@ import { createRequestKernel, type RequestKernel } from "../core/request-kernel"
 import { createRequestRelay } from "../core/request-relay";
 import { defaultHubSettingsSource } from "../core/settings-hub";
 import { createHubApplicationClass } from "./hub-application";
-import { foundryExecutor, foundryRelayEnvironment, registerRelayQuery } from "./relay";
+import { foundryCurrentUser, foundryExecutor, foundryRelayEnvironment, registerRelayQueries } from "./relay";
 
 // Types game.modules.get("eagleeye")?.api for readers (see docs/api-contract.md).
 declare global {
@@ -49,14 +49,14 @@ Hooks.once("init", () => {
   // Attach it synchronously (before any await) so it exists by then, whatever the module load order.
   try {
     const handlers = defaultRequestHandlers(EAGLE_API_VERSION, foundryExecutor);
-    const kernel = createRequestKernel(registry, handlers);
+    const kernel = createRequestKernel(registry, handlers, { currentUser: foundryCurrentUser });
 
     // Requests for handlers that run on the Gamemaster's client are forwarded by the relay. If the relay cannot be
     // set up, every request runs in the caller's client with the caller's own rights, which is the safe direction.
     let requests: RequestKernel = kernel;
     try {
       const relay = createRequestRelay({ kernel, handlers, registry, environment: foundryRelayEnvironment(), log: consoleLog });
-      registerRelayQuery(relay, consoleLog);
+      registerRelayQueries(relay, consoleLog);
       requests = relay;
     } catch (error) {
       console.error("eagleeye | failed to set up the Gamemaster relay; requests run in the caller's client only", error);
