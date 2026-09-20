@@ -330,6 +330,8 @@ Die Kette zeigt: Weil alle Änderungen über Eagle Flight Control laufen, steht 
 
 Eine Umsetzungsphase benötigt einen eigenen Plan und die ausdrückliche Freigabe des Projektleiters; jedes weitere Repository (eines je Modul) braucht ebenfalls eine Freigabe.
 
+**Stand (2026-09-20):** Der erste Schritt ist getan: Eagle Flight Control ist umgesetzt und in Forge geprüft (Version 0.1.0). Als Nächstes folgt die Eagle Library. Vor ihrem Start wird der Arbeitsordner so umgebaut, dass der Ordner über den Modulen die gemeinsame Arbeitsumgebung des Projekts ist (Pläne und Prozessdokumente liegen dort) und jedes Modul ein eigenes, strikt getrenntes Repository bleibt. Eagle Flight Control wird erst veröffentlicht, wenn echte Module angeschlossen sind und Erfahrungen mit ihnen vorliegen.
+
 ---
 
 ## 8. Entscheidungen und offene Fragen

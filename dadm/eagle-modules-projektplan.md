@@ -35,6 +35,8 @@ Quelle der Spezifikation: PDF "Eagle Modules - Aufbau" (wortgetreu in `dadm/refe
 | Q2 a | Verträglichkeit mit verbreiteten Fremdmodulen bleibt ein Ziel (durch Bauweise) |
 | N1, N3 | Nutzungsrechte je Modul und Nutzer später in den Moduleinstellungen; Klartext Englisch |
 | N10–N20 | Antworten vom 2026-09-19 (`dadm/archive/planning-phase-3/m15-05-human-decision-output.md`): Herkunft auf der Quelle, Abhängigkeiten mitkopieren, Unterart-Marker, Besitzer = Ersteller und fortsetzbare Charaktere, Homebrew S1 mit Library-Eintrag bei "Edit with" und "Name (Duplicate)", `rulesVersion` der Welt, Journal-Einstiege ersetzen und alle Einträge einordnen, UI-Weg O1, **libWrapper als Abhängigkeit freigegeben**, Roll Out Eigenbau ohne dauerhafte Ausschlüsse |
+| Nach Phase 4 a | Umbau des Workspaces als Teil des Bootstraps der nächsten Umsetzungsphase (Anweisung vom 2026-09-20): Der Ordner über den Modulen wird die gemeinsame Arbeitsumgebung des Projekts (DAD-M-Konfiguration und `dadm/` dort); jedes Modul bleibt ein eigenes, strikt getrenntes Repo (E7). Vorschlag und Schritte: `dadm/uebergabe-naechste-phase.md`, Abschnitt 7 |
+| Nach Phase 4 b | Kein Push, Tag oder Release von Flight Control, bevor echte Module an Flight Control angeschlossen sind und Erfahrungswerte mit ihnen vorliegen (2026-09-20); das GitHub-Repo `MattTheEagle/EagleEye` ist öffentlich |
 
 ---
 
@@ -163,6 +165,8 @@ Eagle Flight Control (Hub, Anfragekanal, alle Änderungen an Foundry-Daten)
 7. Eagle Roll Out (Stufen 0–5)
 
 Änderung gegenüber Planungsphase 2: Flight Control steht jetzt an erster Stelle (Q3 a); der Freitext-Import ist entfallen (zurückgestellt); die Library-Umschreibung der Verweise ist neuer Hauptaufwand; Ruling ist in Teilen einfacher, Roll Out hat einen Vorab-Plan.
+
+Stand (2026-09-20): Schritt 1 ist umgesetzt (Eagle Flight Control 0.1.0, API `0.7.0`; `dadm/archive/implementation-phase-4/SUMMARY.md`). Die nächste Umsetzungsphase (Schritt 2, Eagle Library) beginnt mit einem frischen Bootstrap; sein erster Schritt ist der Umbau des Workspaces ("Nach Phase 4 a" in Abschnitt 1, Einzelheiten in `dadm/uebergabe-naechste-phase.md`, Abschnitt 7).
 
 ## 7. Risiko-/Machbarkeitsmatrix (Kurzform)
 Siehe Abschnitt 2. Größte Einzelrisiken: (1) Schnittstellenstabilität zwischen sieben getrennt veröffentlichten Modulen, (2) Umschreiben aller Verweise in der Library, (3) Umfang der Homebrew-Editoren,

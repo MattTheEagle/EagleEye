@@ -64,6 +64,7 @@ Siehe `dadm/uebergabe-naechste-phase.md` (Abschnitt "Offene Punkte") und `docs/a
 | `m6-01-…`, `m6-hd-1-output.md`, `m6-spike-1-output.md`, `m6-spike-1-result-output.md` | Discover von M6, Human Decision 1, Spike |
 | `m8-04-monitor-output.md` | enthält die Checkliste für das Release 0.1.0 (Befehle für Tag, Push und GitHub-Release; **nicht ausgeführt**) |
 | `m8-06-gesamtpruefung-output.md` | Gesamtprüfung gegen P-FC1 bis P-FC8 |
+| `pruefskripte/` | die Prüfwerkzeuge der Phase (Zwei-Client-Simulationen, Gegenproben, Paketprüfung), am 2026-09-20 unverändert gesichert; feste Pfade, siehe die README dort |
 
 ## Nächster Schritt
 
