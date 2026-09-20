@@ -13,11 +13,24 @@
       "noSettings": "This module has no settings in the hub.",
       "notEditable": "Cannot be edited here. Use Foundry's Configure Settings.",
       "requiresReload": "Takes effect after a reload.",
+      "rights": {
+        "title": "Who may use this module",
+        "hint": "Gamemasters and assistants may always use every module. A player may use a module only when it is allowed here.",
+        "unreadable": "The stored rights cannot be read, so no player may use any module. Choosing a level below replaces them.",
+        "noPlayers": "There are no players in this world.",
+        "level": {
+          "denied": "Denied",
+          "own": "Own targets only",
+          "all": "Own and foreign targets"
+        }
+      },
       "notify": {
         "notPermitted": "Only a Gamemaster can change these settings.",
         "invalidValue": "The value for {name} is not valid: {detail}",
         "writeFailed": "Could not save {name}.",
-        "openFailed": "Could not open {module}: {detail}"
+        "openFailed": "Could not open {module}: {detail}",
+        "rightsNotPermitted": "Only the Gamemaster can change these rights.",
+        "rightsFailed": "Could not save the rights: {detail}"
       }
     }
   }

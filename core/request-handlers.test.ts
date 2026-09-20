@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import type { RegisteredModule } from "./module-registry";
 import { defaultRequestHandlers, type Executor } from "./request-handlers";
 
-const API = "0.5.0";
+const API = "0.6.0";
 const MODULE: RegisteredModule = { id: "mod-a", title: "Module A", version: "1.0.0", apiVersion: API };
 const GM: Executor = { userId: "gm-1", isGm: true };
 
@@ -77,15 +77,59 @@ describe("flightcontrol.gmping", () => {
   });
 });
 
+describe("flightcontrol.targetping", () => {
+  const UUID = "Actor.abc123";
+
+  it("runs on the Gamemaster's client, needs a text as uuid, and names that uuid as its only target", () => {
+    const handler = find("flightcontrol.targetping");
+
+    expect(handler.runsOn).toBe("gm");
+    expect(handler.versions).toEqual([1]);
+
+    expect(handler.validate({ uuid: UUID })).toEqual({ ok: true, value: { uuid: UUID } });
+    expect(handler.validate({ uuid: UUID, ignored: 1 })).toEqual({ ok: true, value: { uuid: UUID } });
+    expect(handler.validate({ uuid: "x".repeat(200) })).toMatchObject({ ok: true });
+    for (const payload of [undefined, null, "text", 5, [], {}, { uuid: "" }, { uuid: 5 }, { uuid: null }, { uuid: "x".repeat(201) }]) {
+      expect(handler.validate(payload), `payload ${JSON.stringify(payload)}`).toMatchObject({ ok: false });
+    }
+
+    const check = handler.validate({ uuid: UUID });
+    if (!check.ok) throw new Error("unreachable");
+    expect(handler.targets?.(check.value)).toEqual([UUID]);
+  });
+
+  it("answers with the target it was given and the user it ran for, and nothing about the document", async () => {
+    const handler = find("flightcontrol.targetping");
+
+    expect(await handler.run({ uuid: UUID }, { module: MODULE, user: { id: "p-7" } })).toEqual({
+      apiVersion: API,
+      module: "mod-a",
+      uuid: UUID,
+      askedBy: "p-7",
+    });
+    expect(await handler.run({ uuid: UUID }, { module: MODULE })).toEqual({
+      apiVersion: API,
+      module: "mod-a",
+      uuid: UUID,
+      askedBy: null,
+    });
+  });
+});
+
 describe("defaultRequestHandlers", () => {
-  it("offers exactly two request types, and only flightcontrol.gmping runs on the Gamemaster's client", () => {
+  it("offers exactly three request types; only flightcontrol.gmping and flightcontrol.targetping run on the Gamemaster's client, and only the latter names targets", () => {
     const handlers = defaultRequestHandlers(API, () => GM);
 
     expect(handlers.map((h) => [h.type, h.versions, h.runsOn ?? "caller"])).toEqual([
       ["flightcontrol.ping", [1], "caller"],
       ["flightcontrol.gmping", [1], "gm"],
+      ["flightcontrol.targetping", [1], "gm"],
     ]);
-    // A handler that runs with Gamemaster rights needs the Apply of its milestone and, if it changes data, milestone M6.
-    expect(handlers.filter((h) => h.runsOn === "gm").map((h) => h.type)).toEqual(["flightcontrol.gmping"]);
+    // A handler that runs with Gamemaster rights needs the Apply of its milestone; one that acts on documents names them.
+    expect(handlers.filter((h) => h.runsOn === "gm").map((h) => h.type)).toEqual([
+      "flightcontrol.gmping",
+      "flightcontrol.targetping",
+    ]);
+    expect(handlers.filter((h) => h.targets !== undefined).map((h) => h.type)).toEqual(["flightcontrol.targetping"]);
   });
 });

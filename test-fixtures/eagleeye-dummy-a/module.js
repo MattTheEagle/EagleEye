@@ -48,7 +48,7 @@ Hooks.once("init", () => {
   });
 });
 
-// Registers with Flight Control (API 0.5.0) and provides an open action (expected result: ok).
+// Registers with Flight Control (API 0.6.0) and provides an open action (expected result: ok).
 Hooks.once("setup", () => {
   const api = game.modules.get("eagleeye")?.api;
   if (!api) {
@@ -57,7 +57,7 @@ Hooks.once("setup", () => {
   }
   const result = api.registerModule({
     id: "eagleeye-dummy-a",
-    apiVersion: "0.5.0",
+    apiVersion: "0.6.0",
     open: () => {
       ui.notifications.info("eagleeye-dummy-a: open action called");
     },
@@ -73,10 +73,11 @@ function dummyADescribe(result) {
   return `ok, api ${apiVersion}, module ${module}, echo ${echo}${by}`;
 }
 
-// After every module has registered: a ping (runs here) and a gmping (runs on the Gamemaster's client).
-// Expected for a player with a Gamemaster connected: gmping ok, ran by the Gamemaster (not this user), asked by this
-// player (the Gamemaster's client has asked this client to confirm the request); for the Gamemaster: gmping ok, ran
-// by this user, asked by this user; for a player without a Gamemaster: gmping no-gm.
+// After every module has registered: what the rights say about this user (getRights), a ping (runs here) and a gmping
+// (runs on the Gamemaster's client). Expected for a player as long as the Gamemaster has not allowed this module for that
+// player in the hub: rights denied, ping and gmping "not-permitted". Once allowed (own or all): both ok, the gmping ran
+// by the Gamemaster and asked by the player. For a Gamemaster or Assistant: rights all, both ok (ran by and asked by
+// themselves). For an allowed player without a connected Gamemaster: gmping "no-gm".
 Hooks.once("ready", async () => {
   const api = game.modules.get("eagleeye")?.api;
   if (!api) return;
@@ -86,6 +87,8 @@ Hooks.once("ready", async () => {
   console.log(`eagleeye-dummy-a | ping: ${dummyADescribe(ping)}`);
 
   console.log(`eagleeye-dummy-a | this user: ${game.user.id} (GM: ${game.user.isGM})`);
+  const rights = api.getRights("eagleeye-dummy-a");
+  console.log(`eagleeye-dummy-a | rights: ${rights.ok ? rights.value.level : `${rights.reason} - ${rights.detail}`}`);
   const gmping = await api.request({
     module: "eagleeye-dummy-a",
     type: "flightcontrol.gmping",

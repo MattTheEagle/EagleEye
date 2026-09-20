@@ -3,6 +3,7 @@ import { createEagleApi } from "./eagle-api";
 import { ModuleRegistry, type ModuleInfo, type ModuleInfoSource } from "./module-registry";
 import { createRequestKernel, type RequestHandler, type RequestKernel } from "./request-kernel";
 import { createRequestRelay, type RelayEnvironment } from "./request-relay";
+import type { RightsLevel } from "./rights-table";
 
 const API = "0.1.0";
 
@@ -18,11 +19,11 @@ function makeLogger() {
 }
 
 describe("createEagleApi", () => {
-  it("is frozen and exposes exactly version, registerModule and request", () => {
+  it("is frozen and exposes exactly version, registerModule, request and getRights", () => {
     const api = createEagleApi(new ModuleRegistry(makeSource(), API), makeLogger());
 
     expect(Object.isFrozen(api)).toBe(true);
-    expect(Object.keys(api).sort()).toEqual(["registerModule", "request", "version"]);
+    expect(Object.keys(api).sort()).toEqual(["getRights", "registerModule", "request", "version"]);
   });
 
   it("reports the API version of the registry", () => {
@@ -168,5 +169,60 @@ describe("createEagleApi", () => {
       expect.stringContaining("relay-failed"),
       expect.stringContaining("relay-timeout"),
     ]);
+  });
+});
+
+describe("getRights", () => {
+  function registeredModules() {
+    const modules = new Map<string, ModuleInfo>([
+      ["mod-a", { id: "mod-a", title: "Module A", version: "1.2.3", active: true }],
+      ["mod-b", { id: "mod-b", title: "Module B", version: "0.4.0", active: true }],
+    ]);
+    const registry = new ModuleRegistry({ get: (id) => modules.get(id) }, API);
+    registry.registerModule({ id: "mod-a", apiVersion: API });
+    registry.registerModule({ id: "mod-b", apiVersion: API });
+    return { registry, modules };
+  }
+
+  it("gives the level the rights source names for a registered module, whatever the level is", () => {
+    const { registry } = registeredModules();
+    for (const level of ["denied", "own", "all"] as const) {
+      const levelFor = vi.fn((): RightsLevel => level);
+      const api = createEagleApi(registry, makeLogger(), undefined, { levelFor });
+
+      expect(api.getRights("mod-a"), level).toEqual({ ok: true, value: { level } });
+      expect(levelFor).toHaveBeenCalledWith("mod-a");
+    }
+  });
+
+  it("answers invalid-request for a module id that is not text or is empty, and not-registered for a module that is unknown or no longer active, without asking the rights source", () => {
+    const { registry, modules } = registeredModules();
+    const levelFor = vi.fn((): RightsLevel => "all");
+    const api = createEagleApi(registry, makeLogger(), undefined, { levelFor });
+    modules.get("mod-b")!.active = false;
+
+    for (const moduleId of [undefined, null, "", 5, {}, ["mod-a"]]) {
+      expect(api.getRights(moduleId), JSON.stringify(moduleId)).toMatchObject({ ok: false, reason: "invalid-request" });
+    }
+    for (const moduleId of ["stranger", "mod-b"]) {
+      expect(api.getRights(moduleId), moduleId).toMatchObject({ ok: false, reason: "not-registered" });
+    }
+    expect(levelFor).not.toHaveBeenCalled();
+  });
+
+  it("returns internal-error and logs a warning instead of throwing when the rights source fails, and answers denied when there is none", () => {
+    const { registry } = registeredModules();
+    const log = makeLogger();
+    const failing = createEagleApi(registry, log, undefined, {
+      levelFor: () => {
+        throw new Error("settings not ready");
+      },
+    });
+
+    expect(failing.getRights("mod-a")).toEqual({ ok: false, reason: "internal-error", detail: "settings not ready" });
+    expect(log.warn).toHaveBeenCalledTimes(1);
+    expect(String(log.warn.mock.calls[0][0])).toContain("settings not ready");
+
+    expect(createEagleApi(registry, makeLogger()).getRights("mod-a")).toEqual({ ok: true, value: { level: "denied" } });
   });
 });

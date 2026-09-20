@@ -12,14 +12,14 @@ Hooks.once("init", () => {
   });
 });
 
-// Registers with Flight Control (API 0.5.0) without an open action: its tab has no Open button.
+// Registers with Flight Control (API 0.6.0) without an open action: its tab has no Open button.
 Hooks.once("setup", () => {
   const api = game.modules.get("eagleeye")?.api;
   if (!api) {
     console.warn("eagleeye-dummy-d | Flight Control API not available");
     return;
   }
-  const result = api.registerModule({ id: "eagleeye-dummy-d", apiVersion: "0.5.0" });
+  const result = api.registerModule({ id: "eagleeye-dummy-d", apiVersion: "0.6.0" });
   console.log("eagleeye-dummy-d | registerModule result", result);
 });
 

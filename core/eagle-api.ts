@@ -1,11 +1,27 @@
 import type { ModuleRegistry, RegistrationResult } from "./module-registry";
 import { defaultRequestHandlers, type Executor } from "./request-handlers";
 import { createRequestKernel, type RequestKernel, type RequestResult } from "./request-kernel";
+import type { RightsLevel } from "./rights-table";
+
+// The answer to "what may the user of this client do with this module?" (see the API contract, part 6).
+export type RightsQueryResult =
+  | { readonly ok: true; readonly value: { readonly level: RightsLevel } }
+  | {
+      readonly ok: false;
+      readonly reason: "invalid-request" | "not-registered" | "internal-error";
+      readonly detail: string;
+    };
+
+// Where getRights gets its answer: the level the user of this client has for a module.
+export interface RightsSource {
+  levelFor(moduleId: string): RightsLevel;
+}
 
 export interface EagleFlightControlApi {
   readonly version: string;
   registerModule(descriptor: unknown): RegistrationResult;
   request(request: unknown): Promise<RequestResult>;
+  getRights(moduleId: unknown): RightsQueryResult;
 }
 
 export interface ApiLogger {
@@ -37,12 +53,14 @@ function describeError(error: unknown): string {
 
 // For callers without Foundry (the default kernel below, tests). The Foundry wiring in v13/module.ts passes the real one.
 const NO_EXECUTOR = (): Executor => ({ userId: "", isGm: false });
+const NO_RIGHTS: RightsSource = { levelFor: () => "denied" };
 
-// The public surface other modules see: exactly `version`, `registerModule` and `request`.
+// The public surface other modules see: exactly `version`, `registerModule`, `request` and `getRights`.
 export function createEagleApi(
   registry: ModuleRegistry,
   log: ApiLogger = consoleLogger,
   kernel: RequestKernel = createRequestKernel(registry, defaultRequestHandlers(registry.apiVersion, NO_EXECUTOR)),
+  rights: RightsSource = NO_RIGHTS,
 ): Readonly<EagleFlightControlApi> {
   const registerModule = (descriptor: unknown): RegistrationResult => {
     let result: RegistrationResult;
@@ -79,5 +97,25 @@ export function createEagleApi(
     return result;
   };
 
-  return Object.freeze({ version: registry.apiVersion, registerModule, request });
+  // Never throws. Only a registered, active module is asked about, so the answer is about a module Flight Control knows.
+  const getRights = (moduleId: unknown): RightsQueryResult => {
+    if (typeof moduleId !== "string" || moduleId === "") {
+      return { ok: false, reason: "invalid-request", detail: "moduleId must be a non-empty string" };
+    }
+    try {
+      if (!registry.list().some((module) => module.id === moduleId)) {
+        return {
+          ok: false,
+          reason: "not-registered",
+          detail: `module "${moduleId}" is not registered with Flight Control or is not active`,
+        };
+      }
+      return { ok: true, value: { level: rights.levelFor(moduleId) } };
+    } catch (error) {
+      log.warn(`eagleeye | getRights failed for ${moduleId}: ${describeError(error)}`);
+      return { ok: false, reason: "internal-error", detail: describeError(error) };
+    }
+  };
+
+  return Object.freeze({ version: registry.apiVersion, registerModule, request, getRights });
 }

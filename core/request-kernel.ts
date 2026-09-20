@@ -58,7 +58,28 @@ export interface RequestHandler<P = unknown> {
   // forwarded to the Gamemaster (see request-relay.ts); the kernel itself never looks at this value.
   readonly runsOn?: RunsOn;
   validate(payload: unknown): PayloadCheck<P>;
+  // The documents this request acts on, as UUIDs; empty when it acts on none. The kernel calls it with the checked
+  // payload, so the rights per module and user can be decided before `run`. A handler that acts on a document it does
+  // not name here would slip past the rights that depend on the target.
+  targets?(payload: P): readonly string[];
   run(payload: P, context: RequestContext): Promise<JsonValue>;
+}
+
+// What the rights check gets to know about a request.
+export interface RightsCheck {
+  // The module the request names.
+  readonly module: string;
+  // The user the request runs for; unknown when the kernel was given no way to tell.
+  readonly user: RequestUser | undefined;
+  readonly targets: readonly string[];
+}
+
+export type RightsVerdict = { readonly ok: true } | { readonly ok: false; readonly detail: string };
+
+// Decides whether a module may act for a user (see request-rights.ts). It should never reject; the kernel treats a
+// rejection, and any answer that is not exactly { ok: true }, as a refusal all the same.
+export interface RightsGate {
+  check(request: RightsCheck): Promise<RightsVerdict>;
 }
 
 export interface ExecuteOptions {
@@ -74,6 +95,9 @@ export interface RequestKernel {
 export interface KernelOptions {
   // The user of this client, for requests that run here.
   readonly currentUser?: () => RequestUser | undefined;
+  // Asked after the payload is checked and before the handler runs. Without one every otherwise valid request runs, so
+  // only tests and code without Foundry leave it out.
+  readonly rights?: RightsGate;
 }
 
 export const REQUEST_TYPE_PATTERN = /^[a-z][a-z0-9]*(\.[a-z][a-z0-9]*)+$/;
@@ -141,10 +165,37 @@ export function createRequestKernel(
     if (handler.runsOn !== undefined && handler.runsOn !== "caller" && handler.runsOn !== "gm") {
       throw new Error(`request handler "${handler.type}" must run on "caller" or "gm"`);
     }
+    if (handler.targets !== undefined && typeof handler.targets !== "function") {
+      throw new Error(`request handler "${handler.type}" must give its targets as a function`);
+    }
     if (byType.has(handler.type)) {
       throw new Error(`request handler "${handler.type}" is defined twice`);
     }
     byType.set(handler.type, handler);
+  }
+
+  // Step 5b: may this module act for this user on these targets? Whatever goes wrong is a refusal, and a refusal
+  // means the handler does not run.
+  async function checkRights(
+    module: string,
+    user: RequestUser | undefined,
+    targets: readonly string[],
+  ): Promise<RequestFailureResult | undefined> {
+    if (!options.rights) return undefined;
+    let verdict: { ok?: unknown; detail?: unknown } | undefined;
+    try {
+      verdict = await options.rights.check({ module, user, targets });
+    } catch {
+      return fail("not-permitted", "the rights could not be checked");
+    }
+    if (verdict?.ok === true) return undefined;
+    return fail("not-permitted", typeof verdict?.detail === "string" ? verdict.detail : "the rights could not be checked");
+  }
+
+  function targetsOf(handler: RequestHandler, payload: unknown): readonly string[] | undefined {
+    if (!handler.targets) return [];
+    const targets: unknown = handler.targets(payload);
+    return Array.isArray(targets) && targets.every((uuid) => typeof uuid === "string" && uuid !== "") ? targets : undefined;
   }
 
   async function execute(request: unknown, executeOptions?: ExecuteOptions): Promise<RequestResult> {
@@ -172,12 +223,16 @@ export function createRequestKernel(
         );
       }
 
-      // 5. payload and 6. execution
+      // 5. payload, 5b. rights and 6. execution
       let value: unknown;
       try {
         const check = handler.validate(payload);
         if (!check.ok) return fail("invalid-payload", check.detail);
         const user = executeOptions?.user ?? options.currentUser?.();
+        const targets = targetsOf(handler, check.value);
+        if (!targets) return fail("handler-failed", `the targets of "${type}" are not a list of UUIDs`);
+        const refused = await checkRights(caller.id, user, targets);
+        if (refused) return refused;
         value = await handler.run(check.value, user ? { module: caller, user } : { module: caller });
       } catch (error) {
         return fail("handler-failed", describeError(error));

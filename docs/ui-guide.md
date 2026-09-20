@@ -32,6 +32,7 @@ UI library.
 | R-11 | Report results and errors with `ui.notifications`. | It is Foundry's native message channel. | `client/applications/ui/notifications.d.mts:63` | `v13/module.ts#notifications` |
 | R-12 | Settings that should appear in the Flight Control hub: register them with `config: true` and a type of `Boolean`, `String` (with `choices`) or `Number` (with `range`); mark `requiresReload` where it applies. | The hub shows and edits exactly these; other types are listed as not editable. | `client/helpers/client-settings.d.mts:283` `client/helpers/client-settings.d.mts:289` `client/helpers/client-settings.d.mts:296` `client/helpers/client-settings.d.mts:308` | `core/settings-hub.ts#listHubSettings` |
 | R-13 | Do not ship an own look (colors, fonts, spacing). If extra CSS is unavoidable, add it through `styles` in the manifest, limit it to a class of your own and check it in a running Foundry. | The native look is the goal; CSS behavior is **not covered by the reference**. | `common/packages/base-package.d.mts:332` | — |
+| R-14 | Do not repeat the name of a module as a heading inside its tab: the highlighted tab already names it. Group a sub-block of a tab (for example who may use the module) in a native `fieldset` with a `legend`. | Seen live (2026-09-20, dark theme): a heading (`h3`) right under the tab bar was shown large and too close to it, and the same block as a `fieldset` with the module name as `legend` still sat too close. Without a heading the tab looks right, and a `fieldset` with a `legend` further down, for a sub-block, looks right; the project lead accepted it. | `fieldset` and `legend` are standard HTML; the reference contains no HTML | `v13/hub-application.ts#renderRights` |
 
 ## 3. Checklist for a new module window
 
@@ -44,6 +45,7 @@ UI library.
 - [ ] The window opens from a settings menu or from the Flight Control hub (R-10, contract section 2).
 - [ ] Settings you want in the hub use `config: true` and a supported type (R-12).
 - [ ] No custom CSS, or it is scoped and checked live (R-13).
+- [ ] No heading repeats the name of the module inside its tab; a sub-block is a `fieldset` with a `legend` (R-14).
 
 ## 4. What is verified
 
@@ -64,19 +66,20 @@ running Foundry (v13, build 351, on Forge, dark theme; 2026-09-19 and 2026-09-20
   groups were stacked, with the label above the field.
 - R-09, R-10, R-12: the language file loads and no raw keys appear; the settings menu shows one entry; settings with the
   supported types appear, and none is reported as not editable.
+- R-14: the tab without a heading and without a frame, and below the settings a `fieldset` with the legend "Who may use
+  this module" holding one select list per player in `standard-form` form groups, were seen live on 2026-09-20 (as a
+  Gamemaster, dark theme) and accepted by the project lead. The chosen level was still there after a reload (project
+  lead: no change after a reload).
 
 **Observed, no rule yet**
 
-- In a `standard-form` window a heading (`h3`) is shown large, close to the tab bar and with a wide gap below it
-  (the module heading in the hub, 2026-09-20). The hub then grouped the module block in a `fieldset` with the module
-  title as its `legend`. Seen live the same day: the title still sat too close to the tab bar. The project lead sees
-  the active tab highlighted and decided that the title can go; the change comes with the next package. The guide gives
-  no rule for headings or groups yet.
+- Nothing at the moment. (The observation about headings in a `standard-form` window became R-14.)
 
 **Not yet verified in a running Foundry** (`unverified`)
 
 - everything about CSS (R-13): the reference contains no CSS;
 - what the hub does with a value above the maximum typed into the range picker (a limit by the element is likely, not
-  confirmed), and how the hub looks for a player.
+  confirmed), and how the hub looks for a player;
+- how the rights block behaves for an Assistant (it is meant to be hidden; not tried) and with more than one player.
 
 This section is updated after each live test.

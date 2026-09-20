@@ -1,7 +1,14 @@
 import { describe, expect, it, vi } from "vitest";
 import type { JsonValue } from "./json-value";
 import { ModuleRegistry, type ModuleInfo, type ModuleInfoSource } from "./module-registry";
-import { createRequestKernel, findSender, parseEnvelope, type PayloadCheck, type RequestHandler } from "./request-kernel";
+import {
+  createRequestKernel,
+  findSender,
+  parseEnvelope,
+  type PayloadCheck,
+  type RequestHandler,
+  type RightsCheck,
+} from "./request-kernel";
 
 const API = "0.3.0";
 
@@ -247,5 +254,124 @@ describe("RequestKernel.execute", () => {
     await createRequestKernel(makeRegistry(), [spy], { currentUser: () => undefined }).execute(envelope());
 
     expect(seen).toEqual([undefined, { id: "local" }, { id: "asked" }, undefined]);
+  });
+});
+
+describe("RequestKernel rights", () => {
+  const allow = { ok: true as const };
+  const refuse = (detail: string) => ({ ok: false as const, detail });
+
+  it("refuses a request the gate refuses with its detail, after the payload was checked and without running the handler", async () => {
+    const validate = vi.fn(handler().validate);
+    const run = vi.fn(handler().run);
+    const refusing = createRequestKernel(makeRegistry(), [handler({ validate, run })], {
+      rights: { check: async () => refuse('module "mod-a" may not be used by this user') },
+    });
+
+    expect(await refusing.execute(envelope())).toEqual({
+      ok: false,
+      reason: "not-permitted",
+      detail: 'module "mod-a" may not be used by this user',
+    });
+    expect(validate).toHaveBeenCalledTimes(1);
+    expect(run).not.toHaveBeenCalled();
+
+    const allowing = createRequestKernel(makeRegistry(), [handler({ validate, run })], { rights: { check: async () => allow } });
+    expect(await allowing.execute(envelope())).toEqual({ ok: true, value: { shout: "HI", by: "mod-a" } });
+    expect(run).toHaveBeenCalledTimes(1);
+  });
+
+  it("gives the gate the module, the user and the targets the handler names, and none when it names none", async () => {
+    const check = vi.fn(async (_request: RightsCheck) => allow);
+    const targeted = handler({ type: "test.target", targets: (payload) => [`Actor.${payload}`, "Item.x"] });
+    const kernel = createRequestKernel(makeRegistry(), [handler(), targeted], { rights: { check }, currentUser: () => ({ id: "local" }) });
+
+    await kernel.execute(envelope({ module: "mod-b" }));
+    await kernel.execute(envelope({ type: "test.target" }));
+
+    // the targets are computed from the checked payload ("hi" became "HI")
+    expect(check.mock.calls.map((call) => call[0])).toEqual([
+      { module: "mod-b", user: { id: "local" }, targets: [] },
+      { module: "mod-a", user: { id: "local" }, targets: ["Actor.HI", "Item.x"] },
+    ]);
+  });
+
+  it("asks the gate about the user the request runs for: the option wins over currentUser, and without either the user is unknown", async () => {
+    const seen: unknown[] = [];
+    const check = vi.fn(async (request: { user: unknown }) => {
+      seen.push(request.user);
+      return allow;
+    });
+    const currentUser = () => ({ id: "local" });
+
+    await createRequestKernel(makeRegistry(), [handler()], { rights: { check } }).execute(envelope());
+    await createRequestKernel(makeRegistry(), [handler()], { rights: { check }, currentUser }).execute(envelope());
+    await createRequestKernel(makeRegistry(), [handler()], { rights: { check }, currentUser }).execute(envelope(), {
+      user: { id: "asked" },
+    });
+
+    expect(seen).toEqual([undefined, { id: "local" }, { id: "asked" }]);
+  });
+
+  it("refuses when the gate throws, rejects or answers with anything but { ok: true }, and never runs the handler", async () => {
+    const answers: Array<[string, () => unknown, string]> = [
+      ["throws", () => { throw new Error("gate down"); }, "the rights could not be checked"],
+      ["rejects", () => Promise.reject(new Error("later")), "the rights could not be checked"],
+      ["undefined", () => undefined, "the rights could not be checked"],
+      ["null", () => null, "the rights could not be checked"],
+      ["empty object", () => ({}), "the rights could not be checked"],
+      ["ok as text", () => ({ ok: "yes" }), "the rights could not be checked"],
+      ["ok as number", () => ({ ok: 1 }), "the rights could not be checked"],
+      ["refusal without a detail", () => ({ ok: false }), "the rights could not be checked"],
+      ["refusal with a detail that is not text", () => ({ ok: false, detail: 5 }), "the rights could not be checked"],
+      ["refusal with a detail", () => ({ ok: false, detail: "no" }), "no"],
+    ];
+    for (const [name, answer, detail] of answers) {
+      const run = vi.fn(handler().run);
+      const kernel = createRequestKernel(makeRegistry(), [handler({ run })], { rights: { check: answer as never } });
+
+      expect(await kernel.execute(envelope()), name).toEqual({ ok: false, reason: "not-permitted", detail });
+      expect(run, name).not.toHaveBeenCalled();
+    }
+  });
+
+  it("reports handler-failed without running the handler when targets throws or does not return a list of UUIDs, and refuses a targets that is not a function", async () => {
+    const answers: Array<[string, () => unknown, string]> = [
+      ["throws", () => { throw new Error("no targets"); }, "no targets"],
+      ["text", () => "Actor.x", 'the targets of "test.echo" are not a list of UUIDs'],
+      ["number in the list", () => [1], 'the targets of "test.echo" are not a list of UUIDs'],
+      ["empty text in the list", () => [""], 'the targets of "test.echo" are not a list of UUIDs'],
+      ["null", () => null, 'the targets of "test.echo" are not a list of UUIDs'],
+      ["undefined", () => undefined, 'the targets of "test.echo" are not a list of UUIDs'],
+    ];
+    for (const [name, targets, detail] of answers) {
+      const run = vi.fn(handler().run);
+      const check = vi.fn(async () => allow);
+      const kernel = createRequestKernel(makeRegistry(), [handler({ run, targets: targets as never })], { rights: { check } });
+
+      expect(await kernel.execute(envelope()), name).toEqual({ ok: false, reason: "handler-failed", detail });
+      expect(run, name).not.toHaveBeenCalled();
+      expect(check, name).not.toHaveBeenCalled();
+    }
+
+    expect(() => createRequestKernel(makeRegistry(), [handler({ targets: "Actor.x" as never })])).toThrow("targets");
+  });
+
+  it("asks the gate only about requests that are otherwise valid: every earlier failure is answered without it", async () => {
+    const source = makeSource();
+    const check = vi.fn(async () => allow);
+    const kernel = createRequestKernel(makeRegistry(source), [handler()], { rights: { check } });
+    const earlier: Array<[string, unknown, string]> = [
+      ["invalid envelope", { type: "test.echo" }, "invalid-request"],
+      ["unknown sender", envelope({ module: "stranger" }), "not-registered"],
+      ["unknown request type", envelope({ type: "nope.nothing" }), "unknown-request"],
+      ["unsupported version", envelope({ version: 2 }), "unsupported-version"],
+      ["invalid payload", envelope({ payload: 5 }), "invalid-payload"],
+    ];
+
+    for (const [name, request, reason] of earlier) {
+      expect(await kernel.execute(request), name).toMatchObject({ ok: false, reason });
+    }
+    expect(check).not.toHaveBeenCalled();
   });
 });

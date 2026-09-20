@@ -1,6 +1,8 @@
 import type { ApiLogger } from "../core/eagle-api";
 import { buildHubModel, startModule } from "../core/hub-model";
 import type { ModuleRegistry, RegisteredModule } from "../core/module-registry";
+import { applyRightsInput, listRights, type RightsHubSource, type RightsRow } from "../core/rights-hub";
+import type { RightsLevel } from "../core/rights-table";
 import { applySettingInput, listHubSettings, type HubSetting, type HubSettingsSource } from "../core/settings-hub";
 
 const { ApplicationV2 } = foundry.applications.api;
@@ -13,12 +15,19 @@ type RangePicker = foundry.applications.elements.HTMLRangePickerElement;
 type SettingInput = HTMLInputElement | HTMLSelectElement | RangePicker;
 
 const TAB_GROUP = "primary";
+// The levels of the rights block, in the order of the select list. The keys are written out so the language file test finds them.
+const RIGHTS_LEVELS: ReadonlyArray<{ value: RightsLevel; key: string }> = [
+  { value: "denied", key: "EAGLEEYE.hub.rights.level.denied" },
+  { value: "own", key: "EAGLEEYE.hub.rights.level.own" },
+  { value: "all", key: "EAGLEEYE.hub.rights.level.all" },
+];
 // Foundry core template that renders the tab navigation for the tabs returned by _prepareTabs.
 const NAV_TEMPLATE = "templates/generic/tab-navigation.hbs";
 
 export interface HubContext {
   registry: ModuleRegistry;
   settings: HubSettingsSource;
+  rights: RightsHubSource;
   text(key: string, data?: Record<string, string>): string;
   notify(level: "info" | "warn" | "error", message: string): void;
   log: ApiLogger;
@@ -60,6 +69,8 @@ export function createHubApplicationClass(context: HubContext) {
     readonly #shown = new Map<string, HubSetting>();
     // The names of the fields that are being saved right now.
     readonly #saving = new Set<string>();
+    // The rights are written one after the other: each write starts from the stored table, so two at once would undo each other.
+    #rightsQueue: Promise<void> = Promise.resolve();
 
     protected override _prepareTabs(group: string): Record<string, Tab> {
       const model = buildHubModel(context.registry.list(), this.tabGroups[group]);
@@ -103,8 +114,13 @@ export function createHubApplicationClass(context: HubContext) {
     }
 
     protected override async _onRender(): Promise<void> {
-      for (const input of this.element.querySelectorAll<SettingInput>("input[name], select[name], range-picker")) {
+      for (const input of this.element.querySelectorAll<SettingInput>(
+        "input[name], select[name]:not([data-rights-user]), range-picker",
+      )) {
         input.addEventListener("change", () => void this.#onSettingChange(input));
+      }
+      for (const select of this.element.querySelectorAll<HTMLSelectElement>("select[data-rights-user]")) {
+        select.addEventListener("change", () => void this.#onRightsChange(select));
       }
     }
 
@@ -115,10 +131,8 @@ export function createHubApplicationClass(context: HubContext) {
       section.dataset.group = TAB_GROUP;
       section.dataset.tab = module.id;
 
-      // The module's block is a native fieldset: the module title is its legend, everything else sits inside.
-      const block = element("fieldset");
-      block.append(element("legend", module.title));
-      block.append(
+      // The block has no title of its own: the active tab already names the module.
+      section.append(
         element(
           "p",
           context.text("EAGLEEYE.hub.version", { version: module.version, apiVersion: module.apiVersion }),
@@ -129,11 +143,11 @@ export function createHubApplicationClass(context: HubContext) {
         button.type = "button";
         button.dataset.action = "openModule";
         button.dataset.moduleId = module.id;
-        block.append(button);
+        section.append(button);
       }
 
       const settings = listHubSettings(module.id, context.settings);
-      if (settings.length === 0) block.append(element("p", context.text("EAGLEEYE.hub.noSettings")));
+      if (settings.length === 0) section.append(element("p", context.text("EAGLEEYE.hub.noSettings")));
       for (const setting of settings) {
         this.#shown.set(`${setting.namespace}.${setting.key}`, setting);
         if (setting.kind === "unsupported") {
@@ -141,10 +155,35 @@ export function createHubApplicationClass(context: HubContext) {
             `eagleeye | hub: ${setting.namespace}.${setting.key} is not editable (type ${setting.typeName})`,
           );
         }
-        block.append(this.#renderSetting(setting));
+        section.append(this.#renderSetting(setting));
       }
-      section.append(block);
+      // Who may use the module is set by the Gamemaster only.
+      if (context.rights.canEdit()) section.append(this.#renderRights(module));
       return section;
+    }
+
+    // Who may use the module: a native fieldset with one select list per player.
+    #renderRights(module: RegisteredModule): HTMLElement {
+      const block = element("fieldset");
+      block.append(element("legend", context.text("EAGLEEYE.hub.rights.title")));
+      const listing = listRights(module.id, context.rights);
+      block.append(
+        element("p", context.text(listing.unreadable ? "EAGLEEYE.hub.rights.unreadable" : "EAGLEEYE.hub.rights.hint")),
+      );
+      if (listing.rows.length === 0) block.append(element("p", context.text("EAGLEEYE.hub.rights.noPlayers")));
+      for (const row of listing.rows) block.append(this.#renderRightsRow(module, row));
+      return block;
+    }
+
+    #renderRightsRow(module: RegisteredModule, row: RightsRow): HTMLElement {
+      const select = fields.createSelectInput({
+        name: `rights.${module.id}.${row.userId}`,
+        value: row.level,
+        options: RIGHTS_LEVELS.map(({ value, key }) => ({ value, label: context.text(key) })),
+      });
+      select.dataset.rightsModule = module.id;
+      select.dataset.rightsUser = row.userId;
+      return fields.createFormGroup({ label: row.name, input: select });
     }
 
     #renderSetting(setting: HubSetting): HTMLElement {
@@ -225,6 +264,42 @@ export function createHubApplicationClass(context: HubContext) {
       } finally {
         this.#saving.delete(input.name);
       }
+    }
+
+    #onRightsChange(select: HTMLSelectElement): Promise<void> {
+      const { rightsModule: moduleId = "", rightsUser: userId = "" } = select.dataset;
+      const level = select.value;
+      const write = async (): Promise<void> => {
+        try {
+          const result = await applyRightsInput(
+            moduleId,
+            userId,
+            level,
+            context.registry.list().map((module) => module.id),
+            context.rights,
+          );
+          if (result.ok) return;
+
+          context.log.warn(
+            `eagleeye | hub could not save the rights of ${userId} for ${moduleId}: ${result.reason} - ${result.detail}`,
+          );
+          // Show the stored level again and tell the user why nothing changed.
+          select.value = listRights(moduleId, context.rights).rows.find((row) => row.userId === userId)?.level ?? "denied";
+          context.notify(
+            "warn",
+            result.reason === "not-permitted"
+              ? context.text("EAGLEEYE.hub.notify.rightsNotPermitted")
+              : context.text("EAGLEEYE.hub.notify.rightsFailed", { detail: result.detail }),
+          );
+        } catch (error) {
+          context.log.warn(
+            `eagleeye | hub failed while saving the rights: ${error instanceof Error ? error.message : String(error)}`,
+          );
+        }
+      };
+      // `write` never rejects, so the queue keeps running after a failure.
+      this.#rightsQueue = this.#rightsQueue.then(write);
+      return this.#rightsQueue;
     }
   };
 }

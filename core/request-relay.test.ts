@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { ModuleRegistry, type ModuleInfo, type ModuleInfoSource } from "./module-registry";
 import { CONFIRM_TIMEOUT_MS } from "./request-identity";
+import { createRightsGate, type RightsEnvironment } from "./request-rights";
 import {
   createRequestKernel,
   type PayloadCheck,
@@ -15,6 +16,7 @@ import {
   type RelayEnvironment,
   type RequestRelay,
 } from "./request-relay";
+import { serializeRightsTable, type RightsTable } from "./rights-table";
 
 const API = "0.5.0";
 const REQUEST_ID = "0123456789abcdef0123456789abcdef";
@@ -488,5 +490,60 @@ describe("RequestRelay.receive", () => {
     expect(await fine.receive(relayed(gmRequest()))).toMatchObject({ ok: true });
     expect(fineLog.warn).not.toHaveBeenCalled();
     expect(fineLog.info).not.toHaveBeenCalled();
+  });
+});
+
+describe("RequestRelay.receive with rights", () => {
+  // A Gamemaster's client whose kernel asks the rights check. p-1 and p-2 are players, "gm" is the Gamemaster.
+  function withRights(table: RightsTable["modules"], setup: Setup = {}) {
+    const run = vi.fn(async (payload: string, context: RequestContext) => ({
+      said: payload,
+      by: context.module.id,
+      for: context.user?.id ?? null,
+    }));
+    const handlers = [gmHandler({ run })];
+    const isGm = vi.fn((id: string) => (id === "gm" ? true : id.startsWith("p-") ? false : undefined));
+    const environment: RightsEnvironment = {
+      storedTable: () => serializeRightsTable({ version: 1, modules: table }),
+      isGm,
+      ownership: async () => "own",
+    };
+    const kernel = createRequestKernel(makeRegistry(), handlers, { rights: createRightsGate(environment) });
+    return { ...makeRelay({ ...setup, isGm: true, handlers, kernel }), run, isGm };
+  }
+
+  it("refuses the confirmed user of a module that is denied to that user, runs nothing and logs the reason", async () => {
+    const { relay, run, log } = withRights({ "mod-a": { "p-2": "all" } });
+
+    const result = await relay.receive(relayed(gmRequest(), "p-1"));
+
+    expect(result).toEqual({ ok: false, reason: "not-permitted", detail: 'module "mod-a" may not be used by this user' });
+    expect(run).not.toHaveBeenCalled();
+    expect(log.warn).toHaveBeenCalledTimes(1);
+    expect(String(log.warn.mock.calls[0][0])).toContain("may not be used by this user");
+  });
+
+  it("runs the request for a confirmed user who is allowed, and asks the rights only after the confirmation succeeded", async () => {
+    const allowed = withRights({ "mod-a": { "p-2": "all" } });
+
+    expect(await allowed.relay.receive(relayed(gmRequest(), "p-2"))).toEqual({
+      ok: true,
+      value: { said: "hi", by: "mod-a", for: "p-2" },
+    });
+    expect(allowed.run).toHaveBeenCalledTimes(1);
+    expect(allowed.log.warn).not.toHaveBeenCalled();
+
+    // a user who is not confirmed is refused before the rights are asked about anybody
+    const unconfirmed = withRights(
+      { "mod-a": { "p-2": "all" } },
+      { confirm: async (userId) => ({ confirmed: false, userId }) },
+    );
+    expect(await unconfirmed.relay.receive(relayed(gmRequest(), "p-2"))).toEqual({
+      ok: false,
+      reason: "not-permitted",
+      detail: "the asking user could not be confirmed",
+    });
+    expect(unconfirmed.run).not.toHaveBeenCalled();
+    expect(unconfirmed.isGm).not.toHaveBeenCalled();
   });
 });

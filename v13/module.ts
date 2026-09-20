@@ -3,11 +3,13 @@ import { EAGLE_API_VERSION } from "../core/api-version";
 import { createEagleApi, type ApiLogger, type EagleFlightControlApi } from "../core/eagle-api";
 import { defaultModuleInfoSource, ModuleRegistry } from "../core/module-registry";
 import { defaultRequestHandlers } from "../core/request-handlers";
-import { createRequestKernel, type RequestKernel } from "../core/request-kernel";
+import { createRequestKernel, type RequestKernel, type RightsGate } from "../core/request-kernel";
 import { createRequestRelay } from "../core/request-relay";
+import { createRightsGate, effectiveLevel, REFUSE_ALL } from "../core/request-rights";
 import { defaultHubSettingsSource } from "../core/settings-hub";
 import { createHubApplicationClass } from "./hub-application";
 import { foundryCurrentUser, foundryExecutor, foundryRelayEnvironment, registerRelayQueries } from "./relay";
+import { foundryRightsEnvironment, foundryRightsHubSource, registerRightsSetting } from "./rights";
 
 // Types game.modules.get("eagleeye")?.api for readers (see docs/api-contract.md).
 declare global {
@@ -45,11 +47,22 @@ Hooks.once("init", () => {
     return;
   }
 
+  // The rights per module and user: the world setting they are stored in, and the check the kernel makes before it runs a
+  // request. If they cannot be set up, nothing is allowed rather than everything.
+  const rightsEnvironment = foundryRightsEnvironment();
+  let rights: RightsGate = REFUSE_ALL;
+  try {
+    registerRightsSetting();
+    rights = createRightsGate(rightsEnvironment, consoleLog);
+  } catch (error) {
+    console.error("eagleeye | failed to set up the rights; every request is refused", error);
+  }
+
   // Other modules read the API from their "setup" hook on, which runs after every "init" callback.
   // Attach it synchronously (before any await) so it exists by then, whatever the module load order.
   try {
     const handlers = defaultRequestHandlers(EAGLE_API_VERSION, foundryExecutor);
-    const kernel = createRequestKernel(registry, handlers, { currentUser: foundryCurrentUser });
+    const kernel = createRequestKernel(registry, handlers, { currentUser: foundryCurrentUser, rights });
 
     // Requests for handlers that run on the Gamemaster's client are forwarded by the relay. If the relay cannot be
     // set up, every request runs in the caller's client with the caller's own rights, which is the safe direction.
@@ -62,7 +75,11 @@ Hooks.once("init", () => {
       console.error("eagleeye | failed to set up the Gamemaster relay; requests run in the caller's client only", error);
     }
 
-    game.modules!.get(EAGLEEYE_ID).api = createEagleApi(registry, consoleLog, requests);
+    const rightsSource = {
+      levelFor: (moduleId: string) =>
+        rights === REFUSE_ALL ? ("denied" as const) : effectiveLevel(rightsEnvironment, moduleId, game.user?.id ?? undefined),
+    };
+    game.modules!.get(EAGLEEYE_ID).api = createEagleApi(registry, consoleLog, requests, rightsSource);
     console.log(`eagleeye | API attached (v${EAGLE_API_VERSION})`);
   } catch (error) {
     console.error("eagleeye | failed to attach the API to the module object", error);
@@ -75,7 +92,14 @@ Hooks.once("init", () => {
       label: "EAGLEEYE.menu.label",
       hint: "EAGLEEYE.menu.hint",
       icon: "fa-solid fa-eye",
-      type: createHubApplicationClass({ registry, settings: defaultHubSettingsSource(), text, notify, log: consoleLog }),
+      type: createHubApplicationClass({
+        registry,
+        settings: defaultHubSettingsSource(),
+        rights: foundryRightsHubSource(),
+        text,
+        notify,
+        log: consoleLog,
+      }),
       restricted: true,
     });
   } catch (error) {
