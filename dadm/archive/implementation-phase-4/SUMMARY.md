@@ -1,6 +1,6 @@
-# Umsetzungsphase 4 "Eagle Flight Control" — Zusammenfassung (Entwurf)
+# Umsetzungsphase 4 "Eagle Flight Control" — Zusammenfassung
 
-status: **Entwurf** (Stand: nach der Live-Abnahme und der Gesamtprüfung von M8; offen sind nur die Release-Entscheidung und das Archivieren). Auf Anweisung des Projektleiters wird er beim Archivieren als `SUMMARY.md` nach `dadm/archive/implementation-phase-4/` verschoben und dabei endgültig; Stellen, die vom Release oder vom Archivieren abhängen, sind mit **[offen]** markiert.
+status: abgeschlossen und archiviert (2026-09-20)
 retention: durable (nach dem Archivieren Nachschlagematerial, keine aktive Konfiguration)
 
 Nichts in diesem Ordner (Safety Boundaries, Scope Declaration, Milestone Plans, Working Mode) bindet einen künftigen Milestone Plan automatisch. Verweise **innerhalb** der archivierten Dateien nennen die ursprünglichen Pfade `dadm/…`; sie liegen jetzt hier.
@@ -62,8 +62,9 @@ Siehe `dadm/uebergabe-naechste-phase.md` (Abschnitt "Offene Punkte") und `docs/a
 | `m1-…` bis `m8-…` | je Milestone Discover-, Apply-, Deploy-, Monitor-Output; `m4-05`, `m5-05`, `m6a-05`, `m6b-05`, `m7-05`, `m8-05` sind Live-Check-Auswertungen |
 | `m3-rework-1-output.md` … `m3-rework-3-output.md` | Nacharbeiten am Hub |
 | `m6-01-…`, `m6-hd-1-output.md`, `m6-spike-1-output.md`, `m6-spike-1-result-output.md` | Discover von M6, Human Decision 1, Spike |
+| `m8-04-monitor-output.md` | enthält die Checkliste für das Release 0.1.0 (Befehle für Tag, Push und GitHub-Release; **nicht ausgeführt**) |
 | `m8-06-gesamtpruefung-output.md` | Gesamtprüfung gegen P-FC1 bis P-FC8 |
 
 ## Nächster Schritt
 
-Eine neue Umsetzungsphase (Empfehlung: Eagle Library) braucht einen frischen DAD-M-Bootstrap. Die Übergabenotiz `dadm/uebergabe-naechste-phase.md` bleibt außerhalb des Archivs, damit die nächste Phase sie ohne Suchen findet.
+Eine neue Umsetzungsphase (Empfehlung: Eagle Library) braucht einen frischen DAD-M-Bootstrap. Die Übergabenotiz `dadm/uebergabe-naechste-phase.md` bleibt außerhalb des Archivs, damit die nächste Phase sie ohne Suchen findet. Das Release 0.1.0 ist vorbereitet, aber nicht veröffentlicht (Entscheidung B); Tag, Push und GitHub-Release nur auf ausdrückliche Anweisung, vorher die Datenschutz-Frage zu sechs Dokumenten dieses Ordners (`m5-05`, `m6-spike-1-result`, `m6a-05`, `m6b-04`, `m6b-05`, `m7-05`).

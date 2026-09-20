@@ -32,8 +32,8 @@ Für die nächste Umsetzungsphase (Empfehlung: **Eagle Library**, siehe `EAGLE-M
 | Dünne Foundry-Hüllen und Hub | `v13/` |
 | Testmodule für die Live-Checks in Forge | `test-fixtures/` |
 | Release-Dateien bauen (veröffentlicht nichts) | `npm run package` → `release/eagleeye-v13.zip`, `release/module.json` |
-| Prozess der Phase 4 | `dadm/` (nach dem Archivieren: `dadm/archive/implementation-phase-4/`) |
-| Nachträge für die gemeinsame Foundry-Referenz (sechs Einträge, **eingetragen am 2026-09-20**) | `foundry-vtt-reference-v13/cheat-sheet.md`; Wortlaut des Entwurfs: `dadm/m8-02-apply-output.md`, Abschnitt 12 |
+| Prozess der Phase 4 (archiviert am 2026-09-20, mit `SUMMARY.md`) | `dadm/archive/implementation-phase-4/` |
+| Nachträge für die gemeinsame Foundry-Referenz (sechs Einträge, **eingetragen am 2026-09-20**) | `foundry-vtt-reference-v13/cheat-sheet.md`; Wortlaut des Entwurfs: `dadm/archive/implementation-phase-4/m8-02-apply-output.md`, Abschnitt 12 |
 
 ## 3. Was ein Verbraucher wissen muss
 
@@ -49,7 +49,7 @@ Für die nächste Umsetzungsphase (Empfehlung: **Eagle Library**, siehe `EAGLE-M
 
 ## 4. Offene Punkte
 
-**Live noch nicht gezeigt (`unverified`):** nach dem Stand von `docs/api-contract.md`, Abschnitt 8. Das Ergebnis der M8-Abnahme steht in `dadm/m8-05-live-check-output.md`, die Entscheidung des Projektleiters je Punkt in der Gesamtprüfung `dadm/m8-06-gesamtpruefung-output.md`.
+**Live noch nicht gezeigt (`unverified`):** nach dem Stand von `docs/api-contract.md`, Abschnitt 8. Das Ergebnis der M8-Abnahme steht in `dadm/archive/implementation-phase-4/m8-05-live-check-output.md`, die Entscheidung des Projektleiters je Punkt in der Gesamtprüfung `dadm/archive/implementation-phase-4/m8-06-gesamtpruefung-output.md`.
 
 | Punkt | Stand |
 |---|---|
@@ -77,7 +77,7 @@ Für die nächste Umsetzungsphase (Empfehlung: **Eagle Library**, siehe `EAGLE-M
 3. **Typen für andere Repos:** Eine `.d.ts` bringt erst dann etwas, wenn ein zweites Repo sie braucht; bis dahin ist der TypeScript-Block im Vertrag die Referenz.
 4. `relationships.systems` und das Erzwingen von `compatibility` bei Bedarf mit einem eigenen Live-Test klären.
 5. Die **Nachträge für die gemeinsame Foundry-Referenz** stehen in `cheat-sheet.md` (eingetragen nach Freigabe am 2026-09-20). Neue, tatsächlich wiederverwendete Erkenntnisse der nächsten Phase dort ergänzen.
-6. **Release 0.1.0:** vorbereitet und in Forge abgenommen, aber **nicht veröffentlicht** (Release-Entscheidung B, 2026-09-20: vorbereitet lassen, später). Bauen mit `npm run package`; die Checkliste mit den Befehlen steht in `dadm/m8-04-monitor-output.md`. Tag, Push und GitHub-Release nur auf ausdrückliche Anweisung. **Vor einem Push** ist die Datenschutz-Frage zu sechs Dokumenten mit Test-Konto-Namen oder Nutzer-IDs zu entscheiden (`m5-05`, `m6-spike-1-result`, `m6a-05`, `m6b-04`, `m6b-05`, `m7-05`); ob das GitHub-Repo öffentlich ist, ist nicht geprüft.
+6. **Release 0.1.0:** vorbereitet und in Forge abgenommen, aber **nicht veröffentlicht** (Release-Entscheidung B, 2026-09-20: vorbereitet lassen, später). Bauen mit `npm run package`; die Checkliste mit den Befehlen steht in `dadm/archive/implementation-phase-4/m8-04-monitor-output.md`. Tag, Push und GitHub-Release nur auf ausdrückliche Anweisung. **Vor einem Push** ist die Datenschutz-Frage zu sechs Dokumenten mit Test-Konto-Namen oder Nutzer-IDs zu entscheiden (`m5-05`, `m6-spike-1-result`, `m6a-05`, `m6b-04`, `m6b-05`, `m7-05`); ob das GitHub-Repo öffentlich ist, ist nicht geprüft.
 
 ## 6. Wie in dieser Phase gearbeitet wurde (was sich bewährt hat)
 
