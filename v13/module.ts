@@ -7,9 +7,11 @@ import { createRequestKernel, type RequestKernel, type RightsGate } from "../cor
 import { createRequestRelay } from "../core/request-relay";
 import { createRightsGate, effectiveLevel, REFUSE_ALL } from "../core/request-rights";
 import { defaultHubSettingsSource } from "../core/settings-hub";
+import { announceSystem, evaluateSystem } from "../core/system-guard";
 import { createHubApplicationClass } from "./hub-application";
 import { foundryCurrentUser, foundryExecutor, foundryRelayEnvironment, registerRelayQueries } from "./relay";
 import { foundryRightsEnvironment, foundryRightsHubSource, registerRightsSetting } from "./rights";
+import { foundrySystemSource } from "./system";
 
 // Types game.modules.get("eagleeye")?.api for readers (see docs/api-contract.md).
 declare global {
@@ -35,6 +37,8 @@ function notify(level: "info" | "warn" | "error", message: string): void {
   else if (level === "warn") notifications.warn(message);
   else notifications.info(message);
 }
+
+const systemSource = foundrySystemSource();
 
 Hooks.once("init", () => {
   logEagleEyeReady("13");
@@ -79,7 +83,9 @@ Hooks.once("init", () => {
       levelFor: (moduleId: string) =>
         rights === REFUSE_ALL ? ("denied" as const) : effectiveLevel(rightsEnvironment, moduleId, game.user?.id ?? undefined),
     };
-    game.modules!.get(EAGLEEYE_ID).api = createEagleApi(registry, consoleLog, requests, rightsSource);
+    game.modules!.get(EAGLEEYE_ID).api = createEagleApi(registry, consoleLog, requests, rightsSource, () =>
+      evaluateSystem(systemSource),
+    );
     console.log(`eagleeye | API attached (v${EAGLE_API_VERSION})`);
   } catch (error) {
     console.error("eagleeye | failed to attach the API to the module object", error);
@@ -104,5 +110,20 @@ Hooks.once("init", () => {
     });
   } catch (error) {
     console.error("eagleeye | failed to register the hub menu", error);
+  }
+});
+
+// Says once per session which game system runs and whether Flight Control was tested with it. The notice goes to a
+// Gamemaster or Assistant only; nothing is blocked (see core/system-guard.ts).
+Hooks.once("ready", () => {
+  try {
+    announceSystem(systemSource, {
+      isGm: () => game.user?.isGM === true,
+      log: consoleLog,
+      notify: (level, message) => notify(level, message),
+      text,
+    });
+  } catch (error) {
+    console.error("eagleeye | failed to check the game system", error);
   }
 });

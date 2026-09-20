@@ -1,14 +1,14 @@
-# Eagle Flight Control — API contract, parts 1 to 6: registration, the hub, requests, the Gamemaster relay, who asked and rights per module and user
+# Eagle Flight Control — API contract, parts 1 to 7: registration, the hub, requests, the Gamemaster relay, who asked, rights per module and user and the game system
 
-**API version:** `0.6.0`
+**API version:** `0.7.0`
 **Status:** development. Before `1.0.0` a minor version may break the API (see section 5).
 **Scope of this version:** how an Eagle module gets the API and registers itself (part 1), how it appears in the
 Flight Control hub: tab, settings and open action (part 2), and how it asks Flight Control to do things: the request
 channel (part 3), and where a request runs: requests that need the Gamemaster's rights run on the Gamemaster's
 client (part 4), and who asked: the Gamemaster's client confirms the asking user before it runs a forwarded request
 (part 5), and who may use which module: the Gamemaster sets rights per module and user in the hub, and Flight Control
-checks them before it runs a request (part 6). Later parts (system version guard) will extend the API and raise its
-version.
+checks them before it runs a request (part 6), and which game system runs and whether Flight Control was tested with
+its version (part 7). Later parts will extend the API and raise its version.
 **Audience:** authors of Eagle modules. Flight Control does not integrate third-party modules. Registration by a
 third-party module is not a supported use; it cannot be prevented technically, and such a module would simply
 count as registered.
@@ -24,7 +24,8 @@ const api = game.modules.get("eagleeye")?.api;
 - Read it from your **`setup` hook or later**. Before `setup` it may not exist yet, because the load order of
   modules is not documented.
 - Always handle `undefined`: Flight Control can be missing or deactivated.
-- The API object is frozen. It has exactly four members: `version`, `registerModule`, `request` and `getRights`.
+- The API object is frozen. It has exactly five members: `version`, `registerModule`, `request`, `getRights` and
+  `getSystemInfo`.
 
 TypeScript (optional): declare the shape in your own repository. Flight Control itself types the parameters as
 `unknown`; pass the shapes below.
@@ -80,6 +81,20 @@ type RightsResult =
       readonly detail: string;
     };
 
+type SystemStatus = "tested" | "same-line" | "untested" | "other-system" | "unknown";
+
+type SystemInfoResult =
+  | {
+      readonly ok: true;
+      readonly value: {
+        readonly id: string | null;
+        readonly version: string | null;
+        readonly status: SystemStatus;
+        readonly testedVersions: readonly string[];
+      };
+    }
+  | { readonly ok: false; readonly reason: "internal-error"; readonly detail: string };
+
 interface EagleFlightControlApi {
   readonly version: string;
   registerModule(descriptor: {
@@ -94,6 +109,7 @@ interface EagleFlightControlApi {
     payload?: JsonValue;
   }): Promise<RequestResult>;
   getRights(moduleId: string): RightsResult;
+  getSystemInfo(): SystemInfoResult;
 }
 
 declare global {
@@ -114,7 +130,7 @@ Hooks.once("setup", () => {
 
   const result = api.registerModule({
     id: "my-eagle-module",
-    apiVersion: "0.6.0",
+    apiVersion: "0.7.0",
     open: () => new MyModuleApp().render({ force: true }), // optional
   });
   if (!result.ok) {
@@ -202,7 +218,7 @@ const result = await api.request({
   payload: { echo: "hello" },
 });
 if (result.ok) {
-  console.log(result.value); // { apiVersion: "0.6.0", module: "my-eagle-module", echo: "hello" }
+  console.log(result.value); // { apiVersion: "0.7.0", module: "my-eagle-module", echo: "hello" }
 } else {
   console.warn(result.reason, result.detail);
 }
@@ -353,6 +369,43 @@ the Gamemaster's client: for a player it answers with the Gamemaster's `userId` 
 foreign targets: with the level `own` it answers for a document the user owns and refuses every other with
 `not-permitted`; with `all` it answers for both.
 
+**The game system (part 7)**
+
+Flight Control is made for the D&D 5e system (`dnd5e`) and knows the versions of it that it was tested with. It tells the
+Gamemaster when the system is not one of those, and it tells your module, so the module can adapt. It only reports:
+requests and the hub work in every case, and nothing is blocked because of the status.
+
+The status of the system is one of five values. Flight Control looks at the id of the system first, then at its version:
+
+| `status` | Meaning |
+|---|---|
+| `unknown` | The id of the system or its version cannot be read, or the version is not a strict `x.y.z` (no prefix, no suffix such as `-rc.1`, no leading zeros). |
+| `other-system` | The id is readable and is not `dnd5e`. The version does not matter. |
+| `tested` | The version is in the list of tested versions. |
+| `same-line` | The version is not in the list, but its major and minor version are those of a listed version (5.3.4 when 5.3.3 is listed). |
+| `untested` | Any other version of `dnd5e`. |
+
+- **The list of tested versions** is part of Flight Control. It grows with a release, after the project lead has checked
+  the version in a running Foundry. Today it holds `5.3.3`.
+- **The notice:** when the world is ready, Flight Control writes one line to the console
+  (`eagleeye | game system: dnd5e 5.3.3 (tested)`; a warning for `untested`, `other-system` and `unknown`). A user with a
+  Gamemaster role (Gamemaster or Assistant) also gets one notification for `untested`, `other-system` and `unknown`. A
+  player gets none, and nobody gets one for `tested` or `same-line`.
+- **`getSystemInfo()`** tells your module the same:
+
+```js
+const result = api.getSystemInfo();
+if (result.ok) console.log(result.value.status, result.value.id, result.value.version);
+// "tested" "dnd5e" "5.3.3"
+```
+
+  `value` is `{ id, version, status, testedVersions }`. `id` and `version` are `null` when they cannot be read
+  (`version` is also `null` for another system); `testedVersions` is a frozen copy of the list. The answer is worked out
+  anew at every call, for the system of this client. It needs no rights and never throws; the only failure is
+  `internal-error`. Call it from `ready` or later.
+- **Rules for request types** (for the parts of this contract that add them): a request type that depends on the D&D
+  data model states in the design of its milestone which statuses it accepts and what it does for the others.
+
 ## 5. API version and compatibility
 
 `requested` is the `apiVersion` in your descriptor, `provided` is `api.version`. The registration is accepted
@@ -407,7 +460,8 @@ Declare Flight Control as a required module:
 The version rules, the registry, the shape of the API object, the logic behind the hub (tabs, settings, saving, open
 action), the request kernel (envelope checks, sender check, handlers, versions, JSON rule, results), the relay
 (where a request runs, forwarding, the Gamemaster's side, limits, failure reasons) and the rights (levels, the check,
-what the hub's rights block shows and writes, `getRights`) are covered by unit tests of the pure logic.
+what the hub's rights block shows and writes, `getRights`) and the game system guard (the five states, the notice,
+`getSystemInfo`) are covered by unit tests of the pure logic.
 
 **Verified in a running Foundry** (Foundry v13, build 351, on Forge, a dnd5e world; four test modules; live checks on
 2026-09-19 with API `0.3.0` and on 2026-09-20 with API `0.4.0`, `0.5.0` and `0.6.0`):
@@ -475,6 +529,9 @@ what the hub's rights block shows and writes, `getRights`) are covered by unit t
   compendium and for the level Inherit; whether Foundry lets an Assistant write a world setting; the rights block for an
   Assistant, with more than one player and with more than one Gamemaster connected (unit tests and a simulation
   only);
+- part 7, the game system guard, everything until the live check (unit tests and a simulation only): what Foundry gives
+  for `game.system.id` and `game.system.version`, the console line, the notification for a Gamemaster and the answer of
+  `getSystemInfo`;
 - what the hub does with a refused value: it resets the field and shows a notification (unit tests only); for a number
   with a range the slider element may limit a value typed above the maximum itself (not confirmed); how the hub looks
   for a player (the menu is restricted to the Gamemaster);
@@ -486,8 +543,8 @@ what the hub's rights block shows and writes, `getRights`) are covered by unit t
 
 ## 9. Not part of this version
 
-Request types that read or change Foundry data (only the three proofs exist) and the system version guard. They will
-be added in later parts of this contract.
+Request types that read or change Foundry data (only the three proofs exist). They will be added in later parts of this
+contract.
 
 ## 10. Change history
 
@@ -499,3 +556,4 @@ be added in later parts of this contract.
 | `0.4.0` | Part 4: every request type says where it runs; requests for types that run on the Gamemaster's client are forwarded to it; new failure reasons `no-gm`, `relay-timeout`, `relay-failed`, `not-permitted`; request type `flightcontrol.gmping`. |
 | `0.5.0` | Part 5: a forwarded request carries the asking user and an identifier, and the Gamemaster's client runs it only after the client of that user has confirmed it; `not-permitted` also covers an unconfirmed user; `flightcontrol.gmping` reports `askedBy`. |
 | `0.6.0` | Part 6: rights per module and user (`denied`, `own`, `all`), set by the Gamemaster in the hub and checked by the request kernel before a request runs; `not-permitted` also covers a refusal by the rights; a request type can name its target documents; new function `getRights`; request type `flightcontrol.targetping`. |
+| `0.7.0` | Part 7: the game system guard: Flight Control tells a Gamemaster when the game system is not one it was tested with, and the new function `getSystemInfo` tells modules the id, the version and the status of the system; nothing is blocked. |

@@ -32,6 +32,11 @@
         "rightsNotPermitted": "Only the Gamemaster can change these rights.",
         "rightsFailed": "Could not save the rights: {detail}"
       }
+    },
+    "system": {
+      "untested": "Eagle Flight Control has not been tested with D&D 5e {version}. Tested: {tested}. Eagle modules may not work as expected.",
+      "otherSystem": "Eagle Flight Control is made for D&D 5e, but this world uses the system \"{id}\". Eagle modules may not work as expected.",
+      "unknown": "Eagle Flight Control could not read the version of the game system. Eagle modules may not work as expected."
     }
   }
 }

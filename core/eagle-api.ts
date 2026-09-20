@@ -2,6 +2,7 @@ import type { ModuleRegistry, RegistrationResult } from "./module-registry";
 import { defaultRequestHandlers, type Executor } from "./request-handlers";
 import { createRequestKernel, type RequestKernel, type RequestResult } from "./request-kernel";
 import type { RightsLevel } from "./rights-table";
+import type { SystemInfo } from "./system-guard";
 
 // The answer to "what may the user of this client do with this module?" (see the API contract, part 6).
 export type RightsQueryResult =
@@ -17,11 +18,17 @@ export interface RightsSource {
   levelFor(moduleId: string): RightsLevel;
 }
 
+// The answer to "which game system runs, and was it tested?" (see the API contract, part 7).
+export type SystemInfoResult =
+  | { readonly ok: true; readonly value: SystemInfo }
+  | { readonly ok: false; readonly reason: "internal-error"; readonly detail: string };
+
 export interface EagleFlightControlApi {
   readonly version: string;
   registerModule(descriptor: unknown): RegistrationResult;
   request(request: unknown): Promise<RequestResult>;
   getRights(moduleId: unknown): RightsQueryResult;
+  getSystemInfo(): SystemInfoResult;
 }
 
 export interface ApiLogger {
@@ -54,13 +61,15 @@ function describeError(error: unknown): string {
 // For callers without Foundry (the default kernel below, tests). The Foundry wiring in v13/module.ts passes the real one.
 const NO_EXECUTOR = (): Executor => ({ userId: "", isGm: false });
 const NO_RIGHTS: RightsSource = { levelFor: () => "denied" };
+const NO_SYSTEM = (): SystemInfo => ({ id: null, version: null, status: "unknown", testedVersions: [] });
 
-// The public surface other modules see: exactly `version`, `registerModule`, `request` and `getRights`.
+// The public surface other modules see: exactly `version`, `registerModule`, `request`, `getRights` and `getSystemInfo`.
 export function createEagleApi(
   registry: ModuleRegistry,
   log: ApiLogger = consoleLogger,
   kernel: RequestKernel = createRequestKernel(registry, defaultRequestHandlers(registry.apiVersion, NO_EXECUTOR)),
   rights: RightsSource = NO_RIGHTS,
+  systemInfo: () => SystemInfo = NO_SYSTEM,
 ): Readonly<EagleFlightControlApi> {
   const registerModule = (descriptor: unknown): RegistrationResult => {
     let result: RegistrationResult;
@@ -117,5 +126,15 @@ export function createEagleApi(
     }
   };
 
-  return Object.freeze({ version: registry.apiVersion, registerModule, request, getRights });
+  // Never throws. Asks for the system every time, so the answer is the state of this client right now.
+  const getSystemInfo = (): SystemInfoResult => {
+    try {
+      return { ok: true, value: systemInfo() };
+    } catch (error) {
+      log.warn(`eagleeye | getSystemInfo failed: ${describeError(error)}`);
+      return { ok: false, reason: "internal-error", detail: describeError(error) };
+    }
+  };
+
+  return Object.freeze({ version: registry.apiVersion, registerModule, request, getRights, getSystemInfo });
 }

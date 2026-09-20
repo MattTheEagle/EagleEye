@@ -4,6 +4,7 @@ import { ModuleRegistry, type ModuleInfo, type ModuleInfoSource } from "./module
 import { createRequestKernel, type RequestHandler, type RequestKernel } from "./request-kernel";
 import { createRequestRelay, type RelayEnvironment } from "./request-relay";
 import type { RightsLevel } from "./rights-table";
+import type { SystemInfo } from "./system-guard";
 
 const API = "0.1.0";
 
@@ -19,11 +20,11 @@ function makeLogger() {
 }
 
 describe("createEagleApi", () => {
-  it("is frozen and exposes exactly version, registerModule, request and getRights", () => {
+  it("is frozen and exposes exactly version, registerModule, request, getRights and getSystemInfo", () => {
     const api = createEagleApi(new ModuleRegistry(makeSource(), API), makeLogger());
 
     expect(Object.isFrozen(api)).toBe(true);
-    expect(Object.keys(api).sort()).toEqual(["getRights", "registerModule", "request", "version"]);
+    expect(Object.keys(api).sort()).toEqual(["getRights", "getSystemInfo", "registerModule", "request", "version"]);
   });
 
   it("reports the API version of the registry", () => {
@@ -224,5 +225,46 @@ describe("getRights", () => {
     expect(String(log.warn.mock.calls[0][0])).toContain("settings not ready");
 
     expect(createEagleApi(registry, makeLogger()).getRights("mod-a")).toEqual({ ok: true, value: { level: "denied" } });
+  });
+});
+
+describe("getSystemInfo", () => {
+  const info = (over: Partial<SystemInfo> = {}): SystemInfo => ({
+    id: "dnd5e",
+    version: "5.3.3",
+    status: "tested",
+    testedVersions: ["5.3.3"],
+    ...over,
+  });
+  const makeApi = (systemInfo?: () => SystemInfo, log = makeLogger()) =>
+    createEagleApi(new ModuleRegistry(makeSource(), API), log, undefined, undefined, systemInfo);
+
+  it("gives what the system function says as a result, asked again every time, and needs no registered module", () => {
+    const answers = [info(), info({ version: "5.4.0", status: "untested" })];
+    let asked = 0;
+    const systemInfo = vi.fn(() => answers[asked++]);
+    const api = makeApi(systemInfo);
+
+    expect(api.getSystemInfo()).toEqual({ ok: true, value: info() });
+    expect(api.getSystemInfo()).toEqual({ ok: true, value: info({ version: "5.4.0", status: "untested" }) });
+    expect(systemInfo).toHaveBeenCalledTimes(2);
+  });
+
+  it("returns internal-error and logs a warning instead of throwing when the system function fails", () => {
+    const log = makeLogger();
+    const api = makeApi(() => {
+      throw new Error("system not ready");
+    }, log);
+
+    expect(api.getSystemInfo()).toEqual({ ok: false, reason: "internal-error", detail: "system not ready" });
+    expect(log.warn).toHaveBeenCalledTimes(1);
+    expect(String(log.warn.mock.calls[0][0])).toContain("system not ready");
+  });
+
+  it("answers unknown when there is no system function", () => {
+    expect(makeApi().getSystemInfo()).toEqual({
+      ok: true,
+      value: { id: null, version: null, status: "unknown", testedVersions: [] },
+    });
   });
 });

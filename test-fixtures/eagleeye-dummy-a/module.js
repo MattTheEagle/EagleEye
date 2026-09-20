@@ -48,7 +48,7 @@ Hooks.once("init", () => {
   });
 });
 
-// Registers with Flight Control (API 0.6.0) and provides an open action (expected result: ok).
+// Registers with Flight Control (API 0.7.0) and provides an open action (expected result: ok).
 Hooks.once("setup", () => {
   const api = game.modules.get("eagleeye")?.api;
   if (!api) {
@@ -57,7 +57,7 @@ Hooks.once("setup", () => {
   }
   const result = api.registerModule({
     id: "eagleeye-dummy-a",
-    apiVersion: "0.6.0",
+    apiVersion: "0.7.0",
     open: () => {
       ui.notifications.info("eagleeye-dummy-a: open action called");
     },
@@ -73,7 +73,8 @@ function dummyADescribe(result) {
   return `ok, api ${apiVersion}, module ${module}, echo ${echo}${by}`;
 }
 
-// After every module has registered: what the rights say about this user (getRights), a ping (runs here) and a gmping
+// After every module has registered: which game system runs (getSystemInfo, expected in the test world: tested dnd5e
+// 5.3.3), what the rights say about this user (getRights), a ping (runs here) and a gmping
 // (runs on the Gamemaster's client). Expected for a player as long as the Gamemaster has not allowed this module for that
 // player in the hub: rights denied, ping and gmping "not-permitted". Once allowed (own or all): both ok, the gmping ran
 // by the Gamemaster and asked by the player. For a Gamemaster or Assistant: rights all, both ok (ran by and asked by
@@ -87,6 +88,10 @@ Hooks.once("ready", async () => {
   console.log(`eagleeye-dummy-a | ping: ${dummyADescribe(ping)}`);
 
   console.log(`eagleeye-dummy-a | this user: ${game.user.id} (GM: ${game.user.isGM})`);
+  const system = api.getSystemInfo();
+  console.log(
+    `eagleeye-dummy-a | system: ${system.ok ? `${system.value.status} ${system.value.id ?? "?"} ${system.value.version ?? "?"}` : `${system.reason} - ${system.detail}`}`,
+  );
   const rights = api.getRights("eagleeye-dummy-a");
   console.log(`eagleeye-dummy-a | rights: ${rights.ok ? rights.value.level : `${rights.reason} - ${rights.detail}`}`);
   const gmping = await api.request({
