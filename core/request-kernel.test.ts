@@ -63,6 +63,8 @@ describe("createRequestKernel", () => {
       ["negative version", [handler({ versions: [-1] })]],
       ["duplicate type", [handler(), handler()]],
       ["runsOn nowhere", [handler({ runsOn: "nowhere" as never })]],
+      ["gmOnly as text", [handler({ gmOnly: "yes" as never })]],
+      ["gmOnly as a number", [handler({ gmOnly: 1 as never })]],
     ];
     for (const [name, handlers] of bad) {
       expect(() => createRequestKernel(registry, handlers), name).toThrow();
@@ -70,6 +72,9 @@ describe("createRequestKernel", () => {
     expect(() => createRequestKernel(registry, [handler(), handler({ type: "test.other" })])).not.toThrow();
     expect(() =>
       createRequestKernel(registry, [handler({ runsOn: "caller" }), handler({ type: "test.other", runsOn: "gm" })]),
+    ).not.toThrow();
+    expect(() =>
+      createRequestKernel(registry, [handler({ gmOnly: true }), handler({ type: "test.other", gmOnly: false })]),
     ).not.toThrow();
   });
 });
@@ -291,9 +296,32 @@ describe("RequestKernel rights", () => {
 
     // the targets are computed from the checked payload ("hi" became "HI")
     expect(check.mock.calls.map((call) => call[0])).toEqual([
-      { module: "mod-b", user: { id: "local" }, targets: [] },
-      { module: "mod-a", user: { id: "local" }, targets: ["Actor.HI", "Item.x"] },
+      { module: "mod-b", user: { id: "local" }, targets: [], gmOnly: false },
+      { module: "mod-a", user: { id: "local" }, targets: ["Actor.HI", "Item.x"], gmOnly: false },
     ]);
+  });
+
+  it("tells the gate whether the request type is for a Gamemaster or Assistant only, and only that type", async () => {
+    const check = vi.fn(async (_request: RightsCheck) => allow);
+    const world = handler({ type: "test.world", gmOnly: true });
+    const open = handler({ type: "test.open", gmOnly: false });
+    const kernel = createRequestKernel(makeRegistry(), [handler(), world, open], { rights: { check } });
+
+    await kernel.execute(envelope());
+    await kernel.execute(envelope({ type: "test.world" }));
+    await kernel.execute(envelope({ type: "test.open" }));
+
+    expect(check.mock.calls.map((call) => call[0].gmOnly)).toEqual([false, true, false]);
+  });
+
+  it("does not run a request type for a Gamemaster or Assistant only when the gate refuses it, and gives the gate's text", async () => {
+    const run = vi.fn(handler().run);
+    const kernel = createRequestKernel(makeRegistry(), [handler({ gmOnly: true, run })], {
+      rights: { check: async (request) => (request.gmOnly ? refuse("only a Gamemaster") : allow) },
+    });
+
+    expect(await kernel.execute(envelope())).toEqual({ ok: false, reason: "not-permitted", detail: "only a Gamemaster" });
+    expect(run).not.toHaveBeenCalled();
   });
 
   it("asks the gate about the user the request runs for: the option wins over currentUser, and without either the user is unknown", async () => {

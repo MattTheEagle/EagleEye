@@ -39,9 +39,10 @@ function readRights(environment: RightsEnvironment): ParsedRights {
 // The rule, in this order; every doubt is a "no":
 //  1. a user who is not known is refused;
 //  2. a Gamemaster or Assistant is allowed;
-//  3. rights that cannot be read refuse everybody else;
-//  4. a module the user has no entry for is refused;
-//  5. "all" allows everything; "own" allows requests without a target and requests whose targets the user all owns.
+//  3. a request type that is for a Gamemaster or Assistant only refuses everybody else, whatever level they have;
+//  4. rights that cannot be read refuse everybody else;
+//  5. a module the user has no entry for is refused;
+//  6. "all" allows everything; "own" allows requests without a target and requests whose targets the user all owns.
 // The check never rejects and never throws: whatever goes wrong is a refusal.
 export function createRightsGate(environment: RightsEnvironment, log?: RightsLog): RightsGate {
   let warned = false;
@@ -60,12 +61,13 @@ export function createRightsGate(environment: RightsEnvironment, log?: RightsLog
   }
 
   return Object.freeze({
-    async check({ module, user, targets }: RightsCheck): Promise<RightsVerdict> {
+    async check({ module, user, targets, gmOnly }: RightsCheck): Promise<RightsVerdict> {
       try {
         if (!user) return refuse("the user of this request is not known");
         const gm = environment.isGm(user.id);
         if (gm === true) return allow();
         if (gm !== false) return refuse("the user of this request is not known");
+        if (gmOnly === true) return refuse("this request may only be made by a Gamemaster or Assistant");
 
         const table = readTable();
         if (!table) return refuse("the rights could not be read, so nothing is allowed until they can");

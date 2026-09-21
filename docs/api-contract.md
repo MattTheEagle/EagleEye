@@ -1,6 +1,6 @@
 # Eagle Flight Control — API contract
 
-**API version:** `0.7.0`
+**API version:** `0.8.0`
 **Status:** development. Before `1.0.0` a minor version may break the API (see section 5).
 **Audience:** authors of Eagle modules. Flight Control does not integrate third-party modules. Registration by a
 third-party module is not a supported use; it cannot be prevented technically, and such a module would simply
@@ -15,7 +15,7 @@ its API object (section 1), which has five members:
 |---|---|---|
 | `version` | The API version of Flight Control (section 5). | `0.1.0` |
 | `registerModule` | Registers your module, so that it gets a tab in the hub, optionally with an Open button (sections 2 and 3). | `0.1.0`; `open` since `0.2.0` |
-| `request` | Asks Flight Control to do something. A request that needs the Gamemaster's rights runs on the Gamemaster's client, after the asking user has been confirmed, and the rights per module and user are checked before any request runs (section 4). | `0.3.0`; forwarding `0.4.0`; confirmation `0.5.0`; rights `0.6.0` |
+| `request` | Asks Flight Control to do something. A request that needs the Gamemaster's rights runs on the Gamemaster's client, after the asking user has been confirmed, and the rights per module and user are checked before any request runs; a request type that changes the world is for a Gamemaster or Assistant only (section 4). | `0.3.0`; forwarding `0.4.0`; confirmation `0.5.0`; rights `0.6.0`; first type that changes data `0.8.0` |
 | `getRights` | Tells your module what the user of this client may do with it (section 4). | `0.6.0` |
 | `getSystemInfo` | Tells your module which game system runs and whether Flight Control was tested with its version (section 4). | `0.7.0` |
 
@@ -152,7 +152,7 @@ Hooks.once("setup", () => {
 
   const result = api.registerModule({
     id: "my-eagle-module",
-    apiVersion: "0.7.0",
+    apiVersion: "0.8.0",
     open: () => new MyModuleApp().render({ force: true }), // optional
   });
   if (!result.ok) {
@@ -231,7 +231,8 @@ no tab. With no registered modules the hub says so.
 
 Once your module is registered, it can ask Flight Control to do things. All changes to Foundry data go through
 Flight Control, while your module keeps its own UI and logic. In this version Flight Control offers three request
-types as proofs that the channels and the rights work; further request types come with the modules that need them.
+types as proofs that the channels and the rights work and one that changes Foundry data (`compendium.create`, see "Compendia"
+below); further request types come with the modules that need them.
 
 ```js
 const result = await api.request({
@@ -240,7 +241,7 @@ const result = await api.request({
   payload: { echo: "hello" },
 });
 if (result.ok) {
-  console.log(result.value); // { apiVersion: "0.7.0", module: "my-eagle-module", echo: "hello" }
+  console.log(result.value); // { apiVersion: "0.8.0", module: "my-eagle-module", echo: "hello" }
 } else {
   console.warn(result.reason, result.detail);
 }
@@ -278,13 +279,15 @@ is what lets Flight Control send a request to the Gamemaster's client (see "Wher
 | `no-gm` | The request has to run on the Gamemaster's client and no Gamemaster is connected. Nothing was sent. | Tell the user that a Gamemaster has to be online; try again later. |
 | `relay-timeout` | The Gamemaster's client did not answer within 15 seconds. **The outcome is unknown: the request may still run.** | Do not assume it failed; ask again only if the request type tolerates being run twice. |
 | `relay-failed` | The request could not be delivered or answered (Foundry refused the transfer, or the answer was not a result); `detail` says what happened. | Show the message; retry only if that makes sense. |
-| `not-permitted` | The request was refused: the receiving side is not a Gamemaster's client, the request type is not run for other clients, the asking user could not be confirmed (see "Who asked"), or the rights per module and user do not allow it (see "Rights per module and user"). `detail` says which. | Do not retry. Ask `getRights` before you offer the action. |
+| `not-permitted` | The request was refused: the receiving side is not a Gamemaster's client, the request type is not run for other clients, the asking user could not be confirmed (see "Who asked"), the request type is for a Gamemaster or Assistant only and the user has neither role, or the rights per module and user do not allow it (see "Rights per module and user"). `detail` says which. | Do not retry. Ask `getRights` before you offer the action. |
 
 Treat every reason you do not know as a failure: later versions of this contract may add reasons.
 
 **Versions:** a request without `version` always means version `1`. A version of a request type stays supported as
-long as its contract lists it, so a module keeps working when Flight Control adds a newer version. New request types
-and new versions of a request type do not change the API version of this contract.
+long as its contract lists it, so a module keeps working when Flight Control adds a newer version. A new version of a
+request type does not change the API version of this contract. **A new request type does, until `1.0.0`:** it raises
+the minor version of the API (section 5), so that a module written for a request type is refused at registration by a
+Flight Control that lacks it, instead of failing when it asks.
 
 **Where a request runs:** every request type says where it runs (last table of this section). Most types run in
 your own client, with the rights of the current user. A type that needs the Gamemaster's rights runs on the
@@ -353,8 +356,14 @@ three levels:
   the ownership level Owner over the document; Foundry lets a document inside another (an item of an actor) follow the
   ownership of its parent. A target that cannot be found counts as not owned, and the refusal is the same for a document
   that belongs to someone else and for one that cannot be found. A request without a target is not restricted by `own`.
+- **Requests for a Gamemaster or Assistant only:** a request type can be marked so. It is refused for every user who has
+  neither the Gamemaster nor the Assistant role, **whatever level the module has for that user**: a player with the level
+  `own` or `all` gets `not-permitted` too. The check is the rights check, so it is binding where the request runs (on the
+  Gamemaster's client, for the user who confirmed the request). A Gamemaster and an Assistant are not restricted by it.
+  Every request type that changes the world is marked so.
 - **Refusals** come as `not-permitted`; `detail` says which rule: `module "<id>" may not be used by this user`,
-  `module "<id>" may act only on targets this user owns`, `the user of this request is not known`, `the rights could
+  `module "<id>" may act only on targets this user owns`, `this request may only be made by a Gamemaster or Assistant`,
+  `the user of this request is not known`, `the rights could
   not be read, so nothing is allowed until they can` (the stored rights are damaged: nobody but a Gamemaster or
   Assistant may do anything until the Gamemaster sets a level in the hub), `the rights could not be set up, so nothing
   is allowed` (Flight Control could not set up its rights when Foundry started: every request is refused, even for a
@@ -372,11 +381,19 @@ if (result.ok) console.log(result.value.level); // "denied", "own" or "all"
   (`denied` when nothing is set). It reads the rights this client knows and never throws. The check at the request is
   what counts, not this answer. Call it from `ready` or later. Failures: `invalid-request` (not a non-empty string),
   `not-registered` (the module is not registered or not active), `internal-error`.
-- **Rules for request types** (for the versions of this contract that add them): a type that acts on documents names them,
-  otherwise `own` cannot restrict it. A type that belongs to one module has to state which modules may use it, because
-  the rights are per module and `module` is only what the caller states. A type that runs on the Gamemaster's client
-  and changes data or hands out knowledge only the Gamemaster has says how in the design of its milestone. The three
-  types below do none of this.
+- **Rules for request types:** a type that acts on documents names them, otherwise `own` cannot restrict it. A type that
+  belongs to one module has to state which modules may use it, because the rights are per module and `module` is only what
+  the caller states; **no type of Flight Control belongs to a module**: they are Foundry operations that belong to Flight
+  Control, and every registered module the Gamemaster has given a level may ask for them. A type that runs on the
+  Gamemaster's client and changes data or hands out knowledge only the Gamemaster has says how in the design of its
+  milestone; every type that changes the world is `gmOnly` (see above). The proofs below do none of this; `compendium.create`
+  is described under "Compendia".
+- **What a type is:** one Foundry operation (create a compendium, later import or update documents), not one step of a
+  module's feature. What a module wants (which compendium, which name, which version, which links to rewrite) is decided in
+  the module; Flight Control only carries out the operation. A request names documents by UUID and never carries a
+  document as data: a forwarded request may be at most 65,536 characters, and documents such as large NPCs and journals
+  are bigger. A type that creates something answers "it exists already" when asked again, because after `relay-timeout` the
+  outcome is unknown (see "Failure reasons of requests").
 
 **The sender is trusted:** `module` is the id your module states; Foundry cannot prove which code made the call.
 Treat it as an honest label, not as security: an altered client can state the id of another module, so the rights per
@@ -390,12 +407,46 @@ The user is a different matter for a forwarded request (see "Who asked").
 | `flightcontrol.ping` | `1` | your own client | none, `null`, or `{ echo?: string }` (`echo` up to 200 characters) | `{ apiVersion, module, echo }`; `echo` is `null` when not given |
 | `flightcontrol.gmping` | `1` | the Gamemaster's client | the same as `flightcontrol.ping` | `{ apiVersion, module, echo, ranBy: { userId, isGm }, askedBy }`; `ranBy` names the user whose client ran the request, `askedBy` the user who confirmed it (`null` when not known) |
 | `flightcontrol.targetping` | `1` | the Gamemaster's client | `{ uuid: string }`, the UUID of a document (up to 200 characters) | `{ apiVersion, module, uuid, askedBy }`; the document is the request's target, the type does nothing with it and tells nothing about it |
+| `compendium.create` | `1` | the Gamemaster's client | `{ type, label, name }` (see "Compendia") | `{ created, collection, name, label, type, locked, ownership }`; for a Gamemaster or Assistant only |
 
 Use `flightcontrol.ping` to check that the channel works, and `flightcontrol.gmping` to check that a request reaches
 the Gamemaster's client: for a player it answers with the Gamemaster's `userId` in `ranBy` and the player's own id in
 `askedBy`, or with `no-gm` if no Gamemaster is connected. Use `flightcontrol.targetping` to see the rights for own and
 foreign targets: with the level `own` it answers for a document the user owns and refuses every other with
 `not-permitted`; with `all` it answers for both.
+
+**Compendia** (since API `0.8.0`)
+
+`compendium.create` (version `1`) creates a world compendium. It runs on the Gamemaster's client, is for a Gamemaster or
+Assistant only (see "Requests for a Gamemaster or Assistant only") and names no target: it acts on no existing document.
+
+```js
+const result = await api.request({
+  module: "my-eagle-module",
+  type: "compendium.create",
+  payload: { type: "Item", label: "Eagle Spells (2014)", name: "eagle-spells-2014" },
+});
+// { ok: true, value: { created: true, collection: "world.eagle-spells-2014", name: "eagle-spells-2014",
+//   label: "Eagle Spells (2014)", type: "Item", locked: false, ownership: { PLAYER: "OBSERVER", ASSISTANT: "OWNER" } } }
+```
+
+| Field | Meaning |
+|---|---|
+| `type` | The document type of the compendium: `Actor`, `Adventure`, `Cards`, `Item`, `JournalEntry`, `Macro`, `Playlist`, `RollTable` or `Scene`. |
+| `label` | The title of the compendium; not empty after white space at both ends is removed, at most 200 characters. |
+| `name` | The name of the compendium without the package: lower case letters and digits, joined by single hyphens or underscores (`^[a-z0-9]+([-_][a-z0-9]+)*$`), at most 100 characters. This is a safe part of what Foundry accepts (no spaces, no periods, no special characters); Flight Control does not make a name from the label. |
+
+- **What it does:** it looks for a world compendium of that name. If there is none, it creates one with `createCompendium`
+  and answers `created: true`. It changes nothing else about the new compendium: no lock and no ownership. `locked` and
+  `ownership` in the answer are what Foundry gave it (`ownership` maps a role to a level).
+- **Asking again is safe:** a compendium of that name and document type that exists already is left alone and answered
+  with `created: false`, described as it is (its own label, lock and ownership). This lets a module continue after
+  `relay-timeout`, where the outcome is unknown.
+- **Failures:** `invalid-payload` (the detail names the field), `not-permitted` (the user is neither Gamemaster nor
+  Assistant, or the module is denied), `handler-failed`: Foundry refused (its message is in `detail` for a Gamemaster or
+  Assistant, whose client runs the request), or a compendium of that name exists with another document type (nothing is
+  touched). Nothing is deleted, renamed or filled.
+- **Not verified in a running Foundry:** see section 8.
 
 **The game system** (since API `0.7.0`)
 
@@ -457,8 +508,9 @@ The API version is independent of the module version in `module.json`: the modul
 Flight Control you have, the API version says which contract it offers.
 
 **Before and after `1.0.0`:** the API stays below `1.0.0` until the first module outside Flight Control (the planned
-Eagle Library) has used it without a break. Until then a change of the minor version may break the API (rule 2 above).
-From `1.0.0` on, a minor version only adds to the API and only a new major version may break it.
+Eagle Library) has used it without a break. Until then a change of the minor version may break the API (rule 2 above), and
+every new request type raises the minor version (section 4, "Versions"). From `1.0.0` on, a minor version only adds to
+the API and only a new major version may break it.
 
 ## 6. Manifest requirements for Eagle modules
 
@@ -477,12 +529,13 @@ Declare Flight Control as a required module:
 - Whether Foundry enforces the `compatibility` range when a module is enabled is **not verified**. The API
   version check at registration (section 5) is the check you can rely on.
 - **Module version and API version:** the two numbers are independent (section 5). The module version `0.1.0` is the
-  first that contains this API; the earlier module version `0.0.1` predates it. Use the module version that first
+  first that contains an API; the earlier module version `0.0.1` predates it. Use the module version that first
   provides the API version you need as `minimum`:
 
   | Module version | API version |
   |---|---|
   | `0.1.0` | `0.7.0` |
+  | `0.2.0` | `0.8.0` |
 
   The table gets a row for every module version that changes the API version.
 - **Texts and files:** Flight Control ships `lang/en.json` and lists it under `languages` in its manifest. A package
@@ -503,7 +556,9 @@ The version rules, the registry, the shape of the API object, the logic behind t
 action), the request kernel (envelope checks, sender check, handlers, versions, JSON rule, results), the relay
 (where a request runs, forwarding, the Gamemaster's side, limits, failure reasons) and the rights (levels, the check,
 what the hub's rights block shows and writes, `getRights`) and the game system guard (the five states, the notice,
-`getSystemInfo`) are covered by unit tests of the pure logic.
+`getSystemInfo`) and the request type `compendium.create` (the payload, creating, asking again, the refusal of everybody who
+is neither Gamemaster nor Assistant, also with the levels `own` and `all`, and the same refusal through the relay) are covered by unit
+tests of the pure logic.
 
 **Verified in a running Foundry** (Foundry v13, build 351, on Forge, a dnd5e world; four test modules; live checks on
 2026-09-19 with API `0.3.0` and on 2026-09-20 with API `0.4.0`, `0.5.0`, `0.6.0` and `0.7.0`, the last one with the
@@ -592,6 +647,10 @@ release build, module version `0.1.0`):
 - the game system (API `0.7.0`): the notification for a Gamemaster when the world is ready, the states `same-line`,
   `untested`, `other-system` and `unknown` in Foundry (the test world runs a tested version), and what a player sees
   (unit tests and a simulation only; check packages that make Flight Control read another value exist);
+- the request type `compendium.create` (API `0.8.0`): whether Foundry accepts the names, what `createCompendium` needs
+  (a Gamemaster, an Assistant), what a new world compendium looks like (`locked`, `ownership`), what happens when the same
+  name is asked twice at the same moment, how long it takes, and whether `game.packs` has the new compendium as soon as the
+  call returns (unit tests and a simulation only);
 - what the hub does with a refused value: it resets the field and shows a notification (unit tests only; the number
   field of a slider limits a value typed above the maximum before the hub sees it, so this path cannot be triggered
   with such a field);
@@ -603,7 +662,7 @@ release build, module version `0.1.0`):
 
 ## 9. Not part of this version
 
-- Request types that read or change Foundry data (only the three proofs exist). They will be added in later versions of
+- Request types that read or change Foundry data other than `compendium.create`. They will be added in later versions of
   this contract.
 - A limit on how many requests a client may send or have waiting (see "Forwarded requests" in section 4).
 
@@ -621,3 +680,4 @@ project in which a change was made; the earlier project documents use these name
 | `0.5.0` | Part 5: a forwarded request carries the asking user and an identifier, and the Gamemaster's client runs it only after the client of that user has confirmed it; `not-permitted` also covers an unconfirmed user; `flightcontrol.gmping` reports `askedBy`. |
 | `0.6.0` | Part 6: rights per module and user (`denied`, `own`, `all`), set by the Gamemaster in the hub and checked by the request kernel before a request runs; `not-permitted` also covers a refusal by the rights; a request type can name its target documents; new function `getRights`; request type `flightcontrol.targetping`. |
 | `0.7.0` | Part 7: the game system guard: Flight Control tells a Gamemaster when the game system is not one it was tested with, and the new function `getSystemInfo` tells modules the id, the version and the status of the system; nothing is blocked. |
+| `0.8.0` | Library milestone M3: the first request type that changes Foundry data, `compendium.create`; request types can be marked for a Gamemaster or Assistant only (`not-permitted` for everybody else, whatever the level), and `compendium.create` is; before `1.0.0` a new request type raises the minor version of the API. |

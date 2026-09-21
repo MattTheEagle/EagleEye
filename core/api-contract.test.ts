@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import contractRaw from "../docs/api-contract.md?raw";
 import manifestRaw from "../v13/module.json?raw";
 import { compareVersions, EAGLE_API_VERSION, isApiCompatible, parseVersion } from "./api-version";
+import { COMPENDIUM_DOCUMENT_TYPES, NO_COMPENDIUMS } from "./compendium-handlers";
 import { defaultRequestHandlers } from "./request-handlers";
 import { CONFIRM_TIMEOUT_MS } from "./request-identity";
 import { MAX_RELAY_SIZE, RELAY_TIMEOUT_MS } from "./request-relay";
@@ -116,8 +117,8 @@ describe("API contract: registration and requests", () => {
   });
 
   it("lists the request types of the code, their versions and where each runs", () => {
-    const handlers = defaultRequestHandlers(EAGLE_API_VERSION, () => ({ userId: "user", isGm: false }));
-    const rows = [...contract.matchAll(/^\| `(flightcontrol\.[a-z]+)` \| `(\d+)` \| (your own client|the Gamemaster's client) \|/gm)];
+    const handlers = defaultRequestHandlers(EAGLE_API_VERSION, () => ({ userId: "user", isGm: false }), NO_COMPENDIUMS);
+    const rows = [...contract.matchAll(/^\| `([a-z]+\.[a-z]+)` \| `(\d+)` \| (your own client|the Gamemaster's client) \|/gm)];
     expect(rows.map((row) => row[1]).sort()).toEqual(handlers.map((handler) => handler.type).sort());
     for (const [, type, version, place] of rows) {
       const handler = handlers.find((candidate) => candidate.type === type)!;
@@ -227,5 +228,73 @@ describe("API contract: structure", () => {
     for (const word of ["getRights", "getSystemInfo", "game system", "confirmation", "rights per module"]) {
       expect(notPart, word).not.toContain(word);
     }
+  });
+});
+
+describe("API contract: compendium.create and requests for a Gamemaster or Assistant only", () => {
+  const handlers = defaultRequestHandlers(EAGLE_API_VERSION, () => ({ userId: "user", isGm: false }), NO_COMPENDIUMS);
+  const compendia = between(contract, "**Compendia** (since API `0.8.0`)", "**The game system**");
+
+  it("marks in the table of request types exactly the types that are for a Gamemaster or Assistant only", () => {
+    const rows = between(contract, "**Request types in this version**", "Use `flightcontrol.ping`")
+      .split("\n")
+      .filter((line) => /^\| `[a-z]+\.[a-z]+` \|/.test(line));
+    const marked = rows.filter((row) => row.includes("for a Gamemaster or Assistant only")).map((row) => row.split("`")[1]);
+    expect(marked.sort()).toEqual(handlers.filter((handler) => handler.gmOnly === true).map((handler) => handler.type).sort());
+  });
+
+  it("marks every request type that runs on the Gamemaster's client and is not a proof as for a Gamemaster or Assistant only", () => {
+    const changing = handlers.filter((handler) => handler.runsOn === "gm" && !handler.type.startsWith("flightcontrol."));
+    expect(changing.map((handler) => handler.type)).toEqual(["compendium.create"]);
+    for (const handler of changing) expect(handler.gmOnly, handler.type).toBe(true);
+  });
+
+  it("states the payload rules of compendium.create the way the code checks them", () => {
+    const handler = handlers.find((candidate) => candidate.type === "compendium.create")!;
+    const types = compendia.match(/The document type of the compendium: (.+?)\. \|/s)?.[1] ?? "";
+    expect([...types.matchAll(/`([A-Za-z]+)`/g)].map((match) => match[1])).toEqual([...COMPENDIUM_DOCUMENT_TYPES]);
+    const code = source("compendium-handlers");
+    const nameLimit = code.match(/MAX_NAME_LENGTH = (\d+)/)?.[1];
+    const labelLimit = code.match(/MAX_LABEL_LENGTH = (\d+)/)?.[1];
+    expect(compendia).toContain(`at most ${labelLimit} characters`);
+    expect(compendia).toContain(`at most ${nameLimit} characters`);
+    expect(compendia).toContain("`^[a-z0-9]+([-_][a-z0-9]+)*$`");
+    // the pattern in the text is the pattern in the code
+    expect(code).toContain("/^[a-z0-9]+([-_][a-z0-9]+)*$/");
+    // the examples of the contract pass the check of the code
+    expect(handler.validate({ type: "Item", label: "Eagle Spells (2014)", name: "eagle-spells-2014" })).toMatchObject({ ok: true });
+  });
+
+  it("names the fields of the answer and says that asking again is safe and nothing else is changed", () => {
+    expect(compendia).toContain("`{ created, collection, name, label, type, locked, ownership }`".replace(/`/g, "").length ? "created: true" : "");
+    for (const field of ["created", "collection", "name", "label", "type", "locked", "ownership"]) {
+      expect(source("compendium-handlers"), field).toMatch(new RegExp(`\\b${field}\\b`));
+      expect(contract, field).toContain(field);
+    }
+    expect(flat).toContain("Asking again is safe");
+    expect(flat).toContain("`created: false`");
+    expect(flat).toContain("no lock and no ownership");
+    expect(flat).toContain("Nothing is deleted, renamed or filled.");
+  });
+
+  it("states the rule for a Gamemaster or Assistant only, and its refusal text as the code gives it", () => {
+    expect(flat).toContain("It is refused for every user who has neither the Gamemaster nor the Assistant role, **whatever level the module has for that user**");
+    expect(flat).toContain("Every request type that changes the world is marked so.");
+    expect(flat).toContain("`this request may only be made by a Gamemaster or Assistant`");
+    expect(flat).toContain("the request type is for a Gamemaster or Assistant only and the user has neither role");
+  });
+
+  it("states the principle of request types: a Foundry operation, no document as data, safe to ask again, no type belongs to a module", () => {
+    expect(flat).toContain("**no type of Flight Control belongs to a module**");
+    expect(flat).toContain("A request names documents by UUID and never carries a document as data");
+    expect(flat).toContain("a forwarded request may be at most 65,536 characters");
+    expect(flat).toContain("A type that creates something answers \"it exists already\" when asked again");
+  });
+
+  it("says that a new request type raises the minor version of the API before 1.0.0, and gives the module version its row", () => {
+    expect(flat).toContain("**A new request type does, until `1.0.0`:** it raises the minor version of the API");
+    expect(flat).toContain("every new request type raises the minor version");
+    expect(contract).toContain("| `0.2.0` | `0.8.0` |");
+    expect(flat).not.toContain("New request types and new versions of a request type do not change the API version");
   });
 });

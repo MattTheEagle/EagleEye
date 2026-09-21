@@ -546,4 +546,30 @@ describe("RequestRelay.receive with rights", () => {
     expect(unconfirmed.run).not.toHaveBeenCalled();
     expect(unconfirmed.isGm).not.toHaveBeenCalled();
   });
+
+  it("refuses a request type for a Gamemaster or Assistant only for a confirmed player of any level, and runs it for the Gamemaster", async () => {
+    const run = vi.fn(async (payload: string, context: RequestContext) => ({ said: payload, for: context.user?.id ?? null }));
+    const isGm = (id: string) => (id === "gm" ? true : id.startsWith("p-") ? false : undefined);
+    const environment: RightsEnvironment = {
+      storedTable: () => serializeRightsTable({ version: 1, modules: { "mod-a": { "p-1": "own", "p-2": "all" } } }),
+      isGm,
+      ownership: async () => "own",
+    };
+    const handlers = [gmHandler({ run, gmOnly: true })];
+    const kernel = createRequestKernel(makeRegistry(), handlers, { rights: createRightsGate(environment) });
+    const { relay, log } = makeRelay({ isGm: true, handlers, kernel });
+
+    for (const player of ["p-1", "p-2", "p-3"]) {
+      expect(await relay.receive(relayed(gmRequest(), player)), player).toEqual({
+        ok: false,
+        reason: "not-permitted",
+        detail: "this request may only be made by a Gamemaster or Assistant",
+      });
+    }
+    expect(run).not.toHaveBeenCalled();
+    expect(log.warn).toHaveBeenCalledTimes(3);
+
+    expect(await relay.receive(relayed(gmRequest(), "gm"))).toEqual({ ok: true, value: { said: "hi", for: "gm" } });
+    expect(run).toHaveBeenCalledTimes(1);
+  });
 });

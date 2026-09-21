@@ -173,6 +173,50 @@ describe("createRightsGate", () => {
   });
 });
 
+describe("createRightsGate: a request type for a Gamemaster or Assistant only", () => {
+  const ONLY_GM = "this request may only be made by a Gamemaster or Assistant";
+  const askGmOnly = (gate: ReturnType<typeof makeGate>["gate"], userId: string | undefined, targets: string[] = []) =>
+    gate.check({ module: "mod-a", user: userId === undefined ? undefined : { id: userId }, targets, gmOnly: true });
+
+  it("allows a Gamemaster and an Assistant, whatever the table says", async () => {
+    for (const table of [undefined, "not json", text({})]) {
+      const { gate } = makeGate({ table });
+      for (const userId of ["gm", "assistant"]) {
+        expect(await askGmOnly(gate, userId), `${userId} with ${String(table)}`).toEqual({ ok: true });
+      }
+    }
+  });
+
+  it("refuses a player of every level, also the one that would be allowed for an ordinary request", async () => {
+    const { gate, ownership, storedTable } = makeGate();
+    // p1 has "own", p2 has "all", p3 has no entry: all three are refused with the same text.
+    for (const userId of ["p1", "p2", "p3"]) {
+      expect(await askGmOnly(gate, userId), userId).toEqual({ ok: false, detail: ONLY_GM });
+    }
+    // ... and the same request without the flag is what it was before.
+    expect(await ask(gate, "p2")).toEqual({ ok: true });
+    expect(await ask(gate, "p1")).toEqual({ ok: true });
+    expect(ownership).not.toHaveBeenCalled();
+    // The refusal does not depend on the stored rights, so they are not read for it.
+    storedTable.mockClear();
+    await askGmOnly(gate, "p2");
+    expect(storedTable).not.toHaveBeenCalled();
+  });
+
+  it("refuses a player when the rights cannot be read, with the same text, and a user nobody knows with the known text", async () => {
+    const { gate } = makeGate({ table: "not json" });
+    expect(await askGmOnly(gate, "p1")).toEqual({ ok: false, detail: ONLY_GM });
+    expect(await askGmOnly(gate, undefined)).toEqual({ ok: false, detail: "the user of this request is not known" });
+    expect(await askGmOnly(gate, "stranger")).toEqual({ ok: false, detail: "the user of this request is not known" });
+  });
+
+  it("does not change what a request without the flag does (gmOnly false or missing)", async () => {
+    const { gate } = makeGate();
+    expect(await gate.check({ module: "mod-a", user: { id: "p3" }, targets: [], gmOnly: false })).toEqual({ ok: false, detail: DENIED });
+    expect(await gate.check({ module: "mod-a", user: { id: "p2" }, targets: [], gmOnly: false })).toEqual({ ok: true });
+  });
+});
+
 describe("effectiveLevel", () => {
   it("is all for a Gamemaster or Assistant, the stored level for a player, and denied for anyone who is not known or when the table cannot be read", () => {
     const { environment } = makeGate();

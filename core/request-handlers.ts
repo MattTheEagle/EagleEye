@@ -1,3 +1,4 @@
+import { createCompendiumHandler, type CompendiumEnvironment } from "./compendium-handlers";
 import type { JsonValue } from "./json-value";
 import type { PayloadCheck, RequestHandler } from "./request-kernel";
 
@@ -101,11 +102,17 @@ function createTargetPingHandler(apiVersion: string): RequestHandler<TargetPaylo
 // brings it (Flight Control stays narrow and generic); the test for this list guards against unnoticed growth.
 // A handler that runs on the Gamemaster's client ("gm") must name the documents it acts on (`targets`), so the rights
 // per module and user decide before it runs. One that changes data or hands out Gamemaster-only knowledge also needs
-// the Apply of its milestone to say how (see the rules in the API contract, part 6).
-export function defaultRequestHandlers(apiVersion: string, executor: () => Executor): RequestHandler[] {
+// the Apply of its milestone to say how (see the rules in the API contract, section 4); a type that changes the world is
+// marked `gmOnly`.
+export function defaultRequestHandlers(
+  apiVersion: string,
+  executor: () => Executor,
+  compendiums: CompendiumEnvironment,
+): RequestHandler[] {
   return [
     createPingHandler(apiVersion) as RequestHandler,
     createGmPingHandler(apiVersion, executor) as RequestHandler,
     createTargetPingHandler(apiVersion) as RequestHandler,
+    createCompendiumHandler(compendiums) as RequestHandler,
   ];
 }

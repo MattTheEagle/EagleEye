@@ -1,6 +1,6 @@
 {
   "name": "eagleeye",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "type": "module",
   "description": "EagleEye - Eagle Flight Control: the interface between the Eagle modules, the D&D 5e system and Foundry VTT. Early release for testing.",

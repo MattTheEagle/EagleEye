@@ -57,6 +57,11 @@ export interface RequestHandler<P = unknown> {
   // Defaults to "caller". A request for a "gm" handler that comes from a client without a Gamemaster role is
   // forwarded to the Gamemaster (see request-relay.ts); the kernel itself never looks at this value.
   readonly runsOn?: RunsOn;
+  // Only a user with a Gamemaster role (Gamemaster or Assistant) may make a request of this type, whatever level the
+  // rights give the module. For types that change the world, so that a player with the level "own" or "all" cannot
+  // start them through an altered client. The check is the rights check (see request-rights.ts) and therefore binding
+  // where the handler runs. Defaults to false.
+  readonly gmOnly?: boolean;
   validate(payload: unknown): PayloadCheck<P>;
   // The documents this request acts on, as UUIDs; empty when it acts on none. The kernel calls it with the checked
   // payload, so the rights per module and user can be decided before `run`. A handler that acts on a document it does
@@ -72,6 +77,8 @@ export interface RightsCheck {
   // The user the request runs for; unknown when the kernel was given no way to tell.
   readonly user: RequestUser | undefined;
   readonly targets: readonly string[];
+  // The request type may be used by a Gamemaster or Assistant only.
+  readonly gmOnly?: boolean;
 }
 
 export type RightsVerdict = { readonly ok: true } | { readonly ok: false; readonly detail: string };
@@ -165,6 +172,9 @@ export function createRequestKernel(
     if (handler.runsOn !== undefined && handler.runsOn !== "caller" && handler.runsOn !== "gm") {
       throw new Error(`request handler "${handler.type}" must run on "caller" or "gm"`);
     }
+    if (handler.gmOnly !== undefined && typeof handler.gmOnly !== "boolean") {
+      throw new Error(`request handler "${handler.type}" must give gmOnly as true or false`);
+    }
     if (handler.targets !== undefined && typeof handler.targets !== "function") {
       throw new Error(`request handler "${handler.type}" must give its targets as a function`);
     }
@@ -180,11 +190,12 @@ export function createRequestKernel(
     module: string,
     user: RequestUser | undefined,
     targets: readonly string[],
+    gmOnly: boolean,
   ): Promise<RequestFailureResult | undefined> {
     if (!options.rights) return undefined;
     let verdict: { ok?: unknown; detail?: unknown } | undefined;
     try {
-      verdict = await options.rights.check({ module, user, targets });
+      verdict = await options.rights.check({ module, user, targets, gmOnly });
     } catch {
       return fail("not-permitted", "the rights could not be checked");
     }
@@ -231,7 +242,7 @@ export function createRequestKernel(
         const user = executeOptions?.user ?? options.currentUser?.();
         const targets = targetsOf(handler, check.value);
         if (!targets) return fail("handler-failed", `the targets of "${type}" are not a list of UUIDs`);
-        const refused = await checkRights(caller.id, user, targets);
+        const refused = await checkRights(caller.id, user, targets, handler.gmOnly === true);
         if (refused) return refused;
         value = await handler.run(check.value, user ? { module: caller, user } : { module: caller });
       } catch (error) {
