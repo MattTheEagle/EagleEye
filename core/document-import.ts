@@ -7,7 +7,7 @@ export const IMPORTABLE_DOCUMENT_TYPES = ["Actor", "Item", "JournalEntry", "Roll
 export type ImportableDocumentType = (typeof IMPORTABLE_DOCUMENT_TYPES)[number];
 
 export const MAX_IMPORT_SOURCES = 100;
-export const MAX_IMPORT_CHANGES = 20;
+export const MAX_IMPORT_CHANGES = 50;
 const MAX_UUID_LENGTH = 200;
 const MAX_NAME_LENGTH = 200;
 const ID_PATTERN = /^[A-Za-z0-9]{16}$/;

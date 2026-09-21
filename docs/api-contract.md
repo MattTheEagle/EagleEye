@@ -1,6 +1,6 @@
 # Eagle Flight Control — API contract
 
-**API version:** `0.10.0`
+**API version:** `0.11.0`
 **Status:** development. Before `1.0.0` a minor version may break the API (see section 5).
 **Audience:** authors of Eagle modules. Flight Control does not integrate third-party modules. Registration by a
 third-party module is not a supported use; it cannot be prevented technically, and such a module would simply
@@ -152,7 +152,7 @@ Hooks.once("setup", () => {
 
   const result = api.registerModule({
     id: "my-eagle-module",
-    apiVersion: "0.10.0",
+    apiVersion: "0.11.0",
     open: () => new MyModuleApp().render({ force: true }), // optional
   });
   if (!result.ok) {
@@ -241,7 +241,7 @@ const result = await api.request({
   payload: { echo: "hello" },
 });
 if (result.ok) {
-  console.log(result.value); // { apiVersion: "0.10.0", module: "my-eagle-module", echo: "hello" }
+  console.log(result.value); // { apiVersion: "0.11.0", module: "my-eagle-module", echo: "hello" }
 } else {
   console.warn(result.reason, result.detail);
 }
@@ -482,7 +482,7 @@ const result = await api.request({
 - **An entry that is not the source as it is** (since API `0.10.0`, for a copy that has to differ, such as a forced copy of
   the Library): `id` is the id of the copy (16 letters and digits) instead of the id of the source; `name` is its name (at
   most 200 characters); `changes` sets fields of the copy's data after it was made, from a path like `system.container`
-  to a JSON value (at most 20 paths; the paths `_id` and `_stats` are not allowed: the id has `id`, and where a document came
+  to a JSON value (at most 50 paths; the paths `_id` and `_stats` are not allowed: the id has `id`, and where a document came
   from stays). The same document may be copied twice in one request under two ids; two copies must not end with the same id.
   A string entry is the same as `{ source }`.
 - **Asking again is safe:** a copy whose id (the one the entry gives, or else that of the source) is in the compendium already is
@@ -622,6 +622,7 @@ Declare Flight Control as a required module:
   | `0.2.0` | `0.8.0` |
   | `0.3.0` | `0.9.0` |
   | `0.4.0` | `0.10.0` |
+  | `0.5.0` | `0.11.0` |
 
   The table gets a row for every module version that changes the API version.
 - **Texts and files:** Flight Control ships `lang/en.json` and lists it under `languages` in its manifest. A package
@@ -779,3 +780,4 @@ project in which a change was made; the earlier project documents use these name
 | `0.8.0` | Library milestone M3: the first request type that changes Foundry data, `compendium.create`; request types can be marked for a Gamemaster or Assistant only (`not-permitted` for everybody else, whatever the level), and `compendium.create` is; before `1.0.0` a new request type raises the minor version of the API. |
 | `0.9.0` | Library milestone M4: the request type `compendium.import` copies documents, named by UUID, into a world compendium that exists (the ids and where they came from stay); for a Gamemaster or Assistant only. |
 | `0.10.0` | Library milestone M5: the request type `setting.write` writes a world setting of the asking module (its own only); the entries of `compendium.import` may be objects with an `id`, a `name` and `changes` for a copy that differs from its source. |
+| `0.11.0` | Library milestone M7: `compendium.import` takes up to 50 paths in `changes` of an entry (was 20), so that a document can be written with all its links rewritten in one operation. No new request type. |

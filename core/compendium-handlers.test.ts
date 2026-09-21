@@ -10,7 +10,7 @@ import {
 import { isJsonValue } from "./json-value";
 import type { RegisteredModule } from "./module-registry";
 
-const MODULE: RegisteredModule = { id: "mod-a", title: "Module A", version: "1.0.0", apiVersion: "0.10.0" };
+const MODULE: RegisteredModule = { id: "mod-a", title: "Module A", version: "1.0.0", apiVersion: "0.11.0" };
 const GM = { id: "gm-1" };
 
 // A world with compendia in a table; `create` puts a new one in it as Foundry would, with the state Foundry gives it.

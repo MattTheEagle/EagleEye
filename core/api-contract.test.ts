@@ -300,6 +300,8 @@ describe("API contract: compendium.create and requests for a Gamemaster or Assis
     expect(contract).toContain("| `0.2.0` | `0.8.0` |");
     expect(contract).toContain("| `0.3.0` | `0.9.0` |");
     expect(contract).toContain("| `0.4.0` | `0.10.0` |");
+    expect(contract).toContain("| `0.5.0` | `0.11.0` |");
+    expect(contract).toContain("| `0.11.0` | Library milestone M7:");
     expect(flat).not.toContain("New request types and new versions of a request type do not change the API version");
   });
 });

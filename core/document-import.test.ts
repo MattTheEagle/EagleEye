@@ -316,9 +316,9 @@ describe("compendium.import: entries with an id, a name and changes (a copy that
     for (const changes of [null, "x", 5, [], [1]]) {
       expect(one({ changes }), JSON.stringify(changes)).toMatchObject({ ok: false, detail: expect.stringContaining("changes") });
     }
-    const many = Object.fromEntries(Array.from({ length: 21 }, (_, i) => [`f${i}`, 1]));
+    const many = Object.fromEntries(Array.from({ length: 51 }, (_, i) => [`f${i}`, 1]));
     expect(one({ changes: many })).toMatchObject({ ok: false });
-    expect(one({ changes: Object.fromEntries(Array.from({ length: 20 }, (_, i) => [`f${i}`, 1])) })).toMatchObject({ ok: true });
+    expect(one({ changes: Object.fromEntries(Array.from({ length: 50 }, (_, i) => [`f${i}`, 1])) })).toMatchObject({ ok: true });
     for (const path of ["", "1a", "a..b", ".a", "a.", "a b", "_id", "_id.x", "_stats", "_stats.compendiumSource", "a/b", "$x"]) {
       expect(one({ changes: { [path]: 1 } }), path).toMatchObject({ ok: false, detail: expect.stringContaining("path") });
     }
