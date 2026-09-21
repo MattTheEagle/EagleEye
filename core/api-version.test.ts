@@ -23,8 +23,8 @@ describe("parseVersion", () => {
 });
 
 describe("EAGLE_API_VERSION", () => {
-  it("is 0.8.0, the version of the Library milestone M3 of the API contract", () => {
-    expect(EAGLE_API_VERSION).toBe("0.8.0");
+  it("is 0.10.0, the version of the Library milestone M5 of the API contract", () => {
+    expect(EAGLE_API_VERSION).toBe("0.10.0");
   });
 });
 

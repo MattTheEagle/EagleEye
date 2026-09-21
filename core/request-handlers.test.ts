@@ -1,5 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { NO_COMPENDIUMS } from "./compendium-handlers";
+import { NO_IMPORTS } from "./document-import";
+import { NO_SETTINGS } from "./setting-write";
 import type { RegisteredModule } from "./module-registry";
 import { defaultRequestHandlers, type Executor } from "./request-handlers";
 
@@ -8,7 +10,7 @@ const MODULE: RegisteredModule = { id: "mod-a", title: "Module A", version: "1.0
 const GM: Executor = { userId: "gm-1", isGm: true };
 
 function find(type: string, executor: () => Executor = () => GM) {
-  const handler = defaultRequestHandlers(API, executor, NO_COMPENDIUMS).find((h) => h.type === type);
+  const handler = defaultRequestHandlers(API, executor, NO_COMPENDIUMS, NO_IMPORTS, NO_SETTINGS).find((h) => h.type === type);
   if (!handler) throw new Error(`test setup: ${type} is missing`);
   return handler;
 }
@@ -118,23 +120,27 @@ describe("flightcontrol.targetping", () => {
 });
 
 describe("defaultRequestHandlers", () => {
-  it("offers exactly four request types; the two that run on the Gamemaster's client and name no or a target are the proofs, compendium.create is for a Gamemaster or Assistant only", () => {
-    const handlers = defaultRequestHandlers(API, () => GM, NO_COMPENDIUMS);
+  it("offers exactly six request types; the two that run on the Gamemaster's client and name no or a target are the proofs, compendium.create, compendium.import and setting.write are for a Gamemaster or Assistant only", () => {
+    const handlers = defaultRequestHandlers(API, () => GM, NO_COMPENDIUMS, NO_IMPORTS, NO_SETTINGS);
 
     expect(handlers.map((h) => [h.type, h.versions, h.runsOn ?? "caller"])).toEqual([
       ["flightcontrol.ping", [1], "caller"],
       ["flightcontrol.gmping", [1], "gm"],
       ["flightcontrol.targetping", [1], "gm"],
       ["compendium.create", [1], "gm"],
+      ["compendium.import", [1], "gm"],
+      ["setting.write", [1], "gm"],
     ]);
     // A handler that runs with Gamemaster rights needs the Apply of its milestone; one that acts on documents names them.
     expect(handlers.filter((h) => h.runsOn === "gm").map((h) => h.type)).toEqual([
       "flightcontrol.gmping",
       "flightcontrol.targetping",
       "compendium.create",
+      "compendium.import",
+      "setting.write",
     ]);
-    expect(handlers.filter((h) => h.targets !== undefined).map((h) => h.type)).toEqual(["flightcontrol.targetping"]);
+    expect(handlers.filter((h) => h.targets !== undefined).map((h) => h.type)).toEqual(["flightcontrol.targetping", "compendium.import"]);
     // Only a type that changes the world is for a Gamemaster or Assistant only.
-    expect(handlers.filter((h) => h.gmOnly === true).map((h) => h.type)).toEqual(["compendium.create"]);
+    expect(handlers.filter((h) => h.gmOnly === true).map((h) => h.type)).toEqual(["compendium.create", "compendium.import", "setting.write"]);
   });
 });

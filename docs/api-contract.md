@@ -1,6 +1,6 @@
 # Eagle Flight Control — API contract
 
-**API version:** `0.8.0`
+**API version:** `0.10.0`
 **Status:** development. Before `1.0.0` a minor version may break the API (see section 5).
 **Audience:** authors of Eagle modules. Flight Control does not integrate third-party modules. Registration by a
 third-party module is not a supported use; it cannot be prevented technically, and such a module would simply
@@ -15,7 +15,7 @@ its API object (section 1), which has five members:
 |---|---|---|
 | `version` | The API version of Flight Control (section 5). | `0.1.0` |
 | `registerModule` | Registers your module, so that it gets a tab in the hub, optionally with an Open button (sections 2 and 3). | `0.1.0`; `open` since `0.2.0` |
-| `request` | Asks Flight Control to do something. A request that needs the Gamemaster's rights runs on the Gamemaster's client, after the asking user has been confirmed, and the rights per module and user are checked before any request runs; a request type that changes the world is for a Gamemaster or Assistant only (section 4). | `0.3.0`; forwarding `0.4.0`; confirmation `0.5.0`; rights `0.6.0`; first type that changes data `0.8.0` |
+| `request` | Asks Flight Control to do something. A request that needs the Gamemaster's rights runs on the Gamemaster's client, after the asking user has been confirmed, and the rights per module and user are checked before any request runs; a request type that changes the world is for a Gamemaster or Assistant only (section 4). | `0.3.0`; forwarding `0.4.0`; confirmation `0.5.0`; rights `0.6.0`; first type that changes data `0.8.0`; copying documents `0.9.0`; writing a setting `0.10.0` |
 | `getRights` | Tells your module what the user of this client may do with it (section 4). | `0.6.0` |
 | `getSystemInfo` | Tells your module which game system runs and whether Flight Control was tested with its version (section 4). | `0.7.0` |
 
@@ -152,7 +152,7 @@ Hooks.once("setup", () => {
 
   const result = api.registerModule({
     id: "my-eagle-module",
-    apiVersion: "0.8.0",
+    apiVersion: "0.10.0",
     open: () => new MyModuleApp().render({ force: true }), // optional
   });
   if (!result.ok) {
@@ -241,7 +241,7 @@ const result = await api.request({
   payload: { echo: "hello" },
 });
 if (result.ok) {
-  console.log(result.value); // { apiVersion: "0.8.0", module: "my-eagle-module", echo: "hello" }
+  console.log(result.value); // { apiVersion: "0.10.0", module: "my-eagle-module", echo: "hello" }
 } else {
   console.warn(result.reason, result.detail);
 }
@@ -387,7 +387,7 @@ if (result.ok) console.log(result.value.level); // "denied", "own" or "all"
   Control, and every registered module the Gamemaster has given a level may ask for them. A type that runs on the
   Gamemaster's client and changes data or hands out knowledge only the Gamemaster has says how in the design of its
   milestone; every type that changes the world is `gmOnly` (see above). The proofs below do none of this; `compendium.create`
-  is described under "Compendia".
+  are described under "Compendia".
 - **What a type is:** one Foundry operation (create a compendium, later import or update documents), not one step of a
   module's feature. What a module wants (which compendium, which name, which version, which links to rewrite) is decided in
   the module; Flight Control only carries out the operation. A request names documents by UUID and never carries a
@@ -408,6 +408,8 @@ The user is a different matter for a forwarded request (see "Who asked").
 | `flightcontrol.gmping` | `1` | the Gamemaster's client | the same as `flightcontrol.ping` | `{ apiVersion, module, echo, ranBy: { userId, isGm }, askedBy }`; `ranBy` names the user whose client ran the request, `askedBy` the user who confirmed it (`null` when not known) |
 | `flightcontrol.targetping` | `1` | the Gamemaster's client | `{ uuid: string }`, the UUID of a document (up to 200 characters) | `{ apiVersion, module, uuid, askedBy }`; the document is the request's target, the type does nothing with it and tells nothing about it |
 | `compendium.create` | `1` | the Gamemaster's client | `{ type, label, name }` (see "Compendia") | `{ created, collection, name, label, type, locked, ownership }`; for a Gamemaster or Assistant only |
+| `compendium.import` | `1` | the Gamemaster's client | `{ pack, sources }` (see "Compendia") | `{ pack, created, existed }`; for a Gamemaster or Assistant only |
+| `setting.write` | `1` | the Gamemaster's client | `{ key, value, previous? }` (see "Settings") | `{ key, changed }`; for a Gamemaster or Assistant only |
 
 Use `flightcontrol.ping` to check that the channel works, and `flightcontrol.gmping` to check that a request reaches
 the Gamemaster's client: for a player it answers with the Gamemaster's `userId` in `ranBy` and the player's own id in
@@ -446,6 +448,88 @@ const result = await api.request({
   Assistant, or the module is denied), `handler-failed`: Foundry refused (its message is in `detail` for a Gamemaster or
   Assistant, whose client runs the request), or a compendium of that name exists with another document type (nothing is
   touched). Nothing is deleted, renamed or filled.
+- **Not verified in a running Foundry:** see section 8.
+
+`compendium.import` (version `1`, since API `0.9.0`) copies documents into a world compendium that exists. It runs on the
+Gamemaster's client, is for a Gamemaster or Assistant only and names the source documents as its targets. The documents are
+named by UUID, never sent as data.
+
+```js
+const result = await api.request({
+  module: "my-eagle-module",
+  type: "compendium.import",
+  payload: { pack: "world.eagle-spells-2014", sources: ["Compendium.dnd5e.spells.Item.abc123"] },
+});
+// { ok: true, value: { pack: "world.eagle-spells-2014",
+//   created: [{ source: "Compendium.dnd5e.spells.Item.abc123", uuid: "Compendium.world.eagle-spells-2014.Item.abc123",
+//               id: "abc123", name: "Fireball" }],
+//   existed: [] } }
+```
+
+| Field | Meaning |
+|---|---|
+| `pack` | The collection id of the target: a world compendium, `world.<name>`. It must exist, must not be locked, and must hold `Actor`, `Item`, `JournalEntry` or `RollTable` (the document types of the Eagle catalog). |
+| `sources` | The documents to copy: 1 to 100, no UUID twice, each at most 200 characters. An entry is a UUID or an object `{ source, id?, name?, changes? }` (see below). Each source must be a primary document (an Item or an Actor, not an effect or an Item inside an Actor), of the document type of the target, and not in the target already. A document of the world is allowed as a source as well as one in a compendium. |
+
+- **What it does:** it checks everything first (the compendium, every source, the document types); if anything is wrong,
+  nothing is written and the request fails with `handler-failed`. Then one database operation copies all documents that
+  are not in the compendium yet, through `toCompendium` and `createDocuments`. **The id of every document stays**, so
+  links by id between documents that go together (an Item in a container) hold in the target. **Where a document came
+  from stays** (`_stats.compendiumSource` is not cleared, which `toCompendium` does by default). The folder of a source
+  is cleared, because the target has no such folder; the sort order, the ownership and the state are cleared and the
+  flags stay, as Foundry's `toCompendium` does by default. Embedded documents (effects, the Items of an Actor) are
+  copied with their ids.
+- **An entry that is not the source as it is** (since API `0.10.0`, for a copy that has to differ, such as a forced copy of
+  the Library): `id` is the id of the copy (16 letters and digits) instead of the id of the source; `name` is its name (at
+  most 200 characters); `changes` sets fields of the copy's data after it was made, from a path like `system.container`
+  to a JSON value (at most 20 paths; the paths `_id` and `_stats` are not allowed: the id has `id`, and where a document came
+  from stays). The same document may be copied twice in one request under two ids; two copies must not end with the same id.
+  A string entry is the same as `{ source }`.
+- **Asking again is safe:** a copy whose id (the one the entry gives, or else that of the source) is in the compendium already is
+  not written and is answered under `existed` (with the UUID of the document in the compendium). This lets a module continue after `relay-timeout`, where the
+  outcome is unknown. Nothing is overwritten, deleted or renamed, the sources stay as they are, and the compendium is not
+  locked or unlocked.
+- **The answer:** `created` and `existed` list `{ source, uuid, id, name }` in the order of `sources`; `uuid` is the UUID of
+  the document in the compendium.
+- **What the system does:** the game system may change a document when it is created. dnd5e 5.3.3 removes the property
+  `gear` from a physical Item that does not belong to an NPC, and gives a weapon without activities one attack activity
+  with a new id. A copy is therefore not always identical to its source. Flight Control makes no assumption about the
+  game system; which rules a module applies to what it copies (which compendium, which ruleset version, which documents
+  belong together) is decided in the module.
+- **Failures:** `invalid-payload` (the detail names the field), `not-permitted` (the user is neither Gamemaster nor
+  Assistant, or the module is denied), `handler-failed`: a check failed (the detail says which: the compendium does not
+  exist, is not a world compendium, is locked or holds another document type; a source cannot be read, lives inside
+  another document, is in the compendium already or has another document type; two copies would have the same id) or
+  Foundry refused (its message is in `detail` for a Gamemaster or Assistant, whose client runs the request).
+- **Not verified in a running Foundry:** see section 8.
+
+**Settings** (since API `0.10.0`)
+
+`setting.write` (version `1`) writes a world setting **of the module that asks**. It runs on the Gamemaster's client and is for a
+Gamemaster or Assistant only. It has no target. The namespace of the setting is the id of the asking module and is not part of
+the payload: a module reaches its own settings only, never those of Flight Control, of the game system or of the core.
+
+```js
+const result = await api.request({
+  module: "my-eagle-module",
+  type: "setting.write",
+  payload: { key: "protocol", value: JSON.stringify(entries), previous: oldText },
+});
+// { ok: true, value: { key: "protocol", changed: true } }
+```
+
+| Field | Meaning |
+|---|---|
+| `key` | The key of the setting without the module: lower case letters and digits joined by single hyphens, at most 100 characters. |
+| `value` | The new text, at most 262,144 characters. |
+| `previous` | Optional. The text the caller read. If the setting holds something else now, nothing is written and the request fails, so two clients that add to the same text do not overwrite each other. A setting that holds no text counts as the empty text. |
+
+- **What it needs:** the module registered the setting with `scope: "world"`, `type: String` and `config: false`. A setting the hub
+  shows (`config: true`) is the hub's to change and is refused, as is every other registration.
+- **Asking again is safe:** the same text is not written again and is answered with `changed: false`.
+- **Failures:** `invalid-payload` (the detail names the field), `not-permitted` (the user is neither Gamemaster nor Assistant, or
+  the module is denied), `handler-failed`: the setting is not registered, is not a world setting of the type String or is shown
+  in the hub, `previous` differs from what is stored ("the setting changed since it was read"), or Foundry refused.
 - **Not verified in a running Foundry:** see section 8.
 
 **The game system** (since API `0.7.0`)
@@ -536,6 +620,8 @@ Declare Flight Control as a required module:
   |---|---|
   | `0.1.0` | `0.7.0` |
   | `0.2.0` | `0.8.0` |
+  | `0.3.0` | `0.9.0` |
+  | `0.4.0` | `0.10.0` |
 
   The table gets a row for every module version that changes the API version.
 - **Texts and files:** Flight Control ships `lang/en.json` and lists it under `languages` in its manifest. A package
@@ -651,6 +737,16 @@ release build, module version `0.1.0`):
   (a Gamemaster, an Assistant), what a new world compendium looks like (`locked`, `ownership`), what happens when the same
   name is asked twice at the same moment, how long it takes, and whether `game.packs` has the new compendium as soon as the
   call returns (unit tests and a simulation only);
+- the request type `compendium.import` (API `0.9.0`): whether the Gamemaster's client may write a document into a world
+  compendium this way (a locked and an unlocked one, an Assistant), whether `toCompendium` keeps where an embedded document
+  came from (`clearSource: false`) and whether the ids of embedded documents stay, what happens when a document of the
+  same id is in the compendium already outside the check of the handler, and what dnd5e changes when it creates a
+  document (unit tests and a simulation only);
+- the request type `setting.write` (API `0.10.0`): whether an Assistant may write a world setting, how a text of some
+  hundred thousand characters behaves when it is stored and sent to every client, and what the other clients see when it
+  changes (unit tests and a simulation only);
+- the entries `id`, `name` and `changes` of `compendium.import` (API `0.10.0`): whether Foundry keeps an id given for a copy
+  and whether `changes` reach the data that is created (unit tests and a simulation only);
 - what the hub does with a refused value: it resets the field and shows a notification (unit tests only; the number
   field of a slider limits a value typed above the maximum before the hub sees it, so this path cannot be triggered
   with such a field);
@@ -662,8 +758,8 @@ release build, module version `0.1.0`):
 
 ## 9. Not part of this version
 
-- Request types that read or change Foundry data other than `compendium.create`. They will be added in later versions of
-  this contract.
+- Request types that read or change Foundry data other than `compendium.create`, `compendium.import` and `setting.write`. They
+  will be added in later versions of this contract.
 - A limit on how many requests a client may send or have waiting (see "Forwarded requests" in section 4).
 
 ## 10. Change history
@@ -681,3 +777,5 @@ project in which a change was made; the earlier project documents use these name
 | `0.6.0` | Part 6: rights per module and user (`denied`, `own`, `all`), set by the Gamemaster in the hub and checked by the request kernel before a request runs; `not-permitted` also covers a refusal by the rights; a request type can name its target documents; new function `getRights`; request type `flightcontrol.targetping`. |
 | `0.7.0` | Part 7: the game system guard: Flight Control tells a Gamemaster when the game system is not one it was tested with, and the new function `getSystemInfo` tells modules the id, the version and the status of the system; nothing is blocked. |
 | `0.8.0` | Library milestone M3: the first request type that changes Foundry data, `compendium.create`; request types can be marked for a Gamemaster or Assistant only (`not-permitted` for everybody else, whatever the level), and `compendium.create` is; before `1.0.0` a new request type raises the minor version of the API. |
+| `0.9.0` | Library milestone M4: the request type `compendium.import` copies documents, named by UUID, into a world compendium that exists (the ids and where they came from stay); for a Gamemaster or Assistant only. |
+| `0.10.0` | Library milestone M5: the request type `setting.write` writes a world setting of the asking module (its own only); the entries of `compendium.import` may be objects with an `id`, a `name` and `changes` for a copy that differs from its source. |

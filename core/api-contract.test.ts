@@ -2,8 +2,11 @@
 import { describe, expect, it } from "vitest";
 import contractRaw from "../docs/api-contract.md?raw";
 import manifestRaw from "../v13/module.json?raw";
+import foundryImportRaw from "../v13/document-import.ts?raw";
 import { compareVersions, EAGLE_API_VERSION, isApiCompatible, parseVersion } from "./api-version";
 import { COMPENDIUM_DOCUMENT_TYPES, NO_COMPENDIUMS } from "./compendium-handlers";
+import { IMPORTABLE_DOCUMENT_TYPES, MAX_IMPORT_SOURCES, NO_IMPORTS } from "./document-import";
+import { MAX_SETTING_LENGTH, NO_SETTINGS } from "./setting-write";
 import { defaultRequestHandlers } from "./request-handlers";
 import { CONFIRM_TIMEOUT_MS } from "./request-identity";
 import { MAX_RELAY_SIZE, RELAY_TIMEOUT_MS } from "./request-relay";
@@ -117,7 +120,7 @@ describe("API contract: registration and requests", () => {
   });
 
   it("lists the request types of the code, their versions and where each runs", () => {
-    const handlers = defaultRequestHandlers(EAGLE_API_VERSION, () => ({ userId: "user", isGm: false }), NO_COMPENDIUMS);
+    const handlers = defaultRequestHandlers(EAGLE_API_VERSION, () => ({ userId: "user", isGm: false }), NO_COMPENDIUMS, NO_IMPORTS, NO_SETTINGS);
     const rows = [...contract.matchAll(/^\| `([a-z]+\.[a-z]+)` \| `(\d+)` \| (your own client|the Gamemaster's client) \|/gm)];
     expect(rows.map((row) => row[1]).sort()).toEqual(handlers.map((handler) => handler.type).sort());
     for (const [, type, version, place] of rows) {
@@ -232,7 +235,7 @@ describe("API contract: structure", () => {
 });
 
 describe("API contract: compendium.create and requests for a Gamemaster or Assistant only", () => {
-  const handlers = defaultRequestHandlers(EAGLE_API_VERSION, () => ({ userId: "user", isGm: false }), NO_COMPENDIUMS);
+  const handlers = defaultRequestHandlers(EAGLE_API_VERSION, () => ({ userId: "user", isGm: false }), NO_COMPENDIUMS, NO_IMPORTS, NO_SETTINGS);
   const compendia = between(contract, "**Compendia** (since API `0.8.0`)", "**The game system**");
 
   it("marks in the table of request types exactly the types that are for a Gamemaster or Assistant only", () => {
@@ -245,7 +248,7 @@ describe("API contract: compendium.create and requests for a Gamemaster or Assis
 
   it("marks every request type that runs on the Gamemaster's client and is not a proof as for a Gamemaster or Assistant only", () => {
     const changing = handlers.filter((handler) => handler.runsOn === "gm" && !handler.type.startsWith("flightcontrol."));
-    expect(changing.map((handler) => handler.type)).toEqual(["compendium.create"]);
+    expect(changing.map((handler) => handler.type)).toEqual(["compendium.create", "compendium.import", "setting.write"]);
     for (const handler of changing) expect(handler.gmOnly, handler.type).toBe(true);
   });
 
@@ -295,6 +298,105 @@ describe("API contract: compendium.create and requests for a Gamemaster or Assis
     expect(flat).toContain("**A new request type does, until `1.0.0`:** it raises the minor version of the API");
     expect(flat).toContain("every new request type raises the minor version");
     expect(contract).toContain("| `0.2.0` | `0.8.0` |");
+    expect(contract).toContain("| `0.3.0` | `0.9.0` |");
+    expect(contract).toContain("| `0.4.0` | `0.10.0` |");
     expect(flat).not.toContain("New request types and new versions of a request type do not change the API version");
+  });
+});
+
+describe("API contract: compendium.import", () => {
+  const handlers = defaultRequestHandlers(EAGLE_API_VERSION, () => ({ userId: "user", isGm: false }), NO_COMPENDIUMS, NO_IMPORTS, NO_SETTINGS);
+  const handler = handlers.find((candidate) => candidate.type === "compendium.import")!;
+  const importText = between(contract, "`compendium.import` (version `1`, since API `0.9.0`)", "**The game system**");
+
+  it("states the limits and the payload rules the way the code checks them", () => {
+    expect(importText).toContain(`1 to ${MAX_IMPORT_SOURCES}`);
+    expect(source("document-import")).toContain(`MAX_IMPORT_SOURCES = ${MAX_IMPORT_SOURCES}`);
+    const uuid = source("document-import").match(/MAX_UUID_LENGTH = (\d+)/)?.[1];
+    expect(importText).toContain(`each at most ${uuid} characters`);
+    expect(importText).toContain("`world.<name>`");
+    expect(source("document-import")).toContain("/^world\\.[a-z0-9]+([-_][a-z0-9]+)*$/");
+    const types = importText.match(/must hold ((?:`[A-Za-z]+`(?:, | or )?)+)/)?.[1] ?? "";
+    expect([...types.matchAll(/`([A-Za-z]+)`/g)].map((match) => match[1])).toEqual([...IMPORTABLE_DOCUMENT_TYPES]);
+  });
+
+  it("gives an example that passes the check of the code", () => {
+    expect(handler.validate({ pack: "world.eagle-spells-2014", sources: ["Compendium.dnd5e.spells.Item.abc123"] })).toMatchObject({ ok: true });
+    expect(importText).toContain('pack: "world.eagle-spells-2014", sources: ["Compendium.dnd5e.spells.Item.abc123"]');
+  });
+
+  it("names the fields of the answer, and says that ids and origin stay and that asking again is safe", () => {
+    for (const field of ["pack", "created", "existed", "source", "uuid", "id", "name"]) {
+      expect(source("document-import"), field).toMatch(new RegExp(`\\b${field}\\b`));
+      expect(importText, field).toContain(field);
+    }
+    const flat = importText.replace(/\s+/g, " ");
+    expect(flat).toContain("**The id of every document stays**");
+    expect(flat).toContain("**Where a document came from stays**");
+    expect(flat).toContain("**Asking again is safe:**");
+    expect(flat).toContain("nothing is written and the request fails with `handler-failed`");
+  });
+
+  it("names the options of the copy the way the code gives them", () => {
+    const code = foundryImportRaw;
+    expect(code).toContain("clearSource: false, keepId: true, clearFolder: true");
+    expect(code).toContain("{ pack: collection, keepId: true, keepEmbeddedIds: true }");
+  });
+
+  it("describes the entries of sources with an id, a name and changes, and the limits of the code", () => {
+    const code = source("document-import");
+    expect(importText).toContain("`{ source, id?, name?, changes? }`");
+    expect(importText).toContain(`at most ${code.match(/MAX_IMPORT_CHANGES = (\d+)/)?.[1]} paths`);
+    expect(importText).toContain(`at most ${code.match(/MAX_NAME_LENGTH = (\d+)/)?.[1]} characters`);
+    expect(importText).toContain("the paths `_id` and `_stats` are not allowed");
+    expect(code).toContain('FORBIDDEN_FIRST_SEGMENTS = ["_id", "_stats"]');
+    expect(importText).toContain("16 letters and digits");
+    expect(code).toContain("/^[A-Za-z0-9]{16}$/");
+    expect(handler.validate({ pack: "world.eagle-weapons-2014", sources: [{ source: "Item.x", id: "AAAAAAAAAAAAAAAA", name: "N", changes: { "system.container": null } }] })).toMatchObject({ ok: true });
+    expect(importText).toContain("two copies must not end with the same id");
+  });
+
+  it("is in the table of request types, the history and the list of what is not verified", () => {
+    expect(contract).toContain("| `compendium.import` | `1` | the Gamemaster's client |");
+    expect(contract).toContain("| `0.9.0` | Library milestone M4:");
+    expect(contract).toContain("- the request type `compendium.import` (API `0.9.0`)");
+    const notPart = between(contract, "## 9. Not part of this version", "## 10. Change history");
+    expect(notPart).toContain("other than `compendium.create`, `compendium.import` and `setting.write`");
+  });
+});
+
+describe("API contract: setting.write", () => {
+  const handlers = defaultRequestHandlers(EAGLE_API_VERSION, () => ({ userId: "user", isGm: false }), NO_COMPENDIUMS, NO_IMPORTS, NO_SETTINGS);
+  const handler = handlers.find((candidate) => candidate.type === "setting.write")!;
+  const text = between(contract, "**Settings** (since API `0.10.0`)", "**The game system**");
+  const flatText = text.replace(/\s+/g, " ");
+
+  it("states the limits and the key rule the way the code checks them", () => {
+    expect(text).toContain(`at most ${MAX_SETTING_LENGTH.toLocaleString("en-US")} characters`);
+    const code = source("setting-write");
+    expect(code).toContain(`MAX_SETTING_LENGTH = ${MAX_SETTING_LENGTH.toLocaleString("en-US").replace(/,/g, "_")}`);
+    expect(text).toContain(`at most ${code.match(/MAX_KEY_LENGTH = (\d+)/)?.[1]} characters`);
+    expect(code).toContain("/^[a-z0-9]+(-[a-z0-9]+)*$/");
+  });
+
+  it("gives an example that passes the check of the code", () => {
+    expect(handler.validate({ key: "protocol", value: "{}", previous: "" })).toMatchObject({ ok: true });
+    expect(text).toContain('payload: { key: "protocol", value: JSON.stringify(entries), previous: oldText }');
+  });
+
+  it("says a module writes its own settings only, what the setting must be, and that asking again is safe", () => {
+    expect(flatText).toContain("a module reaches its own settings only");
+    expect(flatText).toContain("`scope: \"world\"`, `type: String` and `config: false`");
+    expect(flatText).toContain("**Asking again is safe:**");
+    expect(flatText).toContain("`changed: false`");
+    expect(flatText).toContain("the setting changed since it was read");
+    expect(source("setting-write")).toContain("changed since it was read");
+  });
+
+  it("is in the table of request types, the history and the list of what is not verified", () => {
+    expect(contract).toContain("| `setting.write` | `1` | the Gamemaster's client |");
+    expect(contract).toContain("| `0.10.0` | Library milestone M5:");
+    expect(contract).toContain("- the request type `setting.write` (API `0.10.0`)");
+    expect(flatText).toContain("the namespace of the setting is the id of the asking module".replace("the namespace", "The namespace"));
   });
 });
