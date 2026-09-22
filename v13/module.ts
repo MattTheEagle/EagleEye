@@ -10,6 +10,7 @@ import { defaultHubSettingsSource } from "../core/settings-hub";
 import { announceSystem, evaluateSystem } from "../core/system-guard";
 import { createHubApplicationClass } from "./hub-application";
 import { foundryCompendiumEnvironment } from "./compendium";
+import { foundryDocumentCreateEnvironment } from "./document-create";
 import { foundryImportEnvironment } from "./document-import";
 import { foundryFlagEnvironment } from "./flag-write";
 import { foundrySettingsEnvironment } from "./setting-write";
@@ -69,7 +70,15 @@ Hooks.once("init", () => {
   // Other modules read the API from their "setup" hook on, which runs after every "init" callback.
   // Attach it synchronously (before any await) so it exists by then, whatever the module load order.
   try {
-    const handlers = defaultRequestHandlers(EAGLE_API_VERSION, foundryExecutor, foundryCompendiumEnvironment(), foundryImportEnvironment(), foundrySettingsEnvironment(), foundryFlagEnvironment());
+    const handlers = defaultRequestHandlers(
+      EAGLE_API_VERSION,
+      foundryExecutor,
+      foundryCompendiumEnvironment(),
+      foundryImportEnvironment(),
+      foundrySettingsEnvironment(),
+      foundryFlagEnvironment(),
+      foundryDocumentCreateEnvironment(),
+    );
     const kernel = createRequestKernel(registry, handlers, { currentUser: foundryCurrentUser, rights });
 
     // Requests for handlers that run on the Gamemaster's client are forwarded by the relay. If the relay cannot be

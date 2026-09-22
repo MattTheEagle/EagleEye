@@ -1,6 +1,6 @@
 {
   "name": "eagle-flight-control",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "private": true,
   "type": "module",
   "description": "Eagle Flight Control: the interface between the Eagle modules, the D&D 5e system and Foundry VTT. Early release for testing.",
