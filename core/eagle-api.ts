@@ -1,4 +1,5 @@
 import { NO_COMPENDIUMS } from "./compendium-handlers";
+import { NO_FLAGS } from "./flag-write";
 import { NO_IMPORTS } from "./document-import";
 import { NO_SETTINGS } from "./setting-write";
 import type { ModuleRegistry, RegistrationResult } from "./module-registry";
@@ -70,7 +71,7 @@ const NO_SYSTEM = (): SystemInfo => ({ id: null, version: null, status: "unknown
 export function createEagleApi(
   registry: ModuleRegistry,
   log: ApiLogger = consoleLogger,
-  kernel: RequestKernel = createRequestKernel(registry, defaultRequestHandlers(registry.apiVersion, NO_EXECUTOR, NO_COMPENDIUMS, NO_IMPORTS, NO_SETTINGS)),
+  kernel: RequestKernel = createRequestKernel(registry, defaultRequestHandlers(registry.apiVersion, NO_EXECUTOR, NO_COMPENDIUMS, NO_IMPORTS, NO_SETTINGS, NO_FLAGS)),
   rights: RightsSource = NO_RIGHTS,
   systemInfo: () => SystemInfo = NO_SYSTEM,
 ): Readonly<EagleFlightControlApi> {

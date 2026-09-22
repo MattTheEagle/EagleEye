@@ -10,7 +10,7 @@ import type { RegisteredModule } from "./module-registry";
 import { createRightsGate } from "./request-rights";
 import { serializeRightsTable } from "./rights-table";
 
-const MODULE: RegisteredModule = { id: "mod-a", title: "Module A", version: "1.0.0", apiVersion: "0.11.0" };
+const MODULE: RegisteredModule = { id: "mod-a", title: "Module A", version: "1.0.0", apiVersion: "0.12.0" };
 const GM = { id: "gm-1" };
 const GOOD: SettingInfo = { scope: "world", type: "String", config: false };
 

@@ -6,6 +6,7 @@ import foundryImportRaw from "../v13/document-import.ts?raw";
 import { compareVersions, EAGLE_API_VERSION, isApiCompatible, parseVersion } from "./api-version";
 import { COMPENDIUM_DOCUMENT_TYPES, NO_COMPENDIUMS } from "./compendium-handlers";
 import { IMPORTABLE_DOCUMENT_TYPES, MAX_IMPORT_SOURCES, NO_IMPORTS } from "./document-import";
+import { FLAG_DOCUMENT_TYPES, MAX_FLAG_VALUE_LENGTH, NO_FLAGS } from "./flag-write";
 import { MAX_SETTING_LENGTH, NO_SETTINGS } from "./setting-write";
 import { defaultRequestHandlers } from "./request-handlers";
 import { CONFIRM_TIMEOUT_MS } from "./request-identity";
@@ -120,7 +121,7 @@ describe("API contract: registration and requests", () => {
   });
 
   it("lists the request types of the code, their versions and where each runs", () => {
-    const handlers = defaultRequestHandlers(EAGLE_API_VERSION, () => ({ userId: "user", isGm: false }), NO_COMPENDIUMS, NO_IMPORTS, NO_SETTINGS);
+    const handlers = defaultRequestHandlers(EAGLE_API_VERSION, () => ({ userId: "user", isGm: false }), NO_COMPENDIUMS, NO_IMPORTS, NO_SETTINGS, NO_FLAGS);
     const rows = [...contract.matchAll(/^\| `([a-z]+\.[a-z]+)` \| `(\d+)` \| (your own client|the Gamemaster's client) \|/gm)];
     expect(rows.map((row) => row[1]).sort()).toEqual(handlers.map((handler) => handler.type).sort());
     for (const [, type, version, place] of rows) {
@@ -235,7 +236,7 @@ describe("API contract: structure", () => {
 });
 
 describe("API contract: compendium.create and requests for a Gamemaster or Assistant only", () => {
-  const handlers = defaultRequestHandlers(EAGLE_API_VERSION, () => ({ userId: "user", isGm: false }), NO_COMPENDIUMS, NO_IMPORTS, NO_SETTINGS);
+  const handlers = defaultRequestHandlers(EAGLE_API_VERSION, () => ({ userId: "user", isGm: false }), NO_COMPENDIUMS, NO_IMPORTS, NO_SETTINGS, NO_FLAGS);
   const compendia = between(contract, "**Compendia** (since API `0.8.0`)", "**The game system**");
 
   it("marks in the table of request types exactly the types that are for a Gamemaster or Assistant only", () => {
@@ -248,7 +249,7 @@ describe("API contract: compendium.create and requests for a Gamemaster or Assis
 
   it("marks every request type that runs on the Gamemaster's client and is not a proof as for a Gamemaster or Assistant only", () => {
     const changing = handlers.filter((handler) => handler.runsOn === "gm" && !handler.type.startsWith("flightcontrol."));
-    expect(changing.map((handler) => handler.type)).toEqual(["compendium.create", "compendium.import", "setting.write"]);
+    expect(changing.map((handler) => handler.type)).toEqual(["compendium.create", "compendium.import", "setting.write", "compendium.flag"]);
     for (const handler of changing) expect(handler.gmOnly, handler.type).toBe(true);
   });
 
@@ -301,13 +302,15 @@ describe("API contract: compendium.create and requests for a Gamemaster or Assis
     expect(contract).toContain("| `0.3.0` | `0.9.0` |");
     expect(contract).toContain("| `0.4.0` | `0.10.0` |");
     expect(contract).toContain("| `0.5.0` | `0.11.0` |");
+    expect(contract).toContain("| `0.6.0` | `0.12.0` |");
+    expect(contract).toContain("| `0.12.0` | Library milestone M8:");
     expect(contract).toContain("| `0.11.0` | Library milestone M7:");
     expect(flat).not.toContain("New request types and new versions of a request type do not change the API version");
   });
 });
 
 describe("API contract: compendium.import", () => {
-  const handlers = defaultRequestHandlers(EAGLE_API_VERSION, () => ({ userId: "user", isGm: false }), NO_COMPENDIUMS, NO_IMPORTS, NO_SETTINGS);
+  const handlers = defaultRequestHandlers(EAGLE_API_VERSION, () => ({ userId: "user", isGm: false }), NO_COMPENDIUMS, NO_IMPORTS, NO_SETTINGS, NO_FLAGS);
   const handler = handlers.find((candidate) => candidate.type === "compendium.import")!;
   const importText = between(contract, "`compendium.import` (version `1`, since API `0.9.0`)", "**The game system**");
 
@@ -363,12 +366,12 @@ describe("API contract: compendium.import", () => {
     expect(contract).toContain("| `0.9.0` | Library milestone M4:");
     expect(contract).toContain("- the request type `compendium.import` (API `0.9.0`)");
     const notPart = between(contract, "## 9. Not part of this version", "## 10. Change history");
-    expect(notPart).toContain("other than `compendium.create`, `compendium.import` and `setting.write`");
+    expect(notPart).toContain("other than `compendium.create`, `compendium.import`, `setting.write` and `compendium.flag`");
   });
 });
 
 describe("API contract: setting.write", () => {
-  const handlers = defaultRequestHandlers(EAGLE_API_VERSION, () => ({ userId: "user", isGm: false }), NO_COMPENDIUMS, NO_IMPORTS, NO_SETTINGS);
+  const handlers = defaultRequestHandlers(EAGLE_API_VERSION, () => ({ userId: "user", isGm: false }), NO_COMPENDIUMS, NO_IMPORTS, NO_SETTINGS, NO_FLAGS);
   const handler = handlers.find((candidate) => candidate.type === "setting.write")!;
   const text = between(contract, "**Settings** (since API `0.10.0`)", "**The game system**");
   const flatText = text.replace(/\s+/g, " ");
@@ -400,5 +403,37 @@ describe("API contract: setting.write", () => {
     expect(contract).toContain("| `0.10.0` | Library milestone M5:");
     expect(contract).toContain("- the request type `setting.write` (API `0.10.0`)");
     expect(flatText).toContain("the namespace of the setting is the id of the asking module".replace("the namespace", "The namespace"));
+  });
+});
+
+describe("API contract: compendium.flag", () => {
+  const handlers = defaultRequestHandlers(EAGLE_API_VERSION, () => ({ userId: "user", isGm: false }), NO_COMPENDIUMS, NO_IMPORTS, NO_SETTINGS, NO_FLAGS);
+  const handler = handlers.find((candidate) => candidate.type === "compendium.flag")!;
+  const text = between(contract, "**Flags** (since API `0.12.0`)", "**The game system**");
+  const flat = text.replace(/\s+/g, " ");
+
+  it("states the limits, the document types and the key rule the way the code checks them", () => {
+    const code = source("flag-write");
+    expect(text).toContain(`at most ${MAX_FLAG_VALUE_LENGTH.toLocaleString("en-US")} characters as JSON`);
+    expect(code).toContain(`MAX_FLAG_VALUE_LENGTH = ${MAX_FLAG_VALUE_LENGTH}`);
+    expect(text).toContain(`at most ${code.match(/MAX_KEY_LENGTH = (\d+)/)?.[1]} characters`);
+    expect(code).toContain("/^[a-z0-9]+(-[a-z0-9]+)*$/");
+    const types = text.match(/must hold ((?:`[A-Za-z]+`(?:, | or )?)+)/)?.[1] ?? "";
+    expect([...types.matchAll(/`([A-Za-z]+)`/g)].map((match) => match[1])).toEqual([...FLAG_DOCUMENT_TYPES]);
+  });
+
+  it("gives an example that passes the check of the code, and says a module reaches its own flags only and that asking again is safe", () => {
+    expect(handler.validate({ pack: "world.eagle-species-2014", id: "AAAAAAAAAAAAAAAA", key: "subspecies", value: { species: "Elf" } })).toMatchObject({ ok: true });
+    expect(text).toContain('payload: { pack: "world.eagle-species-2014", id: "AAAAAAAAAAAAAAAA", key: "subspecies", value: { species: "Elf" } }');
+    expect(flat).toContain("a module reaches its own flags only");
+    expect(flat).toContain("**Asking again is safe:**");
+    expect(flat).toContain("`changed: false`");
+    expect(flat).toContain("to **remove** the flag");
+  });
+
+  it("is in the table of request types, the history and the list of what is not verified", () => {
+    expect(contract).toContain("| `compendium.flag` | `1` | the Gamemaster's client |");
+    expect(contract).toContain("| `0.12.0` | Library milestone M8:");
+    expect(contract).toContain("- the request type `compendium.flag` (API `0.12.0`)");
   });
 });
