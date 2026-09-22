@@ -6,8 +6,8 @@ import type { RelayEnvironment, RequestRelay } from "../core/request-relay";
 // Foundry's rule for module queries: the name starts with the module's own prefix (see CONFIG.queries).
 // The first query carries a forwarded request to the Gamemaster's client, the second is the Gamemaster's question to
 // a user's client whether that user sent the request.
-export const RELAY_QUERY = "eagleeye.request";
-export const CONFIRM_QUERY = "eagleeye.confirm";
+export const RELAY_QUERY = "eagle-flight-control.request";
+export const CONFIRM_QUERY = "eagle-flight-control.confirm";
 
 // Foundry stops waiting for a query after its own timeout; ours (the relay's) must run out first, so this is longer.
 const FOUNDRY_TIMEOUT_GRACE_MS = 2_000;
@@ -15,8 +15,8 @@ const FOUNDRY_TIMEOUT_GRACE_MS = 2_000;
 declare global {
   namespace CONFIG {
     interface Queries {
-      "eagleeye.request": (data: unknown) => Promise<RequestResult>;
-      "eagleeye.confirm": (data: unknown) => Promise<ConfirmationAnswer>;
+      "eagle-flight-control.request": (data: unknown) => Promise<RequestResult>;
+      "eagle-flight-control.confirm": (data: unknown) => Promise<ConfirmationAnswer>;
     }
   }
 }

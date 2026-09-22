@@ -84,10 +84,10 @@ export function createEagleApi(
     }
 
     if (result.ok) {
-      log.info(`eagleeye | registered module ${result.module.id} (api ${result.module.apiVersion})`);
+      log.info(`eagle-flight-control | registered module ${result.module.id} (api ${result.module.apiVersion})`);
     } else {
       log.warn(
-        `eagleeye | registration rejected for ${describeField(descriptor, "id")}: ${result.reason} - ${result.detail}`,
+        `eagle-flight-control | registration rejected for ${describeField(descriptor, "id")}: ${result.reason} - ${result.detail}`,
       );
     }
     return result;
@@ -104,7 +104,7 @@ export function createEagleApi(
 
     if (!result.ok) {
       log.warn(
-        `eagleeye | request rejected for ${describeField(envelope, "module")} (${describeField(envelope, "type")}): ${result.reason} - ${result.detail}`,
+        `eagle-flight-control | request rejected for ${describeField(envelope, "module")} (${describeField(envelope, "type")}): ${result.reason} - ${result.detail}`,
       );
     }
     return result;
@@ -125,7 +125,7 @@ export function createEagleApi(
       }
       return { ok: true, value: { level: rights.levelFor(moduleId) } };
     } catch (error) {
-      log.warn(`eagleeye | getRights failed for ${moduleId}: ${describeError(error)}`);
+      log.warn(`eagle-flight-control | getRights failed for ${moduleId}: ${describeError(error)}`);
       return { ok: false, reason: "internal-error", detail: describeError(error) };
     }
   };
@@ -135,7 +135,7 @@ export function createEagleApi(
     try {
       return { ok: true, value: systemInfo() };
     } catch (error) {
-      log.warn(`eagleeye | getSystemInfo failed: ${describeError(error)}`);
+      log.warn(`eagle-flight-control | getSystemInfo failed: ${describeError(error)}`);
       return { ok: false, reason: "internal-error", detail: describeError(error) };
     }
   };

@@ -225,7 +225,7 @@ export function createRequestRelay(options: RequestRelayOptions): RequestRelay {
     if (result.ok) return result;
     // Failures are reported here in full; what goes back to the sender keeps no text from this client.
     log.warn(
-      `eagleeye | relayed request rejected for ${module} (${type}): ${result.reason} - ${result.detail}${note ? ` (${note})` : ""}`,
+      `eagle-flight-control | relayed request rejected for ${module} (${type}): ${result.reason} - ${result.detail}${note ? ` (${note})` : ""}`,
     );
     if (result.reason === "handler-failed" || result.reason === "internal-error") {
       return fail(result.reason, GENERIC_DETAIL);

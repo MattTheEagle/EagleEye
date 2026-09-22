@@ -1,9 +1,0 @@
-{
-  "id": "eagleeye-spike-query",
-  "title": "EagleEye Spike: User#query",
-  "description": "Diagnose-Fixture (M6): prueft live, wie User#query vom GM an einen Spieler und an sich selbst funktioniert. Keine echte Funktionalitaet, kein Flight Control noetig.",
-  "version": "0.0.1",
-  "authors": [{ "name": "Projektleiter" }],
-  "compatibility": { "minimum": "11" },
-  "scripts": ["module.js"]
-}

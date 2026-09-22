@@ -40,7 +40,7 @@ settings and, for the Gamemaster, the rights per module and user.
 Flight Control attaches its API to its own module object while it initializes:
 
 ```js
-const api = game.modules.get("eagleeye")?.api;
+const api = game.modules.get("eagle-flight-control")?.api;
 ```
 
 - Read it from your **`setup` hook or later**. Before `setup` it may not exist yet, because the load order of
@@ -136,7 +136,7 @@ interface EagleFlightControlApi {
 
 declare global {
   interface ModuleConfig {
-    eagleeye: { api: EagleFlightControlApi };
+    eagle-flight-control: { api: EagleFlightControlApi };
   }
 }
 ```
@@ -147,7 +147,7 @@ Register once, in your `setup` hook:
 
 ```js
 Hooks.once("setup", () => {
-  const api = game.modules.get("eagleeye")?.api;
+  const api = game.modules.get("eagle-flight-control")?.api;
   if (!api) return; // Flight Control is missing or not active: switch off your features that need it
 
   const result = api.registerModule({
@@ -346,7 +346,7 @@ three levels:
   the level `denied` for a module until the Gamemaster sets another level in the tab of that module. A new module and a
   new user start with `denied`.
 - **Who sets them:** only the Gamemaster (not an Assistant), in the hub, one select list per player in the tab of the
-  module. Flight Control stores them in a world setting of its own (`eagleeye.rights`); do not write it yourself.
+  module. Flight Control stores them in a world setting of its own (`eagle-flight-control.rights`); do not write it yourself.
 - **Where they are checked:** in Flight Control's request kernel, after the payload was checked and before the request
   type runs. On the Gamemaster's client the check is binding: it uses the user who confirmed the request (see "Who
   asked"). For a request type that runs in the caller's own client it is a rule that follows the same table; an altered
@@ -581,7 +581,7 @@ The status of the system is one of five values. Flight Control looks at the id o
 - **The list of tested versions** is part of Flight Control. It grows with a release, after the project lead has checked
   the version in a running Foundry. Today it holds `5.3.3`.
 - **The notice:** when the world is ready, Flight Control writes one line to the console
-  (`eagleeye | game system: dnd5e 5.3.3 (tested)`; a warning for `untested`, `other-system` and `unknown`). A user with a
+  (`eagle-flight-control | game system: dnd5e 5.3.3 (tested)`; a warning for `untested`, `other-system` and `unknown`). A user with a
   Gamemaster role (Gamemaster or Assistant) also gets one notification for `untested`, `other-system` and `unknown`. A
   player gets none, and nobody gets one for `tested` or `same-line`.
 - **`getSystemInfo()`** tells your module the same:
@@ -633,7 +633,7 @@ Declare Flight Control as a required module:
 ```json
 "relationships": {
   "requires": [
-    { "id": "eagleeye", "type": "module", "compatibility": { "minimum": "<Flight Control module version>" } }
+    { "id": "eagle-flight-control", "type": "module", "compatibility": { "minimum": "<Flight Control module version>" } }
   ]
 }
 ```
@@ -695,7 +695,7 @@ release build, module version `0.1.0`):
   is not registered returns `not-registered`; an unknown request type returns `unknown-request`; a payload with
   `echo: 5` returns `invalid-payload` (detail "payload.echo must be a string"). Flight Control logs a warning for each
   failure and nothing for a success. The value of a successful `flightcontrol.ping` has `apiVersion`, `module` and
-  `echo` (seen as `ok, api 0.4.0, module eagleeye-dummy-a, echo hello`).
+  `echo` (seen as `ok, api 0.4.0, module eagle-flight-control-dummy-a, echo hello`).
 - The relay (API `0.4.0`): a request for a type that runs on the Gamemaster's client (`flightcontrol.gmping`) from a player
   is forwarded to the connected Gamemaster, and the result comes back with `ranBy` naming the Gamemaster's user, not the
   player's. Without a connected Gamemaster the request returns `no-gm`. A Gamemaster who asks runs it in their own
@@ -724,7 +724,7 @@ release build, module version `0.1.0`):
   the new level at once, without a reload.
 - The game system (API `0.7.0`, a Gamemaster, 2026-09-20): in the test world `game.system.id` is `dnd5e`
   and `game.system.version` is `5.3.3`, a strict `x.y.z` text, and both are filled in by the time of `ready`. When the
-  world is ready Flight Control writes `eagleeye | game system: dnd5e 5.3.3 (tested)` to the console as an information
+  world is ready Flight Control writes `eagle-flight-control | game system: dnd5e 5.3.3 (tested)` to the console as an information
   line, and `getSystemInfo()` answers
   `{"ok":true,"value":{"id":"dnd5e","version":"5.3.3","status":"tested","testedVersions":["5.3.3"]}}`.
 - The release build (module version `0.1.0`, API `0.7.0`, a Gamemaster and a player in two sessions, 2026-09-20): the

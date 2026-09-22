@@ -21,8 +21,8 @@ function makePackage(overrides: Partial<PackageLike>): PackageLike {
 describe("scanPackages", () => {
   it("reports an incompatible dummy module as such, not as safe", () => {
     const dummy = makePackage({
-      id: "eagleeye-dummy-test",
-      title: "EagleEye Dummy Test Module",
+      id: "eagle-flight-control-dummy-test",
+      title: "Eagle Flight Control Dummy Test Module",
       availability: MISSING_DEPENDENCY,
       getVersionBadge: () => ({ type: "error", tooltip: "Missing dependency" }),
     });
@@ -33,7 +33,7 @@ describe("scanPackages", () => {
 
     const [dummyStatus] = scanPackages(source);
 
-    expect(dummyStatus.id).toBe("eagleeye-dummy-test");
+    expect(dummyStatus.id).toBe("eagle-flight-control-dummy-test");
     expect(dummyStatus.availability).toBe(MISSING_DEPENDENCY);
     expect(dummyStatus.badge?.type).not.toBe("safe");
   });

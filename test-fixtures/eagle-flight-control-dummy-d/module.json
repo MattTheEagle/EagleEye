@@ -1,0 +1,12 @@
+{
+  "id": "eagle-flight-control-dummy-d",
+  "title": "Eagle Flight Control Dummy Test Module D",
+  "description": "Statisches Test-Fixture (M7): meldet sich mit API 0.7.0 an, ohne Open-Aktion, mit einer Text-Einstellung, und stellt zwei fehlerhafte Anfragen. Keine echte Funktionalitaet.",
+  "version": "0.0.1",
+  "authors": [{ "name": "Projektleiter" }],
+  "compatibility": { "minimum": "11" },
+  "relationships": {
+    "requires": [{ "id": "eagle-flight-control", "type": "module", "compatibility": { "minimum": "0.0.1" } }]
+  },
+  "scripts": ["module.js"]
+}

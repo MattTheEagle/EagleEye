@@ -1,4 +1,4 @@
-// Builds the release files of Eagle Flight Control: release/eagleeye-v13.zip and release/module.json.
+// Builds the release files of Eagle Flight Control: release/eagle-flight-control-v13.zip and release/module.json.
 // Run it with `npm run package`. It publishes nothing and does not touch git: a tag, a push and a GitHub release are
 // separate steps that the project lead orders.
 import { execFileSync } from "node:child_process";
@@ -11,7 +11,7 @@ const here = dirname(fileURLToPath(import.meta.url));
 const root = resolve(here, "..");
 const releaseDir = join(root, "release");
 const stageDir = join(releaseDir, "stage");
-const ZIP_NAME = "eagleeye-v13.zip";
+const ZIP_NAME = "eagle-flight-control-v13.zip";
 const SEMVER = /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/;
 const PLAIN_PATH = /^[\w.-]+(\/[\w.-]+)*$/;
 
@@ -48,7 +48,7 @@ function shippedFiles(manifest) {
 // The rules a release depends on; core/manifest.test.ts holds the same rules for the repository.
 function manifestProblems(manifest, pack) {
   const problems = [];
-  if (manifest.id !== "eagleeye") problems.push(`id is "${manifest.id}", expected "eagleeye"`);
+  if (manifest.id !== "eagle-flight-control") problems.push(`id is "${manifest.id}", expected "eagle-flight-control"`);
   if (!SEMVER.test(String(manifest.version))) problems.push(`version "${manifest.version}" is not x.y.z`);
   if (pack.version !== manifest.version) {
     problems.push(`package.json has version "${pack.version}" but module.json has "${manifest.version}"`);

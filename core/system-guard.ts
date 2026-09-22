@@ -79,11 +79,11 @@ export interface SystemNotice {
 export function noticeFor(info: SystemInfo): SystemNotice | undefined {
   switch (info.status) {
     case "untested":
-      return { key: "EAGLEEYE.system.untested", data: { version: info.version ?? "", tested: info.testedVersions.join(", ") } };
+      return { key: "EAGLEFLIGHTCONTROL.system.untested", data: { version: info.version ?? "", tested: info.testedVersions.join(", ") } };
     case "other-system":
-      return { key: "EAGLEEYE.system.otherSystem", data: { id: info.id ?? "" } };
+      return { key: "EAGLEFLIGHTCONTROL.system.otherSystem", data: { id: info.id ?? "" } };
     case "unknown":
-      return { key: "EAGLEEYE.system.unknown", data: {} };
+      return { key: "EAGLEFLIGHTCONTROL.system.unknown", data: {} };
     default:
       return undefined;
   }
@@ -119,7 +119,7 @@ export function announceSystem(source: SystemSource, environment: AnnounceEnviro
     const known = info.status === "tested" || info.status === "same-line" || info.status === "untested";
     const subject = known ? `${info.id} ${info.version}` : info.id ?? "unreadable";
     const detail = info.status === "unknown" ? `; ${describeRaw(source)}` : "";
-    const line = `eagleeye | game system: ${subject} (${info.status})${detail}`;
+    const line = `eagle-flight-control | game system: ${subject} (${info.status})${detail}`;
     if (info.status === "tested" || info.status === "same-line") environment.log.info(line);
     else environment.log.warn(line);
   } catch {

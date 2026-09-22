@@ -55,7 +55,7 @@ export function createRightsGate(environment: RightsEnvironment, log?: RightsLog
     }
     if (!warned) {
       warned = true;
-      log?.warn(`eagleeye | ${parsed.detail}; nothing is allowed for players until the rights can be read`);
+      log?.warn(`eagle-flight-control | ${parsed.detail}; nothing is allowed for players until the rights can be read`);
     }
     return undefined;
   }

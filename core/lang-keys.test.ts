@@ -20,14 +20,14 @@ function flatten(value: unknown, prefix = ""): Record<string, string> {
 }
 
 describe("localization keys", () => {
-  it("has a non-empty English text for every EAGLEEYE.* key used in code, and the manifest points at the file", () => {
+  it("has a non-empty English text for every EAGLEFLIGHTCONTROL.* key used in code, and the manifest points at the file", () => {
     const translations = flatten(JSON.parse(langRaw));
     const used = new Set<string>();
     for (const text of Object.values(sources)) {
-      for (const match of text.matchAll(/EAGLEEYE(?:\.[A-Za-z0-9_]+)+/g)) used.add(match[0]);
+      for (const match of text.matchAll(/EAGLEFLIGHTCONTROL(?:\.[A-Za-z0-9_]+)+/g)) used.add(match[0]);
     }
 
-    expect(used.size, "no EAGLEEYE.* keys found in the sources").toBeGreaterThan(0);
+    expect(used.size, "no EAGLEFLIGHTCONTROL.* keys found in the sources").toBeGreaterThan(0);
     for (const key of used) {
       expect(translations[key], `missing or empty text for ${key}`).toBeTruthy();
     }

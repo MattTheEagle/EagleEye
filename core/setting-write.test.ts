@@ -97,7 +97,7 @@ describe("setting.write: running", () => {
   });
 
   it("cannot reach a setting of another package: one that the module did not register is not registered for it", async () => {
-    const { handler, set } = makeWorld({ "eagleeye.rights": GOOD });
+    const { handler, set } = makeWorld({ "eagle-flight-control.rights": GOOD });
     await expect(write(handler, payload({ key: "rights" }))).rejects.toThrow("the setting mod-a.rights is not registered");
     expect(set).not.toHaveBeenCalled();
   });

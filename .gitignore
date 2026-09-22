@@ -5,3 +5,5 @@ dist/
 *.zip
 *.tar.gz
 release/
+*.dadm-workspace.yaml
+*.foundry-workspace.yaml

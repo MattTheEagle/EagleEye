@@ -17,9 +17,9 @@ type SettingInput = HTMLInputElement | HTMLSelectElement | RangePicker;
 const TAB_GROUP = "primary";
 // The levels of the rights block, in the order of the select list. The keys are written out so the language file test finds them.
 const RIGHTS_LEVELS: ReadonlyArray<{ value: RightsLevel; key: string }> = [
-  { value: "denied", key: "EAGLEEYE.hub.rights.level.denied" },
-  { value: "own", key: "EAGLEEYE.hub.rights.level.own" },
-  { value: "all", key: "EAGLEEYE.hub.rights.level.all" },
+  { value: "denied", key: "EAGLEFLIGHTCONTROL.hub.rights.level.denied" },
+  { value: "own", key: "EAGLEFLIGHTCONTROL.hub.rights.level.own" },
+  { value: "all", key: "EAGLEFLIGHTCONTROL.hub.rights.level.all" },
 ];
 // Foundry core template that renders the tab navigation for the tabs returned by _prepareTabs.
 const NAV_TEMPLATE = "templates/generic/tab-navigation.hbs";
@@ -48,19 +48,19 @@ export function createHubApplicationClass(context: HubContext) {
     if (!entry) return;
     const result = await startModule(entry);
     if (!result.ok) {
-      context.log.warn(`eagleeye | open failed for ${entry.id}: ${result.reason} - ${result.detail}`);
+      context.log.warn(`eagle-flight-control | open failed for ${entry.id}: ${result.reason} - ${result.detail}`);
       context.notify(
         "error",
-        context.text("EAGLEEYE.hub.notify.openFailed", { module: entry.title, detail: result.detail }),
+        context.text("EAGLEFLIGHTCONTROL.hub.notify.openFailed", { module: entry.title, detail: result.detail }),
       );
     }
   }
 
   return class EagleHubApplication extends ApplicationV2 {
     static override DEFAULT_OPTIONS = {
-      id: "eagleeye-hub",
+      id: "eagle-flight-control-hub",
       // "standard-form" is the class Foundry's own form windows put on their content; it arranges the form groups.
-      window: { title: "EAGLEEYE.hub.title", icon: "fa-solid fa-eye", resizable: true, contentClasses: ["standard-form"] },
+      window: { title: "EAGLEFLIGHTCONTROL.hub.title", icon: "fa-solid fa-eye", resizable: true, contentClasses: ["standard-form"] },
       position: { width: 640 },
       actions: { openModule: onOpenModule },
     };
@@ -92,7 +92,7 @@ export function createHubApplicationClass(context: HubContext) {
       this.#shown.clear();
 
       if (modules.length === 0) {
-        root.append(element("p", context.text("EAGLEEYE.hub.empty")));
+        root.append(element("p", context.text("EAGLEFLIGHTCONTROL.hub.empty")));
       } else {
         const nav = foundry.utils.parseHTML(
           await foundry.applications.handlebars.renderTemplate(NAV_TEMPLATE, { tabs }),
@@ -104,7 +104,7 @@ export function createHubApplicationClass(context: HubContext) {
         }
       }
 
-      context.log.info(`eagleeye | hub rendered: ${modules.length} tab(s)`);
+      context.log.info(`eagle-flight-control | hub rendered: ${modules.length} tab(s)`);
       for (const line of notEditable) context.log.info(line);
       return root;
     }
@@ -135,11 +135,11 @@ export function createHubApplicationClass(context: HubContext) {
       section.append(
         element(
           "p",
-          context.text("EAGLEEYE.hub.version", { version: module.version, apiVersion: module.apiVersion }),
+          context.text("EAGLEFLIGHTCONTROL.hub.version", { version: module.version, apiVersion: module.apiVersion }),
         ),
       );
       if (module.open) {
-        const button = element("button", context.text("EAGLEEYE.hub.open"));
+        const button = element("button", context.text("EAGLEFLIGHTCONTROL.hub.open"));
         button.type = "button";
         button.dataset.action = "openModule";
         button.dataset.moduleId = module.id;
@@ -147,12 +147,12 @@ export function createHubApplicationClass(context: HubContext) {
       }
 
       const settings = listHubSettings(module.id, context.settings);
-      if (settings.length === 0) section.append(element("p", context.text("EAGLEEYE.hub.noSettings")));
+      if (settings.length === 0) section.append(element("p", context.text("EAGLEFLIGHTCONTROL.hub.noSettings")));
       for (const setting of settings) {
         this.#shown.set(`${setting.namespace}.${setting.key}`, setting);
         if (setting.kind === "unsupported") {
           notEditable.push(
-            `eagleeye | hub: ${setting.namespace}.${setting.key} is not editable (type ${setting.typeName})`,
+            `eagle-flight-control | hub: ${setting.namespace}.${setting.key} is not editable (type ${setting.typeName})`,
           );
         }
         section.append(this.#renderSetting(setting));
@@ -165,12 +165,12 @@ export function createHubApplicationClass(context: HubContext) {
     // Who may use the module: a native fieldset with one select list per player.
     #renderRights(module: RegisteredModule): HTMLElement {
       const block = element("fieldset");
-      block.append(element("legend", context.text("EAGLEEYE.hub.rights.title")));
+      block.append(element("legend", context.text("EAGLEFLIGHTCONTROL.hub.rights.title")));
       const listing = listRights(module.id, context.rights);
       block.append(
-        element("p", context.text(listing.unreadable ? "EAGLEEYE.hub.rights.unreadable" : "EAGLEEYE.hub.rights.hint")),
+        element("p", context.text(listing.unreadable ? "EAGLEFLIGHTCONTROL.hub.rights.unreadable" : "EAGLEFLIGHTCONTROL.hub.rights.hint")),
       );
-      if (listing.rows.length === 0) block.append(element("p", context.text("EAGLEEYE.hub.rights.noPlayers")));
+      if (listing.rows.length === 0) block.append(element("p", context.text("EAGLEFLIGHTCONTROL.hub.rights.noPlayers")));
       for (const row of listing.rows) block.append(this.#renderRightsRow(module, row));
       return block;
     }
@@ -189,8 +189,8 @@ export function createHubApplicationClass(context: HubContext) {
     #renderSetting(setting: HubSetting): HTMLElement {
       const hint = [
         setting.hint,
-        setting.kind === "unsupported" ? context.text("EAGLEEYE.hub.notEditable") : undefined,
-        setting.requiresReload ? context.text("EAGLEEYE.hub.requiresReload") : undefined,
+        setting.kind === "unsupported" ? context.text("EAGLEFLIGHTCONTROL.hub.notEditable") : undefined,
+        setting.requiresReload ? context.text("EAGLEFLIGHTCONTROL.hub.requiresReload") : undefined,
       ]
         .filter((part): part is string => Boolean(part))
         .join(" ");
@@ -246,7 +246,7 @@ export function createHubApplicationClass(context: HubContext) {
         if (result.ok) return;
 
         context.log.warn(
-          `eagleeye | hub could not save ${setting.namespace}.${setting.key}: ${result.reason} - ${result.detail}`,
+          `eagle-flight-control | hub could not save ${setting.namespace}.${setting.key}: ${result.reason} - ${result.detail}`,
         );
         // Show the stored value again and tell the user why nothing changed.
         const stored = context.settings.get(setting.namespace, setting.key);
@@ -256,10 +256,10 @@ export function createHubApplicationClass(context: HubContext) {
         } else input.value = String(stored ?? "");
         const message =
           result.reason === "not-permitted"
-            ? context.text("EAGLEEYE.hub.notify.notPermitted")
+            ? context.text("EAGLEFLIGHTCONTROL.hub.notify.notPermitted")
             : result.reason === "invalid-value"
-              ? context.text("EAGLEEYE.hub.notify.invalidValue", { name: setting.label, detail: result.detail })
-              : context.text("EAGLEEYE.hub.notify.writeFailed", { name: setting.label });
+              ? context.text("EAGLEFLIGHTCONTROL.hub.notify.invalidValue", { name: setting.label, detail: result.detail })
+              : context.text("EAGLEFLIGHTCONTROL.hub.notify.writeFailed", { name: setting.label });
         context.notify("warn", message);
       } finally {
         this.#saving.delete(input.name);
@@ -281,19 +281,19 @@ export function createHubApplicationClass(context: HubContext) {
           if (result.ok) return;
 
           context.log.warn(
-            `eagleeye | hub could not save the rights of ${userId} for ${moduleId}: ${result.reason} - ${result.detail}`,
+            `eagle-flight-control | hub could not save the rights of ${userId} for ${moduleId}: ${result.reason} - ${result.detail}`,
           );
           // Show the stored level again and tell the user why nothing changed.
           select.value = listRights(moduleId, context.rights).rows.find((row) => row.userId === userId)?.level ?? "denied";
           context.notify(
             "warn",
             result.reason === "not-permitted"
-              ? context.text("EAGLEEYE.hub.notify.rightsNotPermitted")
-              : context.text("EAGLEEYE.hub.notify.rightsFailed", { detail: result.detail }),
+              ? context.text("EAGLEFLIGHTCONTROL.hub.notify.rightsNotPermitted")
+              : context.text("EAGLEFLIGHTCONTROL.hub.notify.rightsFailed", { detail: result.detail }),
           );
         } catch (error) {
           context.log.warn(
-            `eagleeye | hub failed while saving the rights: ${error instanceof Error ? error.message : String(error)}`,
+            `eagle-flight-control | hub failed while saving the rights: ${error instanceof Error ? error.message : String(error)}`,
           );
         }
       };

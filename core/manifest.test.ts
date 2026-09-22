@@ -2,7 +2,7 @@
 import { describe, expect, it } from "vitest";
 import packageRaw from "../package.json?raw";
 import manifestRaw from "../v13/module.json?raw";
-import { EAGLEEYE_ID } from "./index";
+import { FLIGHT_CONTROL_ID } from "./index";
 
 // The manifest is what Foundry installs from, so the release files must agree with it. `npm run package` checks the
 // same rules again when it builds the release.
@@ -36,14 +36,14 @@ const languageFiles = import.meta.glob("../v13/lang/*.json", { query: "?raw", im
 
 describe("module manifest", () => {
   it("names the module and gives it a release version", () => {
-    expect(manifest.id).toBe(EAGLEEYE_ID);
+    expect(manifest.id).toBe(FLIGHT_CONTROL_ID);
     expect(manifest.version).toMatch(/^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/);
   });
 
   it("points manifest, download and bugs at the release of that version", () => {
     expect(manifest.url).toMatch(/^https:\/\/github\.com\/[\w.-]+\/[\w.-]+$/);
     expect(manifest.manifest).toBe(`${manifest.url}/releases/latest/download/module.json`);
-    expect(manifest.download).toBe(`${manifest.url}/releases/download/v13-v${manifest.version}/eagleeye-v13.zip`);
+    expect(manifest.download).toBe(`${manifest.url}/releases/download/v13-v${manifest.version}/eagle-flight-control-v13.zip`);
     expect(manifest.bugs).toBe(`${manifest.url}/issues`);
   });
 

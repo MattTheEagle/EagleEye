@@ -1,5 +1,5 @@
-export const EAGLEEYE_ID = "eagleeye";
+export const FLIGHT_CONTROL_ID = "eagle-flight-control";
 
-export function logEagleEyeReady(foundryVersion: string): void {
-  console.log(`${EAGLEEYE_ID} | ready (Foundry v${foundryVersion})`);
+export function logFlightControlReady(foundryVersion: string): void {
+  console.log(`${FLIGHT_CONTROL_ID} | ready (Foundry v${foundryVersion})`);
 }

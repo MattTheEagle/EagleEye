@@ -119,15 +119,15 @@ describe("noticeFor", () => {
     expect(noticeFor(info("tested", "dnd5e", "5.3.3"))).toBeUndefined();
     expect(noticeFor(info("same-line", "dnd5e", "5.3.4"))).toBeUndefined();
     expect(noticeFor(info("untested", "dnd5e", "5.4.0"))).toEqual({
-      key: "EAGLEEYE.system.untested",
+      key: "EAGLEFLIGHTCONTROL.system.untested",
       data: { version: "5.4.0", tested: "5.3.3" },
     });
     expect(noticeFor(info("untested", "dnd5e", "6.0.0", ["5.2.1", "5.3.3"]))).toEqual({
-      key: "EAGLEEYE.system.untested",
+      key: "EAGLEFLIGHTCONTROL.system.untested",
       data: { version: "6.0.0", tested: "5.2.1, 5.3.3" },
     });
-    expect(noticeFor(info("other-system", "pf2e", null))).toEqual({ key: "EAGLEEYE.system.otherSystem", data: { id: "pf2e" } });
-    expect(noticeFor(info("unknown", null, null))).toEqual({ key: "EAGLEEYE.system.unknown", data: {} });
+    expect(noticeFor(info("other-system", "pf2e", null))).toEqual({ key: "EAGLEFLIGHTCONTROL.system.otherSystem", data: { id: "pf2e" } });
+    expect(noticeFor(info("unknown", null, null))).toEqual({ key: "EAGLEFLIGHTCONTROL.system.unknown", data: {} });
   });
 });
 
@@ -147,19 +147,19 @@ describe("announceSystem", () => {
 
   it("logs one line every time (info for a tested system or one on a tested line, a warning otherwise) and tells a Gamemaster once, only when the system is not known to be fine, and never a player", () => {
     const cases: Array<[string, SystemSource, "info" | "warn", string, boolean]> = [
-      ["tested", source("dnd5e", "5.3.3"), "info", "eagleeye | game system: dnd5e 5.3.3 (tested)", false],
-      ["same-line", source("dnd5e", "5.3.4"), "info", "eagleeye | game system: dnd5e 5.3.4 (same-line)", false],
-      ["untested", source("dnd5e", "5.4.0"), "warn", "eagleeye | game system: dnd5e 5.4.0 (untested)", true],
-      ["other-system", source("pf2e", "1.0.0"), "warn", "eagleeye | game system: pf2e (other-system)", true],
+      ["tested", source("dnd5e", "5.3.3"), "info", "eagle-flight-control | game system: dnd5e 5.3.3 (tested)", false],
+      ["same-line", source("dnd5e", "5.3.4"), "info", "eagle-flight-control | game system: dnd5e 5.3.4 (same-line)", false],
+      ["untested", source("dnd5e", "5.4.0"), "warn", "eagle-flight-control | game system: dnd5e 5.4.0 (untested)", true],
+      ["other-system", source("pf2e", "1.0.0"), "warn", "eagle-flight-control | game system: pf2e (other-system)", true],
       [
         "unknown version",
         source("dnd5e", "5.3.3-rc.1"),
         "warn",
-        'eagleeye | game system: dnd5e (unknown); id "dnd5e", version "5.3.3-rc.1"',
+        'eagle-flight-control | game system: dnd5e (unknown); id "dnd5e", version "5.3.3-rc.1"',
         true,
       ],
-      ["unknown id", source(undefined, undefined), "warn", "eagleeye | game system: unreadable (unknown); id undefined, version undefined", true],
-      ["unreadable", throwing("both"), "warn", "eagleeye | game system: unreadable (unknown); id unreadable, version unreadable", true],
+      ["unknown id", source(undefined, undefined), "warn", "eagle-flight-control | game system: unreadable (unknown); id undefined, version undefined", true],
+      ["unreadable", throwing("both"), "warn", "eagle-flight-control | game system: unreadable (unknown); id unreadable, version unreadable", true],
     ];
     for (const [name, system, level, line, notice] of cases) {
       const gm = makeEnvironment();
@@ -181,7 +181,7 @@ describe("announceSystem", () => {
     // the text of the notice is the translated key with its data
     const untested = makeEnvironment();
     announceSystem(source("dnd5e", "5.4.0"), untested.environment);
-    expect(untested.notify).toHaveBeenCalledWith("warn", 'EAGLEEYE.system.untested {"version":"5.4.0","tested":"5.3.3"}');
+    expect(untested.notify).toHaveBeenCalledWith("warn", 'EAGLEFLIGHTCONTROL.system.untested {"version":"5.4.0","tested":"5.3.3"}');
   });
 
   it("never throws: a source, a log, a role check, a notification or a text that fails changes nothing, and a failing log does not stop the notice", () => {

@@ -1,4 +1,4 @@
-import { EAGLEEYE_ID, logEagleEyeReady } from "../core/index";
+import { FLIGHT_CONTROL_ID, logFlightControlReady } from "../core/index";
 import { EAGLE_API_VERSION } from "../core/api-version";
 import { createEagleApi, type ApiLogger, type EagleFlightControlApi } from "../core/eagle-api";
 import { defaultModuleInfoSource, ModuleRegistry } from "../core/module-registry";
@@ -17,10 +17,10 @@ import { foundryCurrentUser, foundryExecutor, foundryRelayEnvironment, registerR
 import { foundryRightsEnvironment, foundryRightsHubSource, registerRightsSetting } from "./rights";
 import { foundrySystemSource } from "./system";
 
-// Types game.modules.get("eagleeye")?.api for readers (see docs/api-contract.md).
+// Types game.modules.get("eagle-flight-control")?.api for readers (see docs/api-contract.md).
 declare global {
   interface ModuleConfig {
-    eagleeye: { api: EagleFlightControlApi };
+    "eagle-flight-control": { api: EagleFlightControlApi };
   }
 }
 
@@ -45,13 +45,13 @@ function notify(level: "info" | "warn" | "error", message: string): void {
 const systemSource = foundrySystemSource();
 
 Hooks.once("init", () => {
-  logEagleEyeReady("13");
+  logFlightControlReady("13");
 
   let registry: ModuleRegistry;
   try {
     registry = new ModuleRegistry(defaultModuleInfoSource(), EAGLE_API_VERSION);
   } catch (error) {
-    console.error("eagleeye | failed to create the module registry", error);
+    console.error("eagle-flight-control | failed to create the module registry", error);
     return;
   }
 
@@ -63,7 +63,7 @@ Hooks.once("init", () => {
     registerRightsSetting();
     rights = createRightsGate(rightsEnvironment, consoleLog);
   } catch (error) {
-    console.error("eagleeye | failed to set up the rights; every request is refused", error);
+    console.error("eagle-flight-control | failed to set up the rights; every request is refused", error);
   }
 
   // Other modules read the API from their "setup" hook on, which runs after every "init" callback.
@@ -80,27 +80,27 @@ Hooks.once("init", () => {
       registerRelayQueries(relay);
       requests = relay;
     } catch (error) {
-      console.error("eagleeye | failed to set up the Gamemaster relay; requests run in the caller's client only", error);
+      console.error("eagle-flight-control | failed to set up the Gamemaster relay; requests run in the caller's client only", error);
     }
 
     const rightsSource = {
       levelFor: (moduleId: string) =>
         rights === REFUSE_ALL ? ("denied" as const) : effectiveLevel(rightsEnvironment, moduleId, game.user?.id ?? undefined),
     };
-    game.modules!.get(EAGLEEYE_ID).api = createEagleApi(registry, consoleLog, requests, rightsSource, () =>
+    game.modules!.get(FLIGHT_CONTROL_ID).api = createEagleApi(registry, consoleLog, requests, rightsSource, () =>
       evaluateSystem(systemSource),
     );
-    console.log(`eagleeye | API attached (v${EAGLE_API_VERSION})`);
+    console.log(`eagle-flight-control | API attached (v${EAGLE_API_VERSION})`);
   } catch (error) {
-    console.error("eagleeye | failed to attach the API to the module object", error);
+    console.error("eagle-flight-control | failed to attach the API to the module object", error);
   }
 
   // The hub opens from a button in the module settings (Gamemaster only).
   try {
-    game.settings!.registerMenu(EAGLEEYE_ID, "hub", {
-      name: "EAGLEEYE.menu.name",
-      label: "EAGLEEYE.menu.label",
-      hint: "EAGLEEYE.menu.hint",
+    game.settings!.registerMenu(FLIGHT_CONTROL_ID, "hub", {
+      name: "EAGLEFLIGHTCONTROL.menu.name",
+      label: "EAGLEFLIGHTCONTROL.menu.label",
+      hint: "EAGLEFLIGHTCONTROL.menu.hint",
       icon: "fa-solid fa-eye",
       type: createHubApplicationClass({
         registry,
@@ -113,7 +113,7 @@ Hooks.once("init", () => {
       restricted: true,
     });
   } catch (error) {
-    console.error("eagleeye | failed to register the hub menu", error);
+    console.error("eagle-flight-control | failed to register the hub menu", error);
   }
 });
 
@@ -128,6 +128,6 @@ Hooks.once("ready", () => {
       text,
     });
   } catch (error) {
-    console.error("eagleeye | failed to check the game system", error);
+    console.error("eagle-flight-control | failed to check the game system", error);
   }
 });

@@ -1,4 +1,4 @@
-import { EAGLEEYE_ID } from "../core/index";
+import { FLIGHT_CONTROL_ID } from "../core/index";
 import type { OwnershipKind, RightsEnvironment } from "../core/request-rights";
 import type { RightsHubSource } from "../core/rights-hub";
 
@@ -8,18 +8,18 @@ export const RIGHTS_SETTING = "rights";
 
 declare global {
   interface SettingConfig {
-    "eagleeye.rights": string;
+    "eagle-flight-control.rights": string;
   }
 }
 
 export function registerRightsSetting(): void {
-  game.settings!.register(EAGLEEYE_ID, RIGHTS_SETTING, { scope: "world", config: false, type: String, default: "" });
+  game.settings!.register(FLIGHT_CONTROL_ID, RIGHTS_SETTING, { scope: "world", config: false, type: String, default: "" });
 }
 
 // The stored text; undefined when nothing is stored. Anything that is not text is handed on as text, so the check finds
 // out that it is not a table.
 function readStored(): string | undefined {
-  const value: unknown = game.settings!.get(EAGLEEYE_ID, RIGHTS_SETTING);
+  const value: unknown = game.settings!.get(FLIGHT_CONTROL_ID, RIGHTS_SETTING);
   return value === undefined || value === null || value === "" ? undefined : String(value);
 }
 
@@ -55,6 +55,6 @@ export function foundryRightsHubSource(): RightsHubSource {
         .filter((user) => !user.isGM && Boolean(user.id))
         .map((user) => ({ id: user.id as string, name: user.name || (user.id as string) })),
     storedTable: readStored,
-    store: (text) => game.settings!.set(EAGLEEYE_ID, RIGHTS_SETTING, text),
+    store: (text) => game.settings!.set(FLIGHT_CONTROL_ID, RIGHTS_SETTING, text),
   };
 }

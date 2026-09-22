@@ -177,8 +177,8 @@ describe("API contract: the API object, the rights and the game system", () => {
   it("names the tested versions, the supported system and the notice of the code", () => {
     expect(flat).toContain(`Today it holds ${TESTED_SYSTEM_VERSIONS.map((version) => `\`${version}\``).join(", ")}`);
     expect(flat).toContain(`(\`${SUPPORTED_SYSTEM_ID}\`)`);
-    expect(flat).toContain("eagleeye | game system: dnd5e 5.3.3 (tested)");
-    expect(source("system-guard")).toContain("eagleeye | game system:");
+    expect(flat).toContain("eagle-flight-control | game system: dnd5e 5.3.3 (tested)");
+    expect(source("system-guard")).toContain("eagle-flight-control | game system:");
     expect(flat).toContain("nothing is blocked because of the status");
     expect(flat).toContain("also gets one notification");
     expect(flat).toContain("nobody gets one for `tested` or `same-line`");
