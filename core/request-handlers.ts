@@ -1,5 +1,6 @@
 import { createCompendiumHandler, type CompendiumEnvironment } from "./compendium-handlers";
 import { createDocumentCreateHandler, type DocumentCreateEnvironment } from "./document-create";
+import { createDocumentUpdateHandler, type DocumentUpdateEnvironment } from "./document-update";
 import { createImportHandler, type ImportEnvironment } from "./document-import";
 import { createFlagHandler, type FlagEnvironment } from "./flag-write";
 import { createSettingWriteHandler, type SettingsEnvironment } from "./setting-write";
@@ -116,6 +117,7 @@ export function defaultRequestHandlers(
   settings: SettingsEnvironment,
   flags: FlagEnvironment,
   documents: DocumentCreateEnvironment,
+  updates: DocumentUpdateEnvironment,
 ): RequestHandler[] {
   return [
     createPingHandler(apiVersion) as RequestHandler,
@@ -126,5 +128,6 @@ export function defaultRequestHandlers(
     createSettingWriteHandler(settings) as RequestHandler,
     createFlagHandler(flags) as RequestHandler,
     createDocumentCreateHandler(documents) as RequestHandler,
+    createDocumentUpdateHandler(updates) as RequestHandler,
   ];
 }

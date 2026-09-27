@@ -5,6 +5,10 @@
       "label": "Open Eagle Flight Control",
       "hint": "Bundles the settings of your Eagle modules and starts them."
     },
+    "toolbar": {
+      "category": "Flight Control",
+      "hub": "Open Eagle Flight Control Hub"
+    },
     "hub": {
       "title": "Eagle Flight Control",
       "empty": "No Eagle modules are registered yet.",

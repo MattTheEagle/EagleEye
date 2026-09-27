@@ -6,6 +6,7 @@ import foundryImportRaw from "../v13/document-import.ts?raw";
 import { compareVersions, EAGLE_API_VERSION, isApiCompatible, parseVersion } from "./api-version";
 import { COMPENDIUM_DOCUMENT_TYPES, NO_COMPENDIUMS } from "./compendium-handlers";
 import { CREATABLE_DOCUMENT_TYPES, NO_DOCUMENTS } from "./document-create";
+import { UPDATABLE_DOCUMENT_TYPES, NO_UPDATES } from "./document-update";
 import { IMPORTABLE_DOCUMENT_TYPES, MAX_IMPORT_SOURCES, NO_IMPORTS } from "./document-import";
 import { FLAG_DOCUMENT_TYPES, MAX_FLAG_VALUE_LENGTH, NO_FLAGS } from "./flag-write";
 import { MAX_SETTING_LENGTH, NO_SETTINGS } from "./setting-write";
@@ -122,7 +123,7 @@ describe("API contract: registration and requests", () => {
   });
 
   it("lists the request types of the code, their versions and where each runs", () => {
-    const handlers = defaultRequestHandlers(EAGLE_API_VERSION, () => ({ userId: "user", isGm: false }), NO_COMPENDIUMS, NO_IMPORTS, NO_SETTINGS, NO_FLAGS, NO_DOCUMENTS);
+    const handlers = defaultRequestHandlers(EAGLE_API_VERSION, () => ({ userId: "user", isGm: false }), NO_COMPENDIUMS, NO_IMPORTS, NO_SETTINGS, NO_FLAGS, NO_DOCUMENTS, NO_UPDATES);
     const rows = [...contract.matchAll(/^\| `([a-z]+\.[a-z]+)` \| `(\d+)` \| (your own client|the Gamemaster's client) \|/gm)];
     expect(rows.map((row) => row[1]).sort()).toEqual(handlers.map((handler) => handler.type).sort());
     for (const [, type, version, place] of rows) {
@@ -237,7 +238,7 @@ describe("API contract: structure", () => {
 });
 
 describe("API contract: compendium.create and requests for a Gamemaster or Assistant only", () => {
-  const handlers = defaultRequestHandlers(EAGLE_API_VERSION, () => ({ userId: "user", isGm: false }), NO_COMPENDIUMS, NO_IMPORTS, NO_SETTINGS, NO_FLAGS, NO_DOCUMENTS);
+  const handlers = defaultRequestHandlers(EAGLE_API_VERSION, () => ({ userId: "user", isGm: false }), NO_COMPENDIUMS, NO_IMPORTS, NO_SETTINGS, NO_FLAGS, NO_DOCUMENTS, NO_UPDATES);
   const compendia = between(contract, "**Compendia** (since API `0.8.0`)", "**The game system**");
 
   it("marks in the table of request types exactly the types that are for a Gamemaster or Assistant only", () => {
@@ -250,7 +251,7 @@ describe("API contract: compendium.create and requests for a Gamemaster or Assis
 
   it("marks every request type that runs on the Gamemaster's client and is not a proof as for a Gamemaster or Assistant only", () => {
     const changing = handlers.filter((handler) => handler.runsOn === "gm" && !handler.type.startsWith("flightcontrol."));
-    expect(changing.map((handler) => handler.type)).toEqual(["compendium.create", "compendium.import", "setting.write", "compendium.flag", "document.create"]);
+    expect(changing.map((handler) => handler.type)).toEqual(["compendium.create", "compendium.import", "setting.write", "compendium.flag", "document.create", "document.update"]);
     for (const handler of changing) expect(handler.gmOnly, handler.type).toBe(true);
   });
 
@@ -311,7 +312,7 @@ describe("API contract: compendium.create and requests for a Gamemaster or Assis
 });
 
 describe("API contract: compendium.import", () => {
-  const handlers = defaultRequestHandlers(EAGLE_API_VERSION, () => ({ userId: "user", isGm: false }), NO_COMPENDIUMS, NO_IMPORTS, NO_SETTINGS, NO_FLAGS, NO_DOCUMENTS);
+  const handlers = defaultRequestHandlers(EAGLE_API_VERSION, () => ({ userId: "user", isGm: false }), NO_COMPENDIUMS, NO_IMPORTS, NO_SETTINGS, NO_FLAGS, NO_DOCUMENTS, NO_UPDATES);
   const handler = handlers.find((candidate) => candidate.type === "compendium.import")!;
   const importText = between(contract, "`compendium.import` (version `1`, since API `0.9.0`)", "**The game system**");
 
@@ -367,12 +368,12 @@ describe("API contract: compendium.import", () => {
     expect(contract).toContain("| `0.9.0` | Library milestone M4:");
     expect(contract).toContain("- the request type `compendium.import` (API `0.9.0`)");
     const notPart = between(contract, "## 9. Not part of this version", "## 10. Change history");
-    expect(notPart).toContain("other than `compendium.create`, `compendium.import`, `setting.write`, `compendium.flag` and `document.create`");
+    expect(notPart).toContain("other than `compendium.create`, `compendium.import`, `setting.write`, `compendium.flag`, `document.create` and `document.update`");
   });
 });
 
 describe("API contract: setting.write", () => {
-  const handlers = defaultRequestHandlers(EAGLE_API_VERSION, () => ({ userId: "user", isGm: false }), NO_COMPENDIUMS, NO_IMPORTS, NO_SETTINGS, NO_FLAGS, NO_DOCUMENTS);
+  const handlers = defaultRequestHandlers(EAGLE_API_VERSION, () => ({ userId: "user", isGm: false }), NO_COMPENDIUMS, NO_IMPORTS, NO_SETTINGS, NO_FLAGS, NO_DOCUMENTS, NO_UPDATES);
   const handler = handlers.find((candidate) => candidate.type === "setting.write")!;
   const text = between(contract, "**Settings** (since API `0.10.0`)", "**The game system**");
   const flatText = text.replace(/\s+/g, " ");
@@ -408,7 +409,7 @@ describe("API contract: setting.write", () => {
 });
 
 describe("API contract: compendium.flag", () => {
-  const handlers = defaultRequestHandlers(EAGLE_API_VERSION, () => ({ userId: "user", isGm: false }), NO_COMPENDIUMS, NO_IMPORTS, NO_SETTINGS, NO_FLAGS, NO_DOCUMENTS);
+  const handlers = defaultRequestHandlers(EAGLE_API_VERSION, () => ({ userId: "user", isGm: false }), NO_COMPENDIUMS, NO_IMPORTS, NO_SETTINGS, NO_FLAGS, NO_DOCUMENTS, NO_UPDATES);
   const handler = handlers.find((candidate) => candidate.type === "compendium.flag")!;
   const text = between(contract, "**Flags** (since API `0.12.0`)", "**The game system**");
   const flat = text.replace(/\s+/g, " ");
@@ -440,7 +441,7 @@ describe("API contract: compendium.flag", () => {
 });
 
 describe("API contract: document.create", () => {
-  const handlers = defaultRequestHandlers(EAGLE_API_VERSION, () => ({ userId: "user", isGm: false }), NO_COMPENDIUMS, NO_IMPORTS, NO_SETTINGS, NO_FLAGS, NO_DOCUMENTS);
+  const handlers = defaultRequestHandlers(EAGLE_API_VERSION, () => ({ userId: "user", isGm: false }), NO_COMPENDIUMS, NO_IMPORTS, NO_SETTINGS, NO_FLAGS, NO_DOCUMENTS, NO_UPDATES);
   const handler = handlers.find((candidate) => candidate.type === "document.create")!;
   const text = between(contract, "**Documents** (since API `0.13.0`)", "**The game system**");
   const flat = text.replace(/\s+/g, " ");
@@ -481,6 +482,47 @@ describe("API contract: document.create", () => {
     expect(contract).toContain("| `0.13.0` | Homebrew milestone M2:");
     expect(contract).toContain("- the request type `document.create` (API `0.13.0`)");
     const notPart = between(contract, "## 9. Not part of this version", "## 10. Change history");
-    expect(notPart).toContain("other than `compendium.create`, `compendium.import`, `setting.write`, `compendium.flag` and `document.create`");
+    expect(notPart).toContain("other than `compendium.create`, `compendium.import`, `setting.write`, `compendium.flag`, `document.create` and `document.update`");
+  });
+});
+
+describe("API contract: document.update", () => {
+  const handlers = defaultRequestHandlers(EAGLE_API_VERSION, () => ({ userId: "user", isGm: false }), NO_COMPENDIUMS, NO_IMPORTS, NO_SETTINGS, NO_FLAGS, NO_DOCUMENTS, NO_UPDATES);
+  const handler = handlers.find((candidate) => candidate.type === "document.update")!;
+  const text = between(contract, "`document.update` (version `1`", "**The game system**");
+  const flat = text.replace(/\s+/g, " ");
+
+  it("states the document types of the code in the payload rule", () => {
+    const types = text.match(/of type ((?:`[A-Za-z]+`(?:, | or )?)+)/)?.[1] ?? "";
+    expect([...types.matchAll(/`([A-Za-z]+)`/g)].map((match) => match[1])).toEqual([...UPDATABLE_DOCUMENT_TYPES]);
+  });
+
+  it("states the path limit and the forbidden first segments the way the code checks them", () => {
+    const code = source("document-update");
+    expect(text).toContain(`1 to ${code.match(/MAX_CHANGES = (\d+)/)?.[1]} paths`);
+    expect(text).toContain("The paths `_id`, `_stats` and `type` are not allowed");
+    expect(code).toContain('FORBIDDEN_FIRST_SEGMENTS = ["_id", "_stats", "type"]');
+  });
+
+  it("gives an example that passes the check of the code", () => {
+    expect(
+      handler.validate({ uuid: "Item.abcdefghij012345", changes: { "system.activities.0123456789abcdef.attack.ability": "str", name: "Renamed" } }),
+    ).toMatchObject({ ok: true });
+    expect(text).toContain(
+      'payload: { uuid: "Item.abcdefghij012345", changes: { "system.activities.0123456789abcdef.attack.ability": "str", name: "Renamed" } }',
+    );
+  });
+
+  it("says applying the same changes again has no further effect, and that it names its target the ordinary way", () => {
+    expect(flat).toContain("**Asking again is safe:**");
+    expect(flat).toContain("Unlike `document.create` it names its target the ordinary way, by UUID");
+  });
+
+  it("is in the table of request types, the history and the list of what is not verified", () => {
+    expect(contract).toContain("| `document.update` | `1` | the Gamemaster's client |");
+    expect(contract).toContain("| `0.14.0` | Homebrew milestone M6:");
+    expect(contract).toContain("- the request type `document.update` (API `0.14.0`)");
+    const notPart = between(contract, "## 9. Not part of this version", "## 10. Change history");
+    expect(notPart).toContain("other than `compendium.create`, `compendium.import`, `setting.write`, `compendium.flag`, `document.create` and `document.update`");
   });
 });

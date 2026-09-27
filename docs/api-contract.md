@@ -1,6 +1,6 @@
 # Eagle Flight Control — API contract
 
-**API version:** `0.13.0`
+**API version:** `0.14.0`
 **Status:** development. Before `1.0.0` a minor version may break the API (see section 5).
 **Audience:** authors of Eagle modules. Flight Control does not integrate third-party modules. Registration by a
 third-party module is not a supported use; it cannot be prevented technically, and such a module would simply
@@ -15,7 +15,7 @@ its API object (section 1), which has five members:
 |---|---|---|
 | `version` | The API version of Flight Control (section 5). | `0.1.0` |
 | `registerModule` | Registers your module, so that it gets a tab in the hub, optionally with an Open button (sections 2 and 3). | `0.1.0`; `open` since `0.2.0` |
-| `request` | Asks Flight Control to do something. A request that needs the Gamemaster's rights runs on the Gamemaster's client, after the asking user has been confirmed, and the rights per module and user are checked before any request runs; a request type that changes the world is for a Gamemaster or Assistant only (section 4). | `0.3.0`; forwarding `0.4.0`; confirmation `0.5.0`; rights `0.6.0`; first type that changes data `0.8.0`; copying documents `0.9.0`; writing a setting `0.10.0`; flags `0.12.0`; creating documents `0.13.0` |
+| `request` | Asks Flight Control to do something. A request that needs the Gamemaster's rights runs on the Gamemaster's client, after the asking user has been confirmed, and the rights per module and user are checked before any request runs; a request type that changes the world is for a Gamemaster or Assistant only (section 4). | `0.3.0`; forwarding `0.4.0`; confirmation `0.5.0`; rights `0.6.0`; first type that changes data `0.8.0`; copying documents `0.9.0`; writing a setting `0.10.0`; flags `0.12.0`; creating documents `0.13.0`; updating documents `0.14.0` |
 | `getRights` | Tells your module what the user of this client may do with it (section 4). | `0.6.0` |
 | `getSystemInfo` | Tells your module which game system runs and whether Flight Control was tested with its version (section 4). | `0.7.0` |
 
@@ -152,7 +152,7 @@ Hooks.once("setup", () => {
 
   const result = api.registerModule({
     id: "my-eagle-module",
-    apiVersion: "0.13.0",
+    apiVersion: "0.14.0",
     open: () => new MyModuleApp().render({ force: true }), // optional
   });
   if (!result.ok) {
@@ -241,7 +241,7 @@ const result = await api.request({
   payload: { echo: "hello" },
 });
 if (result.ok) {
-  console.log(result.value); // { apiVersion: "0.13.0", module: "my-eagle-module", echo: "hello" }
+  console.log(result.value); // { apiVersion: "0.14.0", module: "my-eagle-module", echo: "hello" }
 } else {
   console.warn(result.reason, result.detail);
 }
@@ -412,6 +412,7 @@ The user is a different matter for a forwarded request (see "Who asked").
 | `setting.write` | `1` | the Gamemaster's client | `{ key, value, previous? }` (see "Settings") | `{ key, changed }`; for a Gamemaster or Assistant only |
 | `compendium.flag` | `1` | the Gamemaster's client | `{ pack, id, key, value }` (see "Flags") | `{ pack, id, key, changed }`; for a Gamemaster or Assistant only |
 | `document.create` | `1` | the Gamemaster's client | `{ target, id, data }` (see "Documents") | `{ target, created, uuid, id, name }`; for a Gamemaster or Assistant only |
+| `document.update` | `1` | the Gamemaster's client | `{ uuid, changes }` (see "Documents") | `{ uuid, changed }`; for a Gamemaster or Assistant only |
 
 Use `flightcontrol.ping` to check that the channel works, and `flightcontrol.gmping` to check that a request reaches
 the Gamemaster's client: for a player it answers with the Gamemaster's `userId` in `ranBy` and the player's own id in
@@ -600,6 +601,35 @@ const result = await api.request({
   request).
 - **Not verified in a running Foundry:** see section 8.
 
+`document.update` (version `1`, since API `0.14.0`) changes named fields of a document that already exists. It runs
+on the Gamemaster's client and is for a Gamemaster or Assistant only. Unlike `document.create` it names its target
+the ordinary way, by UUID: an existing document already has one, so there is no `{ pack } | { world }` choice to make.
+
+```js
+const result = await api.request({
+  module: "my-eagle-module",
+  type: "document.update",
+  payload: { uuid: "Item.abcdefghij012345", changes: { "system.activities.0123456789abcdef.attack.ability": "str", name: "Renamed" } },
+});
+// { ok: true, value: { uuid: "Item.abcdefghij012345", changed: ["system.activities.0123456789abcdef.attack.ability", "name"] } }
+```
+
+| Field | Meaning |
+|---|---|
+| `uuid` | The document to change: a primary document (not an effect, not an Item embedded in an Actor) of type `Actor`, `Item`, `JournalEntry` or `RollTable`, in a world compendium or directly in the world. |
+| `changes` | 1 to 50 paths to JSON values (the same shape as `compendium.import`'s own `changes`, applied here to an independently named, already existing document instead of a copy the same request is creating). The paths `_id`, `_stats` and `type` are not allowed: the id and the origin are not settable this way, and a subtype change is a structural operation, not an ordinary field change. |
+
+- **What it does:** it applies every path in `changes` to the document at the target, through Foundry's own `update`.
+  It changes nothing else about the document.
+- **Asking again is safe:** applying the same `changes` again has no further effect — unlike creating a document,
+  writing the same field value twice does nothing the first write did not already do, so there is no separate
+  "already applied" case to answer.
+- **Failures:** `invalid-payload` (the detail names the field), `not-permitted` (the user is neither Gamemaster nor
+  Assistant, or the module is denied), `handler-failed`: the document does not exist, is not a primary document, is
+  in a locked compendium, or Foundry refused (its message is in `detail` for a Gamemaster or Assistant, whose client
+  runs the request).
+- **Not verified in a running Foundry:** see section 8.
+
 **The game system** (since API `0.7.0`)
 
 Flight Control is made for the D&D 5e system (`dnd5e`) and knows the versions of it that it was tested with. It tells the
@@ -693,6 +723,7 @@ Declare Flight Control as a required module:
   | `0.5.0` | `0.11.0` |
   | `0.6.0` | `0.12.0` |
   | `0.7.0` | `0.13.0` |
+  | `0.8.0` | `0.14.0` |
 
   The table gets a row for every module version that changes the API version.
 - **Texts and files:** Flight Control ships `lang/en.json` and lists it under `languages` in its manifest. A package
@@ -823,6 +854,9 @@ release build, module version `0.1.0`):
 - the request type `document.create` (API `0.13.0`): whether Foundry accepts a document created this way in a world
   compendium and directly in the world's own collection, whether a given id is kept in both, and what the game system
   does when the document is created (unit tests and a simulation only);
+- the request type `document.update` (API `0.14.0`): whether Foundry's `Document#update` accepts a dotted-path
+  `changes` object directly, whether it reaches a document in a world compendium as well as one in the world's own
+  collection, and whether an Assistant may use it (unit tests and a simulation only);
 - what the hub does with a refused value: it resets the field and shows a notification (unit tests only; the number
   field of a slider limits a value typed above the maximum before the hub sees it, so this path cannot be triggered
   with such a field);
@@ -834,7 +868,7 @@ release build, module version `0.1.0`):
 
 ## 9. Not part of this version
 
-- Request types that read or change Foundry data other than `compendium.create`, `compendium.import`, `setting.write`, `compendium.flag` and `document.create`.
+- Request types that read or change Foundry data other than `compendium.create`, `compendium.import`, `setting.write`, `compendium.flag`, `document.create` and `document.update`.
   They will be added in later versions of this contract.
 - A limit on how many requests a client may send or have waiting (see "Forwarded requests" in section 4).
 
@@ -858,3 +892,4 @@ project in which a change was made; the earlier project documents use these name
 | `0.11.0` | Library milestone M7: `compendium.import` takes up to 50 paths in `changes` of an entry (was 20), so that a document can be written with all its links rewritten in one operation. No new request type. |
 | `0.12.0` | Library milestone M8: the request type `compendium.flag` sets or removes a flag of the asking module on a document of a world compendium (its own namespace only); for a Gamemaster or Assistant only. |
 | `0.13.0` | Homebrew milestone M2: the request type `document.create` creates a document with given data at a given id, either in a world compendium or directly in the world's own collection (`Actor`, `Item`, `JournalEntry` or `RollTable`); the first request type that carries a document's data instead of naming an existing one by UUID, because there is nothing existing yet to reference; for a Gamemaster or Assistant only. |
+| `0.14.0` | Homebrew milestone M6: the request type `document.update` changes named fields (up to 50 dotted paths) of a document that already exists, named by UUID like every request type before `document.create`; for a Gamemaster or Assistant only. |

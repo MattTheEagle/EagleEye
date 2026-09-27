@@ -4,7 +4,9 @@ Foundry-VTT-Modul **Eagle Flight Control**: die Schnittstelle zwischen den Eagle
 dem DnD-5e-System und Foundry VTT. Es ist das Kernmodul der Eagle Modules (siehe unten): Die anderen Module benutzen
 es, um Foundry-Daten zu ändern, und Flight Control selbst bietet einen Hub zum Einstellen und Starten der Eagle Module.
 
-**Stand:** Aktuelle Version `0.6.0` (API `0.12.0`). Vorerst nur für Foundry v13 verfügbar.
+**Stand:** Aktuelle Version `0.8.0` (API `0.14.0`, seit Eagle Homebrews Meilenstein M6: neuer Anfragetyp
+`document.update`, gezielte Änderung an einem bestehenden Welt- oder Library-Dokument). Vorerst nur für
+Foundry v13 verfügbar.
 
 
 ## Was Flight Control kann

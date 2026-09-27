@@ -23,8 +23,8 @@ describe("parseVersion", () => {
 });
 
 describe("EAGLE_API_VERSION", () => {
-  it("is 0.13.0, the version of the Homebrew milestone M2 of the API contract", () => {
-    expect(EAGLE_API_VERSION).toBe("0.13.0");
+  it("is 0.14.0, the version of the Homebrew milestone M6 of the API contract", () => {
+    expect(EAGLE_API_VERSION).toBe("0.14.0");
   });
 });
 
