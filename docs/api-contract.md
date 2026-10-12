@@ -854,9 +854,10 @@ release build, module version `0.1.0`):
 - the request type `document.create` (API `0.13.0`): whether Foundry accepts a document created this way in a world
   compendium and directly in the world's own collection, whether a given id is kept in both, and what the game system
   does when the document is created (unit tests and a simulation only);
-- the request type `document.update` (API `0.14.0`): whether Foundry's `Document#update` accepts a dotted-path
-  `changes` object directly, whether it reaches a document in a world compendium as well as one in the world's own
-  collection, and whether an Assistant may use it (unit tests and a simulation only);
+- the request type `document.update` (API `0.14.0`): a 2026-09-22 M6 live check confirmed a dotted-path `changes`
+  object on a world Item, rejection of the structural paths `_id`, `_stats` and `type`, and a repeated equal request.
+  Whether it reaches a document in a world compendium and whether an Assistant may use it remain unverified (unit
+  tests and a simulation only);
 - what the hub does with a refused value: it resets the field and shows a notification (unit tests only; the number
   field of a slider limits a value typed above the maximum before the hub sees it, so this path cannot be triggered
   with such a field);
