@@ -10,6 +10,7 @@ import { defaultHubSettingsSource } from "../core/settings-hub";
 import { announceSystem, evaluateSystem } from "../core/system-guard";
 import { createHubApplicationClass } from "./hub-application";
 import { foundryCompendiumEnvironment } from "./compendium";
+import { foundryCharacterCreateEnvironment } from "./character-create";
 import { foundryDocumentCreateEnvironment } from "./document-create";
 import { foundryDocumentUpdateEnvironment } from "./document-update";
 import { foundryImportEnvironment } from "./document-import";
@@ -94,6 +95,7 @@ Hooks.once("init", () => {
       foundryFlagEnvironment(),
       foundryDocumentCreateEnvironment(),
       foundryDocumentUpdateEnvironment(),
+      foundryCharacterCreateEnvironment(),
     );
     const kernel = createRequestKernel(registry, handlers, { currentUser: foundryCurrentUser, rights });
 
@@ -120,13 +122,15 @@ Hooks.once("init", () => {
     console.error("eagle-flight-control | failed to attach the API to the module object", error);
   }
 
-  // The hub opens from a button in the module settings (Gamemaster only). Built once and kept in a
-  // variable (M10b): the scene-controls toolbar button below opens the exact same class, not a
+  // The hub opens from a button in the module settings. Its Player branch is a fixed Character Edit
+  // launcher; the existing full hub remains for Gamemaster and Assistant users. Built once and kept
+  // in a variable (M10b): the scene-controls toolbar button below opens the exact same class, not a
   // second instance of it.
   let hubApplicationClass: (new () => foundry.applications.api.ApplicationV2.Any) | undefined;
   try {
     hubApplicationClass = createHubApplicationClass({
       registry,
+      isGm: () => game.user?.isGM === true,
       settings: defaultHubSettingsSource(),
       rights: foundryRightsHubSource(),
       text,
@@ -139,7 +143,7 @@ Hooks.once("init", () => {
       hint: "EAGLEFLIGHTCONTROL.menu.hint",
       icon: "fa-solid fa-eye",
       type: hubApplicationClass,
-      restricted: true,
+      restricted: false,
     });
   } catch (error) {
     console.error("eagle-flight-control | failed to register the hub menu", error);

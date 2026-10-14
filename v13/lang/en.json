@@ -15,6 +15,10 @@
       "open": "Open",
       "version": "Version {version} (API {apiVersion})",
       "noSettings": "This module has no settings in the hub.",
+      "player": {
+        "hint": "Create a new player character.",
+        "create": "Create Player Character"
+      },
       "notEditable": "Cannot be edited here. Use Foundry's Configure Settings.",
       "requiresReload": "Takes effect after a reload.",
       "rights": {
@@ -33,6 +37,7 @@
         "invalidValue": "The value for {name} is not valid: {detail}",
         "writeFailed": "Could not save {name}.",
         "openFailed": "Could not open {module}: {detail}",
+        "playerCreateUnavailable": "Character creation is currently unavailable.",
         "rightsNotPermitted": "Only the Gamemaster can change these rights.",
         "rightsFailed": "Could not save the rights: {detail}"
       }

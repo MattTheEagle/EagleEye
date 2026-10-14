@@ -1,4 +1,5 @@
 import { createCompendiumHandler, type CompendiumEnvironment } from "./compendium-handlers";
+import { createCharacterCreateHandler, NO_CHARACTERS, type CharacterCreateEnvironment } from "./character-create";
 import { createDocumentCreateHandler, type DocumentCreateEnvironment } from "./document-create";
 import { createDocumentUpdateHandler, type DocumentUpdateEnvironment } from "./document-update";
 import { createImportHandler, type ImportEnvironment } from "./document-import";
@@ -105,10 +106,11 @@ function createTargetPingHandler(apiVersion: string): RequestHandler<TargetPaylo
 
 // Everything Flight Control offers as a request. Every further request type needs the Apply of the milestone that
 // brings it (Flight Control stays narrow and generic); the test for this list guards against unnoticed growth.
-// A handler that runs on the Gamemaster's client ("gm") must name the documents it acts on (`targets`), so the rights
-// per module and user decide before it runs. One that changes data or hands out Gamemaster-only knowledge also needs
-// the Apply of its milestone to say how (see the rules in the API contract, section 4); a type that changes the world is
-// marked `gmOnly`.
+// A handler that runs on the Gamemaster's client ("gm") and acts on an existing document must name that document
+// (`targets`), so the rights per module and user decide before it runs. A targetless creation needs an equally narrow
+// handler-specific authorization check. One that changes data or hands out Gamemaster-only knowledge also needs the
+// Apply of its milestone to say how (see the rules in the API contract, section 4); a type that changes the world is
+// marked `gmOnly` unless its narrow authorization deliberately admits an approved Character Edit flow.
 export function defaultRequestHandlers(
   apiVersion: string,
   executor: () => Executor,
@@ -118,6 +120,7 @@ export function defaultRequestHandlers(
   flags: FlagEnvironment,
   documents: DocumentCreateEnvironment,
   updates: DocumentUpdateEnvironment,
+  characters: CharacterCreateEnvironment = NO_CHARACTERS,
 ): RequestHandler[] {
   return [
     createPingHandler(apiVersion) as RequestHandler,
@@ -129,5 +132,6 @@ export function defaultRequestHandlers(
     createFlagHandler(flags) as RequestHandler,
     createDocumentCreateHandler(documents) as RequestHandler,
     createDocumentUpdateHandler(updates) as RequestHandler,
+    createCharacterCreateHandler(characters) as RequestHandler,
   ];
 }

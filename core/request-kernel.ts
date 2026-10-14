@@ -67,6 +67,10 @@ export interface RequestHandler<P = unknown> {
   // payload, so the rights per module and user can be decided before `run`. A handler that acts on a document it does
   // not name here would slip past the rights that depend on the target.
   targets?(payload: P): readonly string[];
+  // Additional handler-specific authorization after the common rights gate.
+  // It is for a narrow policy that cannot be expressed by document targets.
+  // A refusal is returned as not-permitted and `run` is not called.
+  authorize?(payload: P, context: RequestContext): Promise<RightsVerdict> | RightsVerdict;
   run(payload: P, context: RequestContext): Promise<JsonValue>;
 }
 
@@ -178,6 +182,9 @@ export function createRequestKernel(
     if (handler.targets !== undefined && typeof handler.targets !== "function") {
       throw new Error(`request handler "${handler.type}" must give its targets as a function`);
     }
+    if (handler.authorize !== undefined && typeof handler.authorize !== "function") {
+      throw new Error(`request handler "${handler.type}" must give its authorize check as a function`);
+    }
     if (byType.has(handler.type)) {
       throw new Error(`request handler "${handler.type}" is defined twice`);
     }
@@ -244,7 +251,14 @@ export function createRequestKernel(
         if (!targets) return fail("handler-failed", `the targets of "${type}" are not a list of UUIDs`);
         const refused = await checkRights(caller.id, user, targets, handler.gmOnly === true);
         if (refused) return refused;
-        value = await handler.run(check.value, user ? { module: caller, user } : { module: caller });
+        const context = user ? { module: caller, user } : { module: caller };
+        if (handler.authorize) {
+          const verdict = await handler.authorize(check.value, context);
+          if (verdict?.ok !== true) {
+            return fail("not-permitted", typeof verdict?.detail === "string" ? verdict.detail : "the request is not permitted");
+          }
+        }
+        value = await handler.run(check.value, context);
       } catch (error) {
         return fail("handler-failed", describeError(error));
       }

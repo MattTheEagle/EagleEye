@@ -65,6 +65,7 @@ describe("createRequestKernel", () => {
       ["runsOn nowhere", [handler({ runsOn: "nowhere" as never })]],
       ["gmOnly as text", [handler({ gmOnly: "yes" as never })]],
       ["gmOnly as a number", [handler({ gmOnly: 1 as never })]],
+      ["authorize as text", [handler({ authorize: "yes" as never })]],
     ];
     for (const [name, handlers] of bad) {
       expect(() => createRequestKernel(registry, handlers), name).toThrow();
@@ -361,6 +362,33 @@ describe("RequestKernel rights", () => {
       expect(await kernel.execute(envelope()), name).toEqual({ ok: false, reason: "not-permitted", detail });
       expect(run, name).not.toHaveBeenCalled();
     }
+  });
+
+  it("runs a handler-specific authorization only after the common rights gate, and refuses without running", async () => {
+    const run = vi.fn(handler().run);
+    const authorize = vi.fn(() => ({ ok: false as const, detail: "special policy refused this request" }));
+    const rights = vi.fn(async () => allow);
+    const kernel = createRequestKernel(makeRegistry(), [handler({ run, authorize })], {
+      rights: { check: rights },
+      currentUser: () => ({ id: "player-1" }),
+    });
+
+    expect(await kernel.execute(envelope())).toEqual({
+      ok: false,
+      reason: "not-permitted",
+      detail: "special policy refused this request",
+    });
+    expect(rights).toHaveBeenCalledOnce();
+    expect(authorize.mock.calls[0]).toMatchObject(["HI", { module: { id: "mod-a" }, user: { id: "player-1" } }]);
+    expect(run).not.toHaveBeenCalled();
+  });
+
+  it("turns a throwing handler-specific authorization into handler-failed", async () => {
+    const run = vi.fn(handler().run);
+    const kernel = createRequestKernel(makeRegistry(), [handler({ run, authorize: () => { throw new Error("policy failed"); } })]);
+
+    expect(await kernel.execute(envelope())).toEqual({ ok: false, reason: "handler-failed", detail: "policy failed" });
+    expect(run).not.toHaveBeenCalled();
   });
 
   it("reports handler-failed without running the handler when targets throws or does not return a list of UUIDs, and refuses a targets that is not a function", async () => {

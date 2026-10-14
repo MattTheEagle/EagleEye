@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
+import { NO_CHARACTERS } from "./character-create";
 import { NO_COMPENDIUMS } from "./compendium-handlers";
 import { NO_DOCUMENTS } from "./document-create";
 import { NO_UPDATES } from "./document-update";
@@ -13,7 +14,7 @@ const MODULE: RegisteredModule = { id: "mod-a", title: "Module A", version: "1.0
 const GM: Executor = { userId: "gm-1", isGm: true };
 
 function find(type: string, executor: () => Executor = () => GM) {
-  const handler = defaultRequestHandlers(API, executor, NO_COMPENDIUMS, NO_IMPORTS, NO_SETTINGS, NO_FLAGS, NO_DOCUMENTS, NO_UPDATES).find((h) => h.type === type);
+  const handler = defaultRequestHandlers(API, executor, NO_COMPENDIUMS, NO_IMPORTS, NO_SETTINGS, NO_FLAGS, NO_DOCUMENTS, NO_UPDATES, NO_CHARACTERS).find((h) => h.type === type);
   if (!handler) throw new Error(`test setup: ${type} is missing`);
   return handler;
 }
@@ -123,8 +124,8 @@ describe("flightcontrol.targetping", () => {
 });
 
 describe("defaultRequestHandlers", () => {
-  it("offers exactly nine request types; the three that run on the Gamemaster's client and name no or a target are the proofs, compendium.create, compendium.import, setting.write, compendium.flag, document.create and document.update are for a Gamemaster or Assistant only", () => {
-    const handlers = defaultRequestHandlers(API, () => GM, NO_COMPENDIUMS, NO_IMPORTS, NO_SETTINGS, NO_FLAGS, NO_DOCUMENTS, NO_UPDATES);
+  it("offers exactly ten request types; character.create is a separately authorized Character Edit flow while the existing world writes remain Gamemaster or Assistant only", () => {
+    const handlers = defaultRequestHandlers(API, () => GM, NO_COMPENDIUMS, NO_IMPORTS, NO_SETTINGS, NO_FLAGS, NO_DOCUMENTS, NO_UPDATES, NO_CHARACTERS);
 
     expect(handlers.map((h) => [h.type, h.versions, h.runsOn ?? "caller"])).toEqual([
       ["flightcontrol.ping", [1], "caller"],
@@ -136,6 +137,7 @@ describe("defaultRequestHandlers", () => {
       ["compendium.flag", [1], "gm"],
       ["document.create", [1], "gm"],
       ["document.update", [1], "gm"],
+      ["character.create", [1], "gm"],
     ]);
     // A handler that runs with Gamemaster rights needs the Apply of its milestone; one that acts on documents names them.
     expect(handlers.filter((h) => h.runsOn === "gm").map((h) => h.type)).toEqual([
@@ -147,6 +149,7 @@ describe("defaultRequestHandlers", () => {
       "compendium.flag",
       "document.create",
       "document.update",
+      "character.create",
     ]);
     expect(handlers.filter((h) => h.targets !== undefined).map((h) => h.type)).toEqual([
       "flightcontrol.targetping",

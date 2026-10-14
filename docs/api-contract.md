@@ -1,6 +1,6 @@
 # Eagle Flight Control — API contract
 
-**API version:** `0.14.0`
+**API version:** `0.15.0`
 **Status:** development. Before `1.0.0` a minor version may break the API (see section 5).
 **Audience:** authors of Eagle modules. Flight Control does not integrate third-party modules. Registration by a
 third-party module is not a supported use; it cannot be prevented technically, and such a module would simply
@@ -15,7 +15,7 @@ its API object (section 1), which has five members:
 |---|---|---|
 | `version` | The API version of Flight Control (section 5). | `0.1.0` |
 | `registerModule` | Registers your module, so that it gets a tab in the hub, optionally with an Open button (sections 2 and 3). | `0.1.0`; `open` since `0.2.0` |
-| `request` | Asks Flight Control to do something. A request that needs the Gamemaster's rights runs on the Gamemaster's client, after the asking user has been confirmed, and the rights per module and user are checked before any request runs; a request type that changes the world is for a Gamemaster or Assistant only (section 4). | `0.3.0`; forwarding `0.4.0`; confirmation `0.5.0`; rights `0.6.0`; first type that changes data `0.8.0`; copying documents `0.9.0`; writing a setting `0.10.0`; flags `0.12.0`; creating documents `0.13.0`; updating documents `0.14.0` |
+| `request` | Asks Flight Control to do something. A request that needs the Gamemaster's rights runs on the Gamemaster's client, after the asking user has been confirmed, and the rights per module and user are checked before any request runs; a request type that changes the world is for a Gamemaster or Assistant only unless its milestone specifies a narrower player authorization (section 4). | `0.3.0`; forwarding `0.4.0`; confirmation `0.5.0`; rights `0.6.0`; first type that changes data `0.8.0`; copying documents `0.9.0`; writing a setting `0.10.0`; flags `0.12.0`; creating documents `0.13.0`; updating documents `0.14.0`; bounded character creation `0.15.0` |
 | `getRights` | Tells your module what the user of this client may do with it (section 4). | `0.6.0` |
 | `getSystemInfo` | Tells your module which game system runs and whether Flight Control was tested with its version (section 4). | `0.7.0` |
 
@@ -152,7 +152,7 @@ Hooks.once("setup", () => {
 
   const result = api.registerModule({
     id: "my-eagle-module",
-    apiVersion: "0.14.0",
+    apiVersion: "0.15.0",
     open: () => new MyModuleApp().render({ force: true }), // optional
   });
   if (!result.ok) {
@@ -193,7 +193,9 @@ never registers is unknown to Flight Control; Flight Control does not scan other
 ## 3. The hub
 
 The hub is a window with one tab per registered module that is active. It opens from a button in Foundry's module
-settings ("Open Eagle Flight Control") and is visible to the Gamemaster only.
+settings ("Open Eagle Flight Control"). A Gamemaster or Assistant sees the full hub described below. A non-privileged
+player sees a minimal branch with only the fixed **Create Player Character** action; it has no module tabs, settings,
+rights controls or general module opener.
 
 For your module the hub shows a tab titled with the `title` of your module manifest. The tab contains:
 
@@ -224,6 +226,9 @@ Changes made in the hub are validated (choices, number bounds) and saved with `g
 value is refused: the field shows the stored value again and a notification says why. Only the Gamemaster can save
 changes.
 
+The Player branch binds its one action to the registered module id `eagle-character-edit` internally. It does not read
+a module id from the DOM and reports a missing or failed opener only as an unavailable action.
+
 A module that has not registered, is not active, or was rejected (for example with `incompatible-api-version`) has
 no tab. With no registered modules the hub says so.
 
@@ -231,8 +236,7 @@ no tab. With no registered modules the hub says so.
 
 Once your module is registered, it can ask Flight Control to do things. All changes to Foundry data go through
 Flight Control, while your module keeps its own UI and logic. In this version Flight Control offers three request
-types as proofs that the channels and the rights work and one that changes Foundry data (`compendium.create`, see "Compendia"
-below); further request types come with the modules that need them.
+types as proofs, the existing world operations and the bounded `character.create` operation described below.
 
 ```js
 const result = await api.request({
@@ -241,7 +245,7 @@ const result = await api.request({
   payload: { echo: "hello" },
 });
 if (result.ok) {
-  console.log(result.value); // { apiVersion: "0.14.0", module: "my-eagle-module", echo: "hello" }
+  console.log(result.value); // { apiVersion: "0.15.0", module: "my-eagle-module", echo: "hello" }
 } else {
   console.warn(result.reason, result.detail);
 }
@@ -360,7 +364,10 @@ three levels:
   neither the Gamemaster nor the Assistant role, **whatever level the module has for that user**: a player with the level
   `own` or `all` gets `not-permitted` too. The check is the rights check, so it is binding where the request runs (on the
   Gamemaster's client, for the user who confirmed the request). A Gamemaster and an Assistant are not restricted by it.
-  Every request type that changes the world is marked so.
+  Every general request type that changes the world is marked so. A milestone may instead define a narrower
+  handler-specific authorization after this common gate; `character.create` is the one such bounded Character Edit
+  path in this version. It accepts a confirmed Player, Gamemaster or Assistant and still refuses unknown users and
+  every sender except Eagle Character Edit.
 - **Refusals** come as `not-permitted`; `detail` says which rule: `module "<id>" may not be used by this user`,
   `module "<id>" may act only on targets this user owns`, `this request may only be made by a Gamemaster or Assistant`,
   `the user of this request is not known`, `the rights could
@@ -381,13 +388,13 @@ if (result.ok) console.log(result.value.level); // "denied", "own" or "all"
   (`denied` when nothing is set). It reads the rights this client knows and never throws. The check at the request is
   what counts, not this answer. Call it from `ready` or later. Failures: `invalid-request` (not a non-empty string),
   `not-registered` (the module is not registered or not active), `internal-error`.
-- **Rules for request types:** a type that acts on documents names them, otherwise `own` cannot restrict it. A type that
+- **Rules for request types:** a type that acts on existing documents names them, otherwise `own` cannot restrict it. A type that
   belongs to one module has to state which modules may use it, because the rights are per module and `module` is only what
   the caller states; **no type of Flight Control belongs to a module**: they are Foundry operations that belong to Flight
   Control, and every registered module the Gamemaster has given a level may ask for them. A type that runs on the
   Gamemaster's client and changes data or hands out knowledge only the Gamemaster has says how in the design of its
-  milestone; every type that changes the world is `gmOnly` (see above). The proofs below do none of this; `compendium.create`
-  are described under "Compendia".
+  milestone; every general type that changes the world is `gmOnly` (see above). A targetless creation that admits a
+  Player must document its narrower authorization; `character.create` is described under "Character creation".
 - **What a type is:** one Foundry operation (create a compendium, later import or update documents), not one step of a
   module's feature. What a module wants (which compendium, which name, which version, which links to rewrite) is decided in
   the module; Flight Control only carries out the operation. A request names documents by UUID and never carries a
@@ -413,12 +420,47 @@ The user is a different matter for a forwarded request (see "Who asked").
 | `compendium.flag` | `1` | the Gamemaster's client | `{ pack, id, key, value }` (see "Flags") | `{ pack, id, key, changed }`; for a Gamemaster or Assistant only |
 | `document.create` | `1` | the Gamemaster's client | `{ target, id, data }` (see "Documents") | `{ target, created, uuid, id, name }`; for a Gamemaster or Assistant only |
 | `document.update` | `1` | the Gamemaster's client | `{ uuid, changes }` (see "Documents") | `{ uuid, changed }`; for a Gamemaster or Assistant only |
+| `character.create` | `1` | the Gamemaster's client | `{ name, operationId }` (see "Character creation") | `{ id, name, created }`; only a confirmed user of `eagle-character-edit` (Player, Gamemaster or Assistant) |
 
 Use `flightcontrol.ping` to check that the channel works, and `flightcontrol.gmping` to check that a request reaches
 the Gamemaster's client: for a player it answers with the Gamemaster's `userId` in `ranBy` and the player's own id in
 `askedBy`, or with `no-gm` if no Gamemaster is connected. Use `flightcontrol.targetping` to see the rights for own and
 foreign targets: with the level `own` it answers for a document the user owns and refuses every other with
 `not-permitted`; with `all` it answers for both.
+
+**Character creation** (since API `0.15.0`)
+
+`character.create` creates one World Actor of type `character` for the confirmed user who uses the registered
+`eagle-character-edit` module. It runs on the Gamemaster's client. The common rights level still applies to Players:
+`denied` stops their request, while `own` and `all` both reach the same narrow handler. Gamemaster and Assistant callers
+are admitted by their privileged role and do not need a player rights-table entry.
+
+```js
+const result = await api.request({
+  module: "eagle-character-edit",
+  type: "character.create",
+  version: 1,
+  payload: { name: "New hero", operationId: "AbCdEfGhIjKlMnOp" },
+});
+// { ok: true, value: { id: "AbCdEfGhIjKlMnOp", name: "New hero", created: true } }
+```
+
+The payload contains exactly the trimmed non-empty `name` (at most 200 characters) and a 16-character ASCII
+letter/digit `operationId`. Any other field, including owner, requester, user, role, type, uuid, target, data or flags,
+is rejected before a document is read or written. The server ignores client-selected Actor data: it sets `_id` to the
+operation id, `type` to `character`, `ownership.default` to `NONE`, and the marker
+`flags.eagle-character-edit.playerCreate` to version 1 with the requester and operation id. A Player create receives
+that confirmed Player as `OWNER`; a Gamemaster or Assistant create sets no direct Owner, so nobody becomes the Actor's
+explicit owner through this operation.
+
+The handler refuses a missing or unconfirmed requester, an unknown user, and any sender other than
+`eagle-character-edit`. A matching existing Actor with the same id, name, role-appropriate ownership and marker is
+answered with `created: false` and is not changed. Any other id collision is refused without returning its details.
+
+Concurrent requests for the same requester and operation id are coalesced on the active Gamemaster client; a competing
+create is accepted as a retry only after the exact marker and Owner checks pass. The Character Edit client stores the
+name/id pair before its first request, keeps it after timeout, disconnect or malformed failure, retries only that exact
+pair, and clears it after a matching success. If the local store is unavailable it sends nothing.
 
 **Compendia** (since API `0.8.0`)
 
@@ -724,6 +766,7 @@ Declare Flight Control as a required module:
   | `0.6.0` | `0.12.0` |
   | `0.7.0` | `0.13.0` |
   | `0.8.0` | `0.14.0` |
+  | `0.9.0` | `0.15.0` |
 
   The table gets a row for every module version that changes the API version.
 - **Texts and files:** Flight Control ships `lang/en.json` and lists it under `languages` in its manifest. A package
@@ -858,6 +901,10 @@ release build, module version `0.1.0`):
   object on a world Item, rejection of the structural paths `_id`, `_stats` and `type`, and a repeated equal request.
   Whether it reaches a document in a world compendium and whether an Assistant may use it remain unverified (unit
   tests and a simulation only);
+- the request type `character.create` (API `0.15.0`): whether the target world accepts a `character` Actor with the
+  role-appropriate ownership and marker, whether the Player settings entry renders the minimal branch, and whether
+  the relay and Foundry preserve the operation id through timeout, retry, collision and parallel creation (unit tests
+  and a simulation only);
 - what the hub does with a refused value: it resets the field and shows a notification (unit tests only; the number
   field of a slider limits a value typed above the maximum before the hub sees it, so this path cannot be triggered
   with such a field);
@@ -869,7 +916,7 @@ release build, module version `0.1.0`):
 
 ## 9. Not part of this version
 
-- Request types that read or change Foundry data other than `compendium.create`, `compendium.import`, `setting.write`, `compendium.flag`, `document.create` and `document.update`.
+- Request types that read or change Foundry data other than `compendium.create`, `compendium.import`, `setting.write`, `compendium.flag`, `document.create`, `document.update` and `character.create`.
   They will be added in later versions of this contract.
 - A limit on how many requests a client may send or have waiting (see "Forwarded requests" in section 4).
 
@@ -894,3 +941,4 @@ project in which a change was made; the earlier project documents use these name
 | `0.12.0` | Library milestone M8: the request type `compendium.flag` sets or removes a flag of the asking module on a document of a world compendium (its own namespace only); for a Gamemaster or Assistant only. |
 | `0.13.0` | Homebrew milestone M2: the request type `document.create` creates a document with given data at a given id, either in a world compendium or directly in the world's own collection (`Actor`, `Item`, `JournalEntry` or `RollTable`); the first request type that carries a document's data instead of naming an existing one by UUID, because there is nothing existing yet to reference; for a Gamemaster or Assistant only. |
 | `0.14.0` | Homebrew milestone M6: the request type `document.update` changes named fields (up to 50 dotted paths) of a document that already exists, named by UUID like every request type before `document.create`; for a Gamemaster or Assistant only. |
+| `0.15.0` | Character Edit milestone M4: the bounded request type `character.create` creates a server-shaped World Actor of type `character` for a confirmed `eagle-character-edit` user; strict name/operationId payload, Player Owner versus GM/Assistant no-Owner checks, retry idempotence and the Player-minimal hub branch. |

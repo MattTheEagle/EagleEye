@@ -1,6 +1,7 @@
 import type { ApiLogger } from "../core/eagle-api";
 import { buildHubModel, startModule } from "../core/hub-model";
 import type { ModuleRegistry, RegisteredModule } from "../core/module-registry";
+import { startPlayerCharacterCreate } from "../core/player-hub";
 import { applyRightsInput, listRights, type RightsHubSource, type RightsRow } from "../core/rights-hub";
 import type { RightsLevel } from "../core/rights-table";
 import { applySettingInput, listHubSettings, type HubSetting, type HubSettingsSource } from "../core/settings-hub";
@@ -26,6 +27,7 @@ const NAV_TEMPLATE = "templates/generic/tab-navigation.hbs";
 
 export interface HubContext {
   registry: ModuleRegistry;
+  isGm(): boolean;
   settings: HubSettingsSource;
   rights: RightsHubSource;
   text(key: string, data?: Record<string, string>): string;
@@ -44,6 +46,7 @@ function element<K extends keyof HTMLElementTagNameMap>(tag: K, text?: string): 
 // concatenated HTML strings. The class closes over its context, so registerMenu can construct it without arguments.
 export function createHubApplicationClass(context: HubContext) {
   async function onOpenModule(_event: PointerEvent, target: HTMLElement): Promise<void> {
+    if (!context.isGm()) return;
     const entry = context.registry.list().find((module) => module.id === target.dataset.moduleId);
     if (!entry) return;
     const result = await startModule(entry);
@@ -56,13 +59,19 @@ export function createHubApplicationClass(context: HubContext) {
     }
   }
 
+  async function onCreatePlayerCharacter(): Promise<void> {
+    if (context.isGm()) return;
+    const result = await startPlayerCharacterCreate(context.registry);
+    if (!result.ok) context.notify("error", context.text("EAGLEFLIGHTCONTROL.hub.notify.playerCreateUnavailable"));
+  }
+
   return class EagleHubApplication extends ApplicationV2 {
     static override DEFAULT_OPTIONS = {
       id: "eagle-flight-control-hub",
       // "standard-form" is the class Foundry's own form windows put on their content; it arranges the form groups.
       window: { title: "EAGLEFLIGHTCONTROL.hub.title", icon: "fa-solid fa-eye", resizable: true, contentClasses: ["standard-form"] },
       position: { width: 640 },
-      actions: { openModule: onOpenModule },
+      actions: { openModule: onOpenModule, createPlayerCharacter: onCreatePlayerCharacter },
     };
 
     // The settings currently shown, by "namespace.key" (the name of their input).
@@ -73,6 +82,7 @@ export function createHubApplicationClass(context: HubContext) {
     #rightsQueue: Promise<void> = Promise.resolve();
 
     protected override _prepareTabs(group: string): Record<string, Tab> {
+      if (!context.isGm()) return {};
       const model = buildHubModel(context.registry.list(), this.tabGroups[group]);
       this.tabGroups[group] = model.activeTabId;
       const tabs: Record<string, Tab> = {};
@@ -84,10 +94,19 @@ export function createHubApplicationClass(context: HubContext) {
     }
 
     protected override async _renderHTML(): Promise<HTMLElement> {
+      const root = element("div");
+      if (!context.isGm()) {
+        root.append(element("p", context.text("EAGLEFLIGHTCONTROL.hub.player.hint")));
+        const button = element("button", context.text("EAGLEFLIGHTCONTROL.hub.player.create"));
+        button.type = "button";
+        button.dataset.action = "createPlayerCharacter";
+        root.append(button);
+        return root;
+      }
+
       const modules = context.registry.list();
       const tabs = this._prepareTabs(TAB_GROUP);
       const activeId = this.tabGroups[TAB_GROUP] ?? null;
-      const root = element("div");
       const notEditable: string[] = [];
       this.#shown.clear();
 
