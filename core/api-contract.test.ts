@@ -106,7 +106,7 @@ describe("API contract: registration and requests", () => {
     const code = quoted(between(source("request-kernel"), "export type RequestFailure", "export type RequestResult"));
     const table = tableCodes(between(contract, "**Failure reasons of requests**", "Treat every reason you do not know"));
     const block = quoted(between(contract, "type RequestFailure", "type RequestResult"));
-    expect(code).toHaveLength(11);
+    expect(code).toHaveLength(12);
     expect(table).toEqual(code);
     expect(block).toEqual(code);
   });
@@ -369,7 +369,7 @@ describe("API contract: compendium.import", () => {
     expect(contract).toContain("| `0.9.0` | Library milestone M4:");
     expect(contract).toContain("- the request type `compendium.import` (API `0.9.0`)");
     const notPart = between(contract, "## 9. Not part of this version", "## 10. Change history");
-    expect(notPart).toContain("other than `compendium.create`, `compendium.import`, `setting.write`, `compendium.flag`, `document.create`, `document.update` and `character.create`");
+    expect(notPart).toContain("other than `compendium.create`, `compendium.import`, `setting.write`, `compendium.flag`, `document.create`, `document.update`, `character.create` and `character.update`");
   });
 });
 
@@ -483,7 +483,7 @@ describe("API contract: document.create", () => {
     expect(contract).toContain("| `0.13.0` | Homebrew milestone M2:");
     expect(contract).toContain("- the request type `document.create` (API `0.13.0`)");
     const notPart = between(contract, "## 9. Not part of this version", "## 10. Change history");
-    expect(notPart).toContain("other than `compendium.create`, `compendium.import`, `setting.write`, `compendium.flag`, `document.create`, `document.update` and `character.create`");
+    expect(notPart).toContain("other than `compendium.create`, `compendium.import`, `setting.write`, `compendium.flag`, `document.create`, `document.update`, `character.create` and `character.update`");
   });
 });
 
@@ -524,6 +524,6 @@ describe("API contract: document.update", () => {
     expect(contract).toContain("| `0.14.0` | Homebrew milestone M6:");
     expect(contract).toContain("- the request type `document.update` (API `0.14.0`)");
     const notPart = between(contract, "## 9. Not part of this version", "## 10. Change history");
-    expect(notPart).toContain("other than `compendium.create`, `compendium.import`, `setting.write`, `compendium.flag`, `document.create`, `document.update` and `character.create`");
+    expect(notPart).toContain("other than `compendium.create`, `compendium.import`, `setting.write`, `compendium.flag`, `document.create`, `document.update`, `character.create` and `character.update`");
   });
 });

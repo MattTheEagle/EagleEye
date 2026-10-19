@@ -4,9 +4,9 @@ Foundry-VTT-Modul **Eagle Flight Control**: die Schnittstelle zwischen den Eagle
 dem DnD-5e-System und Foundry VTT. Es ist das Kernmodul der Eagle Modules (siehe unten): Die anderen Module benutzen
 es, um Foundry-Daten zu ändern, und Flight Control selbst bietet einen Hub zum Einstellen und Starten der Eagle Module.
 
-**Stand:** Aktuelle Version `0.10.4` (API `0.15.0`, seit Eagle Character Edit M4: begrenzte
-`character.create`-Anlage für bestätigte Player, Gamemaster und Assistants; GM/Assistant-Anlagen
-setzen keine direkte Ownership). Vorerst nur für
+**Stand:** Aktuelle Version `0.11.0` (API `0.16.0`; zusätzlich zur begrenzten Character-Anlage gibt es seit
+Eagle Character Edit M8 `character.update` für revisionsgesicherte Änderungen an D&D-Fähigkeitswerten.
+Player benötigen OWNER, Gamemaster und Assistants ändern keine Ownership). Vorerst nur für
 Foundry v13 verfügbar.
 
 
@@ -15,6 +15,7 @@ Foundry v13 verfügbar.
 - **Anmeldung:** Ein Eagle Modul meldet sich bei Flight Control an, auf Wunsch mit einer Startfunktion.
 - **Hub:** Ein Fenster mit einer Registerkarte je angemeldetem, aktivem Eagle Modul: seine Einstellungen, ein Startknopf und, für den Spielleiter, die Rechte je Spieler.
 - **Anfragen:** Ein Modul bittet Flight Control, etwas zu tun. Braucht die Anfrage die Rechte des Spielleiters, führt dessen Client sie aus, nachdem der anfragende Spieler sie bestätigt hat.
+- **Sichere Charakteränderungen:** Character Edit kann ausschließlich die sechs D&D-Fähigkeitswerte mit Revision, Vorwert und wiederholbarer Operations-ID ändern.
 - **Rechte je Modul und Nutzer:** Der Spielleiter legt fest, welcher Spieler welches Modul benutzen darf (verboten, nur eigene Ziele, alle Ziele).
 - **Versionswächter:** Flight Control meldet, wenn das DnD-5e-System in einer Version läuft, mit der es nicht getestet wurde (getestet: `5.3.3`). Es sperrt dadurch nichts.
 

@@ -1,5 +1,6 @@
 import { createCompendiumHandler, type CompendiumEnvironment } from "./compendium-handlers";
 import { createCharacterCreateHandler, NO_CHARACTERS, type CharacterCreateEnvironment } from "./character-create";
+import { createCharacterUpdateHandler, NO_CHARACTER_UPDATES, type CharacterUpdateEnvironment } from "./character-update";
 import { createDocumentCreateHandler, type DocumentCreateEnvironment } from "./document-create";
 import { createDocumentUpdateHandler, type DocumentUpdateEnvironment } from "./document-update";
 import { createImportHandler, type ImportEnvironment } from "./document-import";
@@ -121,6 +122,7 @@ export function defaultRequestHandlers(
   documents: DocumentCreateEnvironment,
   updates: DocumentUpdateEnvironment,
   characters: CharacterCreateEnvironment = NO_CHARACTERS,
+  characterUpdates: CharacterUpdateEnvironment = NO_CHARACTER_UPDATES,
 ): RequestHandler[] {
   return [
     createPingHandler(apiVersion) as RequestHandler,
@@ -133,5 +135,6 @@ export function defaultRequestHandlers(
     createDocumentCreateHandler(documents) as RequestHandler,
     createDocumentUpdateHandler(updates) as RequestHandler,
     createCharacterCreateHandler(characters) as RequestHandler,
+    createCharacterUpdateHandler(characterUpdates) as RequestHandler,
   ];
 }

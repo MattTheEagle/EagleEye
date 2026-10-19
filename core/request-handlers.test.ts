@@ -124,7 +124,7 @@ describe("flightcontrol.targetping", () => {
 });
 
 describe("defaultRequestHandlers", () => {
-  it("offers exactly ten request types; character.create is a separately authorized Character Edit flow while the existing world writes remain Gamemaster or Assistant only", () => {
+  it("offers exactly eleven request types; both Character Edit flows are separately authorized while the existing generic world writes remain Gamemaster or Assistant only", () => {
     const handlers = defaultRequestHandlers(API, () => GM, NO_COMPENDIUMS, NO_IMPORTS, NO_SETTINGS, NO_FLAGS, NO_DOCUMENTS, NO_UPDATES, NO_CHARACTERS);
 
     expect(handlers.map((h) => [h.type, h.versions, h.runsOn ?? "caller"])).toEqual([
@@ -138,6 +138,7 @@ describe("defaultRequestHandlers", () => {
       ["document.create", [1], "gm"],
       ["document.update", [1], "gm"],
       ["character.create", [1], "gm"],
+      ["character.update", [1], "gm"],
     ]);
     // A handler that runs with Gamemaster rights needs the Apply of its milestone; one that acts on documents names them.
     expect(handlers.filter((h) => h.runsOn === "gm").map((h) => h.type)).toEqual([
@@ -150,11 +151,13 @@ describe("defaultRequestHandlers", () => {
       "document.create",
       "document.update",
       "character.create",
+      "character.update",
     ]);
     expect(handlers.filter((h) => h.targets !== undefined).map((h) => h.type)).toEqual([
       "flightcontrol.targetping",
       "compendium.import",
       "document.update",
+      "character.update",
     ]);
     // Only a type that changes the world is for a Gamemaster or Assistant only.
     expect(handlers.filter((h) => h.gmOnly === true).map((h) => h.type)).toEqual([

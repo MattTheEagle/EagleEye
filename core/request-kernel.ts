@@ -21,13 +21,26 @@ export type RequestFailure =
   | "no-gm"
   | "relay-timeout"
   | "relay-failed"
-  | "not-permitted";
+  | "not-permitted"
+  | "conflict";
 
 export type RequestResult =
   | { readonly ok: true; readonly value: JsonValue }
   | { readonly ok: false; readonly reason: RequestFailure; readonly detail: string };
 
 export type RequestFailureResult = Extract<RequestResult, { readonly ok: false }>;
+
+// A handler may deliberately return one of the narrow, public request failures below. Other
+// thrown values remain handler-failed so implementation details cannot accidentally become API.
+export class RequestExecutionError extends Error {
+  constructor(
+    readonly reason: "conflict" | "not-permitted",
+    detail: string,
+  ) {
+    super(detail);
+    this.name = "RequestExecutionError";
+  }
+}
 
 // The outcome of one check: the checked value, or the failure to hand back to the caller.
 export type Checked<T> = { readonly ok: true; readonly value: T } | { readonly ok: false; readonly failure: RequestFailureResult };
@@ -260,6 +273,7 @@ export function createRequestKernel(
         }
         value = await handler.run(check.value, context);
       } catch (error) {
+        if (error instanceof RequestExecutionError) return fail(error.reason, error.message);
         return fail("handler-failed", describeError(error));
       }
 

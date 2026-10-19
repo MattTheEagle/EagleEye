@@ -11,6 +11,7 @@ import { announceSystem, evaluateSystem } from "../core/system-guard";
 import { createHubApplicationClass } from "./hub-application";
 import { foundryCompendiumEnvironment } from "./compendium";
 import { foundryCharacterCreateEnvironment } from "./character-create";
+import { foundryCharacterUpdateEnvironment } from "./character-update";
 import { foundryDocumentCreateEnvironment } from "./document-create";
 import { foundryDocumentUpdateEnvironment } from "./document-update";
 import { foundryImportEnvironment } from "./document-import";
@@ -96,6 +97,7 @@ Hooks.once("init", () => {
       foundryDocumentCreateEnvironment(),
       foundryDocumentUpdateEnvironment(),
       foundryCharacterCreateEnvironment(),
+      foundryCharacterUpdateEnvironment(),
     );
     const kernel = createRequestKernel(registry, handlers, { currentUser: foundryCurrentUser, rights });
 
