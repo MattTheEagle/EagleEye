@@ -1,4 +1,4 @@
-export const EAGLE_API_VERSION = "0.16.0";
+export const EAGLE_API_VERSION = "0.16.1";
 
 export interface ParsedVersion {
   major: number;

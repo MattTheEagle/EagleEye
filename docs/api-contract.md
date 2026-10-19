@@ -1,6 +1,6 @@
 # Eagle Flight Control — API contract
 
-**API version:** `0.16.0`
+**API version:** `0.16.1`
 **Status:** development. Before `1.0.0` a minor version may break the API (see section 5).
 **Audience:** authors of Eagle modules. Flight Control does not integrate third-party modules. Registration by a
 third-party module is not a supported use; it cannot be prevented technically, and such a module would simply
@@ -15,7 +15,7 @@ its API object (section 1), which has five members:
 |---|---|---|
 | `version` | The API version of Flight Control (section 5). | `0.1.0` |
 | `registerModule` | Registers your module, so that it gets a tab in the hub, optionally with an Open button (sections 2 and 3). | `0.1.0`; `open` since `0.2.0` |
-| `request` | Asks Flight Control to do something. A request that needs the Gamemaster's rights runs on the Gamemaster's client, after the asking user has been confirmed, and the rights per module and user are checked before any request runs; a request type that changes the world is for a Gamemaster or Assistant only unless its milestone specifies a narrower player authorization (section 4). | `0.3.0`; forwarding `0.4.0`; confirmation `0.5.0`; rights `0.6.0`; first type that changes data `0.8.0`; copying documents `0.9.0`; writing a setting `0.10.0`; flags `0.12.0`; creating documents `0.13.0`; updating documents `0.14.0`; bounded character creation `0.15.0`; bounded character updates `0.16.0` |
+| `request` | Asks Flight Control to do something. A request that needs the Gamemaster's rights runs on the Gamemaster's client, after the asking user has been confirmed, and the rights per module and user are checked before any request runs; a request type that changes the world is for a Gamemaster or Assistant only unless its milestone specifies a narrower player authorization (section 4). | `0.3.0`; forwarding `0.4.0`; confirmation `0.5.0`; rights `0.6.0`; first type that changes data `0.8.0`; copying documents `0.9.0`; writing a setting `0.10.0`; flags `0.12.0`; creating documents `0.13.0`; updating documents `0.14.0`; bounded character creation `0.15.0`; bounded character updates `0.16.0`; stored-value comparison for character updates `0.16.1` |
 | `getRights` | Tells your module what the user of this client may do with it (section 4). | `0.6.0` |
 | `getSystemInfo` | Tells your module which game system runs and whether Flight Control was tested with its version (section 4). | `0.7.0` |
 
@@ -153,7 +153,7 @@ Hooks.once("setup", () => {
 
   const result = api.registerModule({
     id: "my-eagle-module",
-    apiVersion: "0.16.0",
+    apiVersion: "0.16.1",
     open: () => new MyModuleApp().render({ force: true }), // optional
   });
   if (!result.ok) {
@@ -246,7 +246,7 @@ const result = await api.request({
   payload: { echo: "hello" },
 });
 if (result.ok) {
-  console.log(result.value); // { apiVersion: "0.16.0", module: "my-eagle-module", echo: "hello" }
+  console.log(result.value); // { apiVersion: "0.16.1", module: "my-eagle-module", echo: "hello" }
 } else {
   console.warn(result.reason, result.detail);
 }
@@ -465,7 +465,7 @@ create is accepted as a retry only after the exact marker and Owner checks pass.
 name/id pair before its first request, keeps it after timeout, disconnect or malformed failure, retries only that exact
 pair, and clears it after a matching success. If the local store is unavailable it sends nothing.
 
-**Character updates** (since API `0.16.0`)
+**Character updates** (since API `0.16.0`; stored values are compared since `0.16.1`)
 
 `character.update` changes one or more D&D ability scores on an exact primary World Actor UUID. Its payload contains
 exactly `uuid`, a 16-character ASCII letter/digit `operationId`, a non-negative safe integer `revision`, and one to six
@@ -495,7 +495,10 @@ changes ownership. It writes only the selected ability value paths and
 `flags.eagle-character-edit.characterWrite`, whose version-1 marker holds the next revision and the last operation.
 
 Updates for one Actor are serialized. The revision and every current value must match `revision` and `from`; otherwise
-the result is `conflict` and nothing is written. An exact retry with the same requester, operation id and canonical
+the result is `conflict` and nothing is written. Every value here is the **stored** ability score, the value before
+Active Effects that the dnd5e sheet edits (`actor._source.system.abilities.<key>.value`). A value an Active Effect
+derives (a belt that raises Strength to 21) plays no part in the comparison, the retry check or the confirmation; read
+`from` from the stored data. The revision marker and the ownership are read from the stored data as well. An exact retry with the same requester, operation id and canonical
 intent returns `applied: false` after verifying the desired values. Parallel copies share one in-flight operation, so
 at most one write occurs. The Character Edit adapter stores this retry separately from character creation, keeps it
 after a transport-unknown result, and has no direct Foundry write fallback.
@@ -806,6 +809,7 @@ Declare Flight Control as a required module:
   | `0.8.0` | `0.14.0` |
   | `0.9.0` | `0.15.0` |
   | `0.11.0` | `0.16.0` |
+  | `0.11.1` | `0.16.1` |
 
   The table gets a row for every module version that changes the API version.
 - **Texts and files:** Flight Control ships `lang/en.json` and lists it under `languages` in its manifest. A package
@@ -946,7 +950,9 @@ release build, module version `0.1.0`):
   and a simulation only);
 - the request type `character.update` (API `0.16.0`): ownership authorization, exact World Actor resolution,
   compare-and-swap conflicts, retry markers, parallel coalescing and ownership preservation (unit tests and a
-  simulation only; the running-Foundry checks are the M8 Monitor gate);
+  simulation only; the running-Foundry checks are the M8 Monitor gate); since `0.16.1` the comparison of stored
+  values on a character whose ability score an Active Effect changes (unit tests only; the running-Foundry check is
+  the Character Edit M9 Monitor gate);
 - what the hub does with a refused value: it resets the field and shows a notification (unit tests only; the number
   field of a slider limits a value typed above the maximum before the hub sees it, so this path cannot be triggered
   with such a field);
@@ -985,3 +991,4 @@ project in which a change was made; the earlier project documents use these name
 | `0.14.0` | Homebrew milestone M6: the request type `document.update` changes named fields (up to 50 dotted paths) of a document that already exists, named by UUID like every request type before `document.create`; for a Gamemaster or Assistant only. |
 | `0.15.0` | Character Edit milestone M4: the bounded request type `character.create` creates a server-shaped World Actor of type `character` for a confirmed `eagle-character-edit` user; strict name/operationId payload, Player Owner versus GM/Assistant no-Owner checks, retry idempotence and the Player-minimal hub branch. |
 | `0.16.0` | Character Edit milestone M8: the bounded request type `character.update` changes only D&D ability scores of an exact primary World Character; Player OWNER versus GM/Assistant authorization, compare-and-swap revision and `from` checks, per-Actor serialization, exact retry markers and the new `conflict` failure. |
+| `0.16.1` | Character Edit milestone M9: `character.update` compares, retries and confirms the **stored** ability scores, revision marker and ownership (`_source`), not the values prepared by Active Effects; before, a write of an ability score that an Active Effect changed ended in `conflict` or was written but reported as failed. Same request, payload, result and failures; consumers of `0.16.0` stay compatible. |

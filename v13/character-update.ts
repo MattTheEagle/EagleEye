@@ -12,9 +12,7 @@ interface RawActor {
   id?: unknown;
   uuid?: unknown;
   type?: unknown;
-  system?: unknown;
-  ownership?: unknown;
-  flags?: unknown;
+  _source?: unknown;
   testUserPermission?: (user: unknown, permission: string) => boolean;
   update?: (changes: Record<string, unknown>) => Promise<unknown>;
 }
@@ -36,19 +34,22 @@ function worldActor(uuid: string): RawActor | undefined {
   return actor?.id === id && actor.uuid === uuid ? actor : undefined;
 }
 
+// Reads the stored source data, not the prepared Actor: Active Effects change actor.system (a belt can raise Strength
+// to 21) but never the stored value that the update writes and the dnd5e sheet edits. Comparing and confirming the
+// prepared value made every write of an effect-modified ability a conflict or an unconfirmed write (milestone M9).
 function snapshot(actor: RawActor): CharacterUpdateRecord {
   if (typeof actor.id !== "string" || typeof actor.uuid !== "string" || typeof actor.type !== "string") {
     throw new Error("Foundry did not return a readable Actor");
   }
-  const system = object(actor.system);
-  const rawAbilities = object(system?.abilities);
-  const ownership = jsonSnapshot(actor.ownership);
+  const source = object(actor._source);
+  const rawAbilities = object(object(source?.system)?.abilities);
+  const ownership = object(source?.ownership) ? jsonSnapshot(source!.ownership) : undefined;
   if (!rawAbilities || typeof ownership !== "object" || ownership === null || Array.isArray(ownership)) {
     throw new Error("Foundry did not return readable character data");
   }
   const abilities = {} as Record<AbilityKey, unknown>;
   for (const key of ABILITY_KEYS) abilities[key] = object(rawAbilities[key])?.value;
-  const moduleFlags = object(object(actor.flags)?.["eagle-character-edit"]);
+  const moduleFlags = object(object(source?.flags)?.["eagle-character-edit"]);
   return {
     id: actor.id,
     uuid: actor.uuid,

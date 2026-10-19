@@ -23,8 +23,8 @@ describe("parseVersion", () => {
 });
 
 describe("EAGLE_API_VERSION", () => {
-  it("is 0.16.0, the version of the Character Edit milestone M8 of the API contract", () => {
-    expect(EAGLE_API_VERSION).toBe("0.16.0");
+  it("is 0.16.1, the version of the Character Edit milestone M9 of the API contract", () => {
+    expect(EAGLE_API_VERSION).toBe("0.16.1");
   });
 });
 
